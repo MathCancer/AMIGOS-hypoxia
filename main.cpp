@@ -134,7 +134,7 @@ int main( int argc, char* argv[] )
 
 	// for simplicity, set a pathology coloring function 
 	
-	std::vector<std::string> (*cell_coloring_function)(Cell*) = heterogeneity_coloring_function;
+	std::vector<std::string> (*cell_coloring_function)(Cell*) = AMIGOS_coloring_function;
 	
 	SVG_plot( "initial.svg" , microenvironment, 0.0 , t, cell_coloring_function );
 	

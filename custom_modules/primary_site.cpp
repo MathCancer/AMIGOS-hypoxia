@@ -105,14 +105,23 @@ void create_cell_types( void )
 
 	// set the default cell type to no phenotype updates 
 	
-	cell_defaults.functions.update_phenotype = tumor_cell_phenotype_with_oncoprotein; 
+	cell_defaults.functions.update_phenotype = tumor_cell_phenotype; 
 	
 	cell_defaults.name = "cancer cell"; 
 	cell_defaults.type = 0; 
 	
 	// add custom data 
 	
-	cell_defaults.custom_data.add_variable( "oncoprotein" , "dimensionless", 1.0 ); 
+	std::vector<double> genes = { 1.0, 0.0 }; // RFP, GFP 
+	std::vector<double> proteins = {1.0, 0.0 }; // RFP, GFP; 
+	std::vector<double> degradation_rates = { 0.019 , 0.019 }; // degrade by 90% in 120 minutes 
+
+	std::vector<double> creation_rates = { 0.23 , 0.23 }; // 10 minute time scale 
+	
+	cell_defaults.custom_data.add_vector_variable( "genes" , "dimensionless", genes ); 
+	cell_defaults.custom_data.add_vector_variable( "proteins" , "dimensionless", proteins ); 
+	cell_defaults.custom_data.add_vector_variable( "creation_rates" , "1/min" , creation_rates ); 
+	cell_defaults.custom_data.add_vector_variable( "degradation_rates" , "1/min" , degradation_rates ); 
 	
 	return; 
 }
@@ -248,7 +257,7 @@ void setup_tissue( void )
 }
 
 // custom cell phenotype function to scale immunostimulatory factor with hypoxia 
-void tumor_cell_phenotype_with_oncoprotein( Cell* pCell, Phenotype& phenotype, double dt )
+void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
 	
@@ -265,12 +274,14 @@ void tumor_cell_phenotype_with_oncoprotein( Cell* pCell, Phenotype& phenotype, d
 	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
 	static int oncoprotein_i = pCell->custom_data.find_variable_index( "oncoprotein" ); 
 
+	
+	
 	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
 	
 	return; 
 }
 
-std::vector<std::string> heterogeneity_coloring_function( Cell* pCell )
+std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 {
 	static int oncoprotein_i = pCell->custom_data.find_variable_index( "oncoprotein" ); 
 	

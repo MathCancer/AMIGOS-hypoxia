@@ -12,6 +12,9 @@
 
 \usepackage{graphicx}
 
+\newcommand{\beqa}{\begin{eqnarray}}
+\newcommand{\eeqa}{\end{eqnarray}}
+
 \pagestyle{plain}
 
 \begin{document}
@@ -58,7 +61,55 @@ index & protein & notes \\
 
 Gene expression can be modeled in any way. Here, we set $G_1 =1$ if $\oxy < 10 \mmHg$. 
 
+\subsubsection{Nondimensionalization}
+Let $\overline{P}$ be the maximum protein level with $G = 1$. Then by equilibrium analysis, 
+$\overline{P} = \frac{\alpha}{\beta}$. If we nondimensionalize the main ODE form, we get 
+\beqa
+\frac{dP_i}{dt} & = & \beta_i \left( G_i - P_i \right). 
+\eeqa
+This functional form sucks, because it doesn't let us set the rate of reaching near $P_i \sim 1$ independently 
+of the decay rate. Blech!
+
+\subsubsection{Better model and nondimensionalization}
+Now, suppose that $P^*$ is a protein value where negative feedback reduces either transcription or synthesis. Then 
+\beqa
+\frac{ dP_i }{dt } & = & \alpha_i G_i \left( P_i^* - P_i \right) - \beta_i P_i. 
+\eeqa
+By equilibrium analysis, the maximum protein value is 
+\beqa
+\overline{P}_i & =& 
+\frac{\alpha_i P_i^*}{\alpha_i + \beta_i }
+\eeqa
+If we nondimensionalize by this, we get: 
+\beqa
+\frac{ dP_i }{dt} & = & 
+G_i \left( \alpha_i + \beta_i \right) - \left( \alpha_i G_i + \beta_i \right) P_i \nonumber \\
+& = & 
+G_i \alpha_i \left( 1 - P_i \right) + \beta_i \left( G_i - P_i \right) . 
+\eeqa
+Notice that in this form, $\alpha_i$ sets the rate of approaching the maximum protein expression (1) 
+when the gene is expressed, and $\beta_i$ sets the rate of decay. 
+
 \subsubsection{Parameter estimates}
+Let's suppose for now that it takes about 10 minutes to ramp up a protein level to 90\% of its 
+maximum value. Then in the absence of degradation, we have 
+\beqa
+\frac{dP_i}{dt} & \approx & G_i \alpha_i \left( 1 - P_i \right). 
+\eeqa
+So, if we want to reach $P_i = 0.9$ after $T_{S,i} = 10 \textrm{ min}$ time, then 
+\beqa
+\alpha_i &  =&  -\frac{ \ln{10} }{ T_{S,i} } \approx 0.23  \textrm{ min}^{-1}. 
+\eeqa
+Similarly, if $G_i = 0$, we can easily fit $\beta_i$ by a decay time scale $T_{D,i}$, defined 
+for us to be the time to degrade 90\% of the protein. Let's suppose for now $T_{D,i} = 120 \textrm{ min}$. 
+Then 
+\beqa
+\frac{dP_i}{dt} & \approx & - \beta_i  P_i  
+\eeqa
+and so 
+\beqa
+\beta_i & = & -\frac{ \ln{10} }{ T_{D,i} } \approx 0.019 ? \textrm{ min}^{-1}. 
+\eeqa
 
 
 
