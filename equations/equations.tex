@@ -4,6 +4,12 @@
 \usepackage{amssymb}
 \usepackage[letterpaper,margin=0.5in,bottom=0.75in]{geometry}
 
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\newcommand{\oxy}{  {\textrm{pO}_2} }
+\newcommand{\oxyS}[1]{ \textrm{pO}_{2\textrm{,#1}} }
+\newcommand{\mmHg}{\: \textrm{mmHg} }
+\newcommand{\micron}{\:\mu\textrm{m} }
+
 \usepackage{graphicx}
 
 \pagestyle{plain}
@@ -32,6 +38,28 @@ Q: In 10 mmHg, does RFP gene get snipped out immediately and GFP gene enabled, o
 \end{enumerate}
 
 \section{Model}
+
+\subsection{Gene - Protein network}
+We will model a set of genes $\vec{G}$ that encode proteins $\vec{P}$ with the following model: 
+\begin{eqnarray}
+\frac{ d P_i }{dt} & = & \alpha_i G_i - \beta_i P_i, \hspace{.25in} i = 1, 2, \ldots 
+\end{eqnarray}
+where $\alpha_i$ is a protein creation rate, and $\beta_i$ is a protein degradation rate. (Notice that this 
+skips modeling RNA transcription.) Here, we will model the following genes: \\
+
+\begin{center}
+\begin{tabular}{c|c|l}
+index & protein & notes \\
+ \hline 
+ 0 & RFP & default fluorescence \\
+ 1 & GFP & activated at $\oxy = 10 \mmHg $ 
+\end{tabular}
+\end{center}
+
+Gene expression can be modeled in any way. Here, we set $G_1 =1$ if $\oxy < 10 \mmHg$. 
+
+\subsubsection{Parameter estimates}
+
 
 
 \end{document}
