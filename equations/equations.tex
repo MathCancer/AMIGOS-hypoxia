@@ -111,6 +111,14 @@ and so
 \beta_i & = & -\frac{ \ln{10} }{ T_{D,i} } \approx 0.019 ? \textrm{ min}^{-1}. 
 \eeqa
 
+\subsubsection{Simple implicit numerical scheme}
+Suppose that $P_i^n = P_i( t_n ) = P_i ( t_0 + n \Delta t)$. Then 
+\beqa
+P^{n+1}_i 
+& = & 
+\frac{ P_i^n + \Delta t G_i^n \left( \alpha_i + \beta_i \right) }{ 1 + \Delta t \left( \alpha_i + \beta_i \right)}
+\eeqa
+
 
 
 \end{document}
