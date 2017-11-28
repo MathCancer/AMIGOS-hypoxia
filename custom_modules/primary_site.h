@@ -70,6 +70,8 @@ using namespace PhysiCell;
 // custom cell phenotype function to scale immunostimulatory factor with hypoxia 
 void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt ); 
 
+void oxygen_taxis_motility( Cell* pCell, Phenotype& phenotype, double dt ); 
+
 // set the tumor cell properties, then call the function 
 // to set up the tumor cells 
 void create_cell_types( void );

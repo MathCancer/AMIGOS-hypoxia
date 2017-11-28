@@ -49,12 +49,17 @@ class Coarse_Vasculature
 	
 	std::vector<double> vascular_substrate_densities; 
 	
+	// set to size of BioFVM, add VEGF to TME, check for O2 
+	// 
 	void sync_to_BioFVM( void ); 
 }; 
 
 extern Coarse_Vasculature coarse_vasculature; 
 
-void setup( void ); 
+void add_VEGF_to_BioFVM( void ); 
+void add_VEGF_to_cells( void ); 
+
+
 
 
 

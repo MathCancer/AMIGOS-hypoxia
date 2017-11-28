@@ -97,6 +97,14 @@ void create_cell_types( void )
 	cell_defaults.parameters.o2_proliferation_saturation = 38.0;  
 	cell_defaults.parameters.o2_reference = 38.0; 
 	
+	// set default motiltiy
+	cell_defaults.phenotype.motility.is_motile = false; 
+	cell_defaults.functions.update_migration_bias = oxygen_taxis_motility; 
+	cell_defaults.phenotype.motility.persistence_time = 15.0; 
+	cell_defaults.phenotype.motility.migration_bias = 0.5; 
+	cell_defaults.phenotype.motility.migration_speed = 0.5; 
+
+	
 	// set default uptake and secretion 
 	// oxygen 
 	cell_defaults.phenotype.secretion.secretion_rates[0] = 0; 
@@ -115,12 +123,14 @@ void create_cell_types( void )
 	std::vector<double> genes = { 1.0, 0.0 }; // RFP, GFP 
 	std::vector<double> proteins = {1.0, 0.0 }; // RFP, GFP; 
 	
-	double default_degradation_rate = 0.0077; // 90 minute half-life 
+	double default_degradation_rate = 4.8e-4; // 24 hour half-life 
+	// 0.0077; // 90 minute half-life 
 	// 0.019; // 90% degrades in 120 minutes 
 	
 	std::vector<double> degradation_rates = { default_degradation_rate , default_degradation_rate }; // degrade by 90% in 120 minutes 
 	
-	double default_production_rate = 0.0068; // 1.7 hours to reach 50% 
+	double default_production_rate = 0.0019; // 6 hours to reach 50% 
+	// 0.0068; // 1.7 hours to reach 50% 
 	// 0.23; // 10 minutes to reach 90% 
 	
 	std::vector<double> creation_rates = { default_production_rate , default_production_rate }; // 10 minute time scale 
@@ -143,7 +153,7 @@ void setup_microenvironment( void )
 	
 	// no gradients needed for this example 
 	
-	default_microenvironment_options.calculate_gradients = false; 
+	default_microenvironment_options.calculate_gradients = true; 
 	
 	// let BioFVM use oxygen as the default 
 	
@@ -309,6 +319,33 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	// set phenotype in response to temporary or permanent changes 
 	
+	// model 1
+	// if hypoxic, motile. 
+/*	
+	if( pO2 < hypoxic_switch )
+	{
+		phenotype.motility.is_motile = true; 
+	}
+	else
+	{
+		phenotype.motility.is_motile = false; 
+	}
+*/	
+	
+	// model 2
+	// if green, motile 
+	if( pCell->custom_data.vector_variables[proteins_i].value[green_i] > 0.5 )
+	{
+		phenotype.motility.is_motile = true; 
+	}
+	else
+	{
+		phenotype.motility.is_motile = false; 
+	}
+	
+	
+	
+	
 	return; 
 }
 
@@ -363,4 +400,14 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 	}	
 	
 	return output; 
+}
+
+void oxygen_taxis_motility( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	static int oxygen_i = pCell->get_microenvironment()->find_density_index( "oxygen" ); 
+	
+	phenotype.motility.migration_bias_direction = pCell->nearest_gradient( oxygen_i ); 
+	normalize( &(phenotype.motility.migration_bias_direction) ) ; 
+	
+	return; 
 }
