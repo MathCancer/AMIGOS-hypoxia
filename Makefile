@@ -43,7 +43,7 @@ PhysiCell_module_OBJECTS := PhysiCell_SVG.o PhysiCell_pathology.o PhysiCell_Mult
 
 # put your custom objects here (they should be in the custom_modules directory)
 
-PhysiCell_custom_module_OBJECTS := primary_site.o vascularization.o
+PhysiCell_custom_module_OBJECTS := primary_site.o # vascularization.o
 
 pugixml_OBJECTS := pugixml.o
 
