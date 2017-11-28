@@ -146,12 +146,6 @@ int main( int argc, char* argv[] )
 	std::ofstream report_file ("simulation_report.txt"); 	// create the data log file 
 	report_file<<"simulated time\tnum cells\tnum division\tnum death\twall time"<<std::endl;
 	
-	
-	coarse_vasculature.sync_to_BioFVM(); 
-	
-	return -1; 
-	
-	
 	// main loop 
 	
 	try 
