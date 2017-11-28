@@ -140,6 +140,8 @@ void create_cell_types( void )
 	cell_defaults.custom_data.add_vector_variable( "creation_rates" , "1/min" , creation_rates ); 
 	cell_defaults.custom_data.add_vector_variable( "degradation_rates" , "1/min" , degradation_rates ); 
 	
+	cell_defaults.custom_data.add_variable( "hypoxic memory" , "min" , 0.0 ); 
+	
 	return; 
 }
 
@@ -270,6 +272,8 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	static int red_i = 0; 
 	static int green_i = 1; 	
+
+	static int hypoxic_memory_i = pCell->custom_data.find_variable_index( "hypoxic memory" ); 
 	
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
 	
@@ -334,6 +338,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	// model 2
 	// if green, motile 
+/*	
 	if( pCell->custom_data.vector_variables[proteins_i].value[green_i] > 0.5 )
 	{
 		phenotype.motility.is_motile = true; 
@@ -342,6 +347,32 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = false; 
 	}
+*/
+	
+	// model 3
+	// if green, motile. but only 
+	
+	if( pO2 < hypoxic_switch )
+	{ 
+		pCell->custom_data[hypoxic_memory_i] += 3.0*dt; 
+	}
+	else
+	{
+		pCell->custom_data[hypoxic_memory_i] -= dt; 
+		if( pCell->custom_data[hypoxic_memory_i] < 0.0 )
+		{ 
+			pCell->custom_data[hypoxic_memory_i] = 0.0; 
+		}
+	}
+	if( pCell->custom_data.vector_variables[proteins_i].value[green_i] > 0.5 && pCell->custom_data[hypoxic_memory_i] > 0.0 )
+	{
+		phenotype.motility.is_motile = true; 
+	}
+	else
+	{
+		phenotype.motility.is_motile = false; 
+	}
+	
 	
 	
 	
