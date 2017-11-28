@@ -24,7 +24,7 @@ class Vascularization_Options
 	void sync_to_BioFVM( void ); // done 
 };
 
-extern Vascularization_Options vascular_options; 
+extern Vascularization_Options default_vascular_options; 
 
 class Vascular_Densities
 {
@@ -40,7 +40,7 @@ class Coarse_Vasculature
 {
  private:
  public: 
-	General_Mesh mesh; 
+	Cartesian_Mesh mesh; 
 	std::vector<Vascular_Densities> vascular_densities; 
 	
 	Vascular_Densities& operator()( std::vector<double> position );
