@@ -154,6 +154,14 @@ void setup_microenvironment( void )
 
 void setup_tissue( void )
 {
+	static int genes_i = 0; 
+	static int proteins_i =1; 
+	static int creation_rates_i = 2; 
+	static int degradation_rates_i = 3; 
+	
+	static int red_i = 0; 
+	static int green_i = 1; 	
+	
 	// place a cluster of tumor cells at the center 
 	
 	double cell_radius = cell_defaults.phenotype.geometry.radius; 
@@ -179,43 +187,49 @@ void setup_tissue( void )
 		{
 			pCell = create_cell(); // tumor cell 
 			pCell->assign_position( x , y , 0.0 );
+/*			
 			pCell->custom_data[0] = NormalRandom( 1.0, 0.33 );
 			if( pCell->custom_data[0] < 0.0 )
 			{ pCell->custom_data[0] = 0.0; }
 			if( pCell->custom_data[0] > 2.0 )
 			{ pCell->custom_data[0] = .0; }
+*/		
 			
 			if( fabs( y ) > 0.01 )
 			{
 				pCell = create_cell(); // tumor cell 
 				pCell->assign_position( x , -y , 0.0 );
+/*				
 				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
 				if( pCell->custom_data[0] < 0.0 )
 				{ pCell->custom_data[0] = 0.0; }
 				if( pCell->custom_data[0] > 2.0 )
 				{ pCell->custom_data[0] = .0; }
-				
+*/			
 			}
 			
 			if( fabs( x ) > 0.01 )
 			{ 
 				pCell = create_cell(); // tumor cell 
 				pCell->assign_position( -x , y , 0.0 );
+/*				
 				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
 				if( pCell->custom_data[0] < 0.0 )
 				{ pCell->custom_data[0] = 0.0; }
 				if( pCell->custom_data[0] > 2.0 )
 				{ pCell->custom_data[0] = .0; }
-				
+*/				
 				if( fabs( y ) > 0.01 )
 				{
 					pCell = create_cell(); // tumor cell 
 					pCell->assign_position( -x , -y , 0.0 );
+/*					
 					pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
 					if( pCell->custom_data[0] < 0.0 )
 					{ pCell->custom_data[0] = 0.0; }
 					if( pCell->custom_data[0] > 2.0 )
 					{ pCell->custom_data[0] = .0; }
+*/				
 				}
 			}
 			x += cell_spacing; 
@@ -226,39 +240,20 @@ void setup_tissue( void )
 		n++; 
 	}
 	
-	double sum = 0.0; 
-	double min = 9e9; 
-	double max = -9e9; 
-	for( int i=0; i < all_cells->size() ; i++ )
-	{
-		double r = (*all_cells)[i]->custom_data[0]; 
-		sum += r;
-		if( r < min )
-		{ min = r; } 
-		if( r > max )
-		{ max = r; }
-	}
-	double mean = sum / ( all_cells->size() + 1e-15 ); 
-	// compute standard deviation 
-	sum = 0.0; 
-	for( int i=0; i < all_cells->size(); i++ )
-	{
-		sum +=  ( (*all_cells)[i]->custom_data[0] - mean )*( (*all_cells)[i]->custom_data[0] - mean ); 
-	}
-	double standard_deviation = sqrt( sum / ( all_cells->size() - 1.0 + 1e-15 ) ); 
-	
-	std::cout << std::endl << "Oncoprotein summary: " << std::endl
-			  << "===================" << std::endl; 
-	std::cout << "mean: " << mean << std::endl; 
-	std::cout << "standard deviation: " << standard_deviation << std::endl; 
-	std::cout << "[min max]: [" << min << " " << max << "]" << std::endl << std::endl; 
-	
 	return; 
 }
 
 // custom cell phenotype function to scale immunostimulatory factor with hypoxia 
 void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
+	static int genes_i = 0; 
+	static int proteins_i =1; 
+	static int creation_rates_i = 2; 
+	static int degradation_rates_i = 3; 
+	
+	static int red_i = 0; 
+	static int green_i = 1; 	
+	
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
 	
 	// if cell is dead, don't bother with future phenotype changes. 
@@ -272,18 +267,53 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
 	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
-	static int oncoprotein_i = pCell->custom_data.find_variable_index( "oncoprotein" ); 
+	
+//	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
 
+	// set genes 
 	
+	static int oxygen_i = pCell->get_microenvironment()->find_density_index( "oxygen" ); 
+	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
+	static double hypoxic_switch = 10.0; 
+	
+	if( pO2 < hypoxic_switch )
+	{
+		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
+		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
+	}
+
+	// update the proteins
+	
+	for( int i=0; i < pCell->custom_data.vector_variables.size(); i++ )
+	{
+		double temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // alpha_i + beta_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n ( alpha_i + beta_i ); 
+		temp *= dt; // dt*G_i^n ( alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] += temp; // P_i = P_i + dt*G_i^n ( alpha_i + beta_i ); 
+		temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n * alpha_i 
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // G_i^n * alpha_i + beta_i 
+		temp *= dt; // dt*( G_i^n * alpha_i + beta_i ); 
+		temp += 1.0; // 1.0 + dt*( G_i^n * alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] /= temp; // P_i = ( P_i + dt*G_i^n ( alpha_i + beta_i ) ) / ( 1.0 + dt*( G_i^n * alpha_i + beta_i ) ); 
+	}
+	
+	// set phenotype in response to temporary or permanent changes 
 	
 	return; 
 }
 
 std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 {
-	static int oncoprotein_i = pCell->custom_data.find_variable_index( "oncoprotein" ); 
+	static int genes_i = 0; 
+	static int proteins_i =1; 
+	static int creation_rates_i = 2; 
+	static int degradation_rates_i = 3; 
+	
+	static int red_i = 0; 
+	static int green_i = 1; 
 	
 	// immune are black
 	std::vector< std::string > output( 4, "black" ); 
@@ -291,12 +321,14 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 	if( pCell->type == 1 )
 	{ return output; } 
 	
-	// live cells are green, but shaded by oncoprotein value 
+	// live cells are a combination of red and green 
 	if( pCell->phenotype.death.dead == false )
 	{
-		int oncoprotein = (int) round( 0.5 * pCell->custom_data[oncoprotein_i] * 255.0 ); 
+		int red   = (int) round( pCell->custom_data.vector_variables[proteins_i].value[red_i] ); 
+		int green = (int) round( pCell->custom_data.vector_variables[proteins_i].value[green_i] ); 
+
 		char szTempString [128];
-		sprintf( szTempString , "rgb(%u,%u,%u)", oncoprotein, oncoprotein, 255-oncoprotein );
+		sprintf( szTempString , "rgb(%u,0,%u)", red, green );
 		output[0].assign( szTempString );
 		output[1].assign( szTempString );
 
