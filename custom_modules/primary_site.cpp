@@ -114,9 +114,16 @@ void create_cell_types( void )
 	
 	std::vector<double> genes = { 1.0, 0.0 }; // RFP, GFP 
 	std::vector<double> proteins = {1.0, 0.0 }; // RFP, GFP; 
-	std::vector<double> degradation_rates = { 0.019 , 0.019 }; // degrade by 90% in 120 minutes 
-
-	std::vector<double> creation_rates = { 0.23 , 0.23 }; // 10 minute time scale 
+	
+	double default_degradation_rate = 0.0077; // 90 minute half-life 
+	// 0.019; // 90% degrades in 120 minutes 
+	
+	std::vector<double> degradation_rates = { default_degradation_rate , default_degradation_rate }; // degrade by 90% in 120 minutes 
+	
+	double default_production_rate = 0.0068; // 1.7 hours to reach 50% 
+	// 0.23; // 10 minutes to reach 90% 
+	
+	std::vector<double> creation_rates = { default_production_rate , default_production_rate }; // 10 minute time scale 
 	
 	cell_defaults.custom_data.add_vector_variable( "genes" , "dimensionless", genes ); 
 	cell_defaults.custom_data.add_vector_variable( "proteins" , "dimensionless", proteins ); 
@@ -145,7 +152,7 @@ void setup_microenvironment( void )
 	// set Dirichlet conditions 
 	
 	default_microenvironment_options.outer_Dirichlet_conditions = true;
-	default_microenvironment_options.Dirichlet_condition_vector[0] = 38; // normoxic conditions 
+	default_microenvironment_options.Dirichlet_condition_vector[0] = 60; // 38; // physioxic conditions 
 			
 	initialize_microenvironment(); 	
 
