@@ -324,11 +324,11 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 	// live cells are a combination of red and green 
 	if( pCell->phenotype.death.dead == false )
 	{
-		int red   = (int) round( pCell->custom_data.vector_variables[proteins_i].value[red_i] ); 
-		int green = (int) round( pCell->custom_data.vector_variables[proteins_i].value[green_i] ); 
+		int red   = (int) round( pCell->custom_data.vector_variables[proteins_i].value[red_i] * 255.0 ); 
+		int green = (int) round( pCell->custom_data.vector_variables[proteins_i].value[green_i] * 255.0); 
 
 		char szTempString [128];
-		sprintf( szTempString , "rgb(%u,0,%u)", red, green );
+		sprintf( szTempString , "rgb(%u,%u,0)", red, green );
 		output[0].assign( szTempString );
 		output[1].assign( szTempString );
 
