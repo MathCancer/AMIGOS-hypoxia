@@ -64,6 +64,8 @@
 #include "../core/PhysiCell.h"
 #include "../modules/PhysiCell_standard_modules.h" 
 
+#include "./vascularization.h" 
+
 using namespace BioFVM; 
 using namespace PhysiCell;
 

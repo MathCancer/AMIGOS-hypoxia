@@ -7,6 +7,8 @@ using namespace PhysiCell;
 #ifndef __PhysiCell_vascularization__
 #define __PhysiCell_vascularization__
 
+namespace PhysiCell{
+
 class Vascularization_Options
 {
  private:
@@ -17,9 +19,9 @@ class Vascularization_Options
 	
 	std::vector<double> vascular_substrate_densities; 
 	
-	Vascularization_Options(); 
+	Vascularization_Options(); // done
 	
-	void sync_to_BioFVM( void ); 
+	void sync_to_BioFVM( void ); // done 
 };
 
 extern Vascularization_Options vascular_options; 
@@ -31,7 +33,7 @@ class Vascular_Densities
 	double functional; 
 	double total; 
 	
-	Vascular_Densities(); 
+	Vascular_Densities(); // done 
 }; 
 
 class Coarse_Vasculature
@@ -42,8 +44,8 @@ class Coarse_Vasculature
 	std::vector<Vascular_Densities> vascular_densities; 
 	
 	Vascular_Densities& operator()( std::vector<double> position );
-	Vascular_Densities& operator()( int i );
-	Vascular_Densities& operator()( int i );
+	Vascular_Densities& operator()( int n );
+	Vascular_Densities& operator()( Cell* pCell );
 	
 	Coarse_Vasculature(); 
 	
@@ -62,5 +64,6 @@ void add_VEGF_to_cells( void );
 
 
 
+};
 
 #endif

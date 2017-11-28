@@ -165,7 +165,9 @@ void setup_microenvironment( void )
 	
 	default_microenvironment_options.outer_Dirichlet_conditions = true;
 	default_microenvironment_options.Dirichlet_condition_vector[0] = 60; // 38; // physioxic conditions 
-			
+		
+	
+		
 	initialize_microenvironment(); 	
 
 	return; 
@@ -325,7 +327,6 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	// model 1
 	// if hypoxic, motile. 
-/*	
 	if( pO2 < hypoxic_switch )
 	{
 		phenotype.motility.is_motile = true; 
@@ -334,7 +335,6 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = false; 
 	}
-*/	
 	
 	// model 2
 	// if green, motile 
@@ -350,8 +350,8 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 */
 	
 	// model 3
-	// if green, motile. but only 
-	
+	// if green, motile. but only for awhile
+/*	
 	if( pO2 < hypoxic_switch )
 	{ 
 		pCell->custom_data[hypoxic_memory_i] += 3.0*dt; 
@@ -372,10 +372,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = false; 
 	}
-	
-	
-	
-	
+*/	
 	
 	return; 
 }
