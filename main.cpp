@@ -102,6 +102,10 @@ int main( int argc, char* argv[] )
 	/* Microenvironment setup */ 
 	
 	setup_microenvironment(); 
+	
+	coarse_vasculature_setup();  // ANGIO setup here! 
+
+	
 
 	/* PhysiCell setup */ 
  	
@@ -147,10 +151,6 @@ int main( int argc, char* argv[] )
 	report_file<<"simulated time\tnum cells\tnum division\tnum death\twall time"<<std::endl;
 	
 	
-	coarse_vasculature.sync_to_BioFVM(); 
-	
-	return -1; 
-	
 	
 	// main loop 
 	
@@ -176,11 +176,16 @@ int main( int argc, char* argv[] )
 			}
 			// update the microenvironment
 			microenvironment.simulate_diffusion_decay( diffusion_dt );
+			
 			if( default_microenvironment_options.calculate_gradients )
 			{ microenvironment.compute_all_gradient_vectors(); }
 			
 			// run PhysiCell 
 			((Cell_Container *)microenvironment.agent_container)->update_all_cells(t);
+			
+			// add angiogenesis here??
+			
+			update_coarse_vasculature( diffusion_dt);  // ANGIO 
 			
 			t += diffusion_dt; 
 		}
