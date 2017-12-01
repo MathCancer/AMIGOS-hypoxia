@@ -45,10 +45,15 @@ class Coarse_Vasculature
 	Cartesian_Mesh mesh; 
 	std::vector<Vascular_Densities> vascular_densities; 
 	
+	Microenvironment* pMicroenvironment; 
+	
 	Vascular_Densities& operator()( std::vector<double> position ); // get densities neariest to (x,y,z)
 	Vascular_Densities& operator()( int n ); // done // get densities at vascular index n 
 	Vascular_Densities& operator()( int i, int j, int k ); // done // get densities at vascular index (i,j,k) 
 	Vascular_Densities& operator()( Cell* pCell ); // done // get densities at or near the cell's position 
+	
+	// later: add a function that figures out the coarse voxel index based on 
+	// fine voxel index (n) or fine voxel indices (i,j,k) 
 	
 	Coarse_Vasculature(); // done 
 	
@@ -61,6 +66,11 @@ class Coarse_Vasculature
 
 void coarse_vasculature_setup( void ); 
 void update_coarse_vasculature( double dt ); 
+
+void vascular_supply_function( Microenvironment* microenvironment, int voxel_index, std::vector<double>* write_here );
+void vascular_target_function( Microenvironment* microenvironment, int voxel_index, std::vector<double>* write_here );
+void vascular_uptake_function( Microenvironment* microenvironment, int voxel_index, std::vector<double>* write_here ); 
+
 
 
 extern Coarse_Vasculature coarse_vasculature; 
