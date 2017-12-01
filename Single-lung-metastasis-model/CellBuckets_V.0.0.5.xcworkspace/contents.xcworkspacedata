@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:snippets.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:snippets.hpp">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_agent_container.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_agent_container.h">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_basic_agent.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_basic_agent.h">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_matlab.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_matlab.h">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_mesh.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_mesh.h">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_microenvironment.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_microenvironment.h">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_MultiCellDS.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_MultiCellDS.h">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_solvers.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_solvers.h">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_utilities.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_utilities.h">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_vector.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM_vector.h">
+   </FileRef>
+   <FileRef
+      location = "group:BioFVM.h">
+   </FileRef>
+   <FileRef
+      location = "group:CB.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:CB.h">
+   </FileRef>
+   <FileRef
+      location = "group:Makefile">
+   </FileRef>
+   <FileRef
+      location = "group:cellshells_test/main_test_CellShells1.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:PhysiCell_SVG.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:PhysiCell_SVG.h">
+   </FileRef>
+</Workspace>

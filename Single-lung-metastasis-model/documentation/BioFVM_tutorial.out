@@ -1,0 +1,11 @@
+\BOOKMARK [1][-]{section.1}{Citing BioFVM}{}% 1
+\BOOKMARK [1][-]{section.2}{Preparing to use BioFVM}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Downloading BioFVM}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Supported platforms}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Including BioFVM in a project}{section.2}% 5
+\BOOKMARK [1][-]{section.3}{Your first BioFVM application: diffusion + point sources + point sinks}{}% 6
+\BOOKMARK [1][-]{section.4}{Second BioFVM application: diffusion+ bulk sources + bulk uptakes}{}% 7
+\BOOKMARK [1][-]{section.5}{Third BioFVM application: diffusion+ Dirichlet boundary conditions + bulk uptake}{}% 8
+\BOOKMARK [1][-]{section.6}{Convergence testing and scaling analysis}{}% 9
+\BOOKMARK [1][-]{section.7}{Matlab functions for postprocessing the outputs}{}% 10
+\BOOKMARK [1][-]{section.8}{Explicit solver}{}% 11
