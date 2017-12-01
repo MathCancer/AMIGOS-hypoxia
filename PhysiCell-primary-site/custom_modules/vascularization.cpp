@@ -170,15 +170,29 @@ void update_coarse_vasculature( double dt )
 	static double t_next_angio_update = 0.0 + default_vascular_options.angiogenesis_dt; 
 	
 	// tumor cell disruption of the vasculature (on longer time scale) 
+	
+	extern std::vector<Cell*> *all_cells; 
+	
+	static double degradation_rate_per_cell = 1e-5; 
+	static double temp = 1.0 + dt*degradation_rate_per_cell; 
+
+	
+	#pragma omp parallel for 
+	for( int i=0; i < (*all_cells).size() ; i++ )
+	{
+		Cell* pC = (*all_cells)[i]; 
+		coarse_vasculature( pC ).functional /= temp;  
+		
+	}
 
 	// simulate bulk sources and sinks 
 	microenvironment.simulate_bulk_sources_and_sinks( dt ); 
+	
 	
 	if( t_angio > t_next_angio_update )
 	{
 		std::cout << "angio update!" << std::endl; 
 		double dt_temp = t_angio - t_last_angio_update; 
-		
 		
 		// birth and death in the vasculature 
 		
