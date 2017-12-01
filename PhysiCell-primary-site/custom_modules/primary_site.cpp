@@ -103,7 +103,6 @@ void create_cell_types( void )
 	cell_defaults.phenotype.motility.persistence_time = 15.0; 
 	cell_defaults.phenotype.motility.migration_bias = 0.5; 
 	cell_defaults.phenotype.motility.migration_speed = 0.5; 
-
 	
 	// set default uptake and secretion 
 	// oxygen 
