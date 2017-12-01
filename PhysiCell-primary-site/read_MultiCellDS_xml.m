@@ -516,15 +516,15 @@ if( isempty( mylist ) == false )
                 i = 19; 
                 new_variable_index = 1; 
                 while( i <= max_label_index && custom_variables_done == false )
-                    mysize = int8( str2num( labels.item(i).getAttribute('size') ) ) 
-                    myindex = int8( str2num( labels.item(i).getAttribute('index')) )+1 
+                    mysize = int8( str2num( labels.item(i).getAttribute('size') ) ) ; 
+                    myindex = int8( str2num( labels.item(i).getAttribute('index')) )+1;  
                     
-                    newname = char(labels.item(i).getTextContent) 
-                    newname = strrep( newname, ' ', '_' ) % replace( newname, ' ', '_' ); 
+                    newname = char(labels.item(i).getTextContent) ; 
+                    newname = strrep( newname, ' ', '_' ); % replace( newname, ' ', '_' ); 
                     
-                    size(MAT)
-                    myindex
-                    myindex+mysize-1 
+%                     size(MAT)
+%                     myindex
+%                     myindex+mysize-1 
                     
                     newdata = MAT(myindex:myindex+mysize-1,:); 
                     if( mysize > 1 )
