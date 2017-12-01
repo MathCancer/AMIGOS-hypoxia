@@ -169,10 +169,8 @@ void update_coarse_vasculature( double dt )
 	static double t_last_angio_update = 0.0; 
 	static double t_next_angio_update = 0.0 + default_vascular_options.angiogenesis_dt; 
 	
-	// tumor cell disruption of the vasculature 
-	
-	
-	
+	// tumor cell disruption of the vasculature (on longer time scale) 
+
 	// simulate bulk sources and sinks 
 	microenvironment.simulate_bulk_sources_and_sinks( dt ); 
 	
