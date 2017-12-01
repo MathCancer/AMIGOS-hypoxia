@@ -166,7 +166,19 @@ void setup_microenvironment( void )
 	default_microenvironment_options.outer_Dirichlet_conditions = true;
 	default_microenvironment_options.Dirichlet_condition_vector[0] = 60; // 38; // physioxic conditions 
 		
+	// add ECM 
 	
+	Microenvironment* pME = get_default_microenvironment(); 
+	int ECM_i = pME->find_density_index( "ECM" ); 
+	if( ECM_i < 0 )
+	{
+		std::cout << "Adding ECM to the microenvironment ... " << std::endl; 
+		pME->add_density( "ECM", "dimensionless" , 0.0 , 0.0 ); 
+		ECM_i = pME->find_density_index( "ECM" ); 
+		
+		default_microenvironment_options.Dirichlet_condition_vector[ECM_i] = 1;  
+		default_microenvironment_options.Dirichlet_activation_vector[ECM_i] = false;
+	}
 		
 	initialize_microenvironment(); 	
 
