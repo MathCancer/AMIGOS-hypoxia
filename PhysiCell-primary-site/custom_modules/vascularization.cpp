@@ -248,8 +248,6 @@ void add_VEGF_to_cells( void );
 
 void vascular_supply_function( Microenvironment* microenvironment, int voxel_index, std::vector<double>* write_here )
 {
-	return; 
-
 	// use this syntax to access the jth substrate write_here
 	// (*write_here)[j]
 	// use this syntax to access the jth substrate in voxel voxel_index of microenvironment: 
