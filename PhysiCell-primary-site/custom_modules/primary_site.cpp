@@ -178,6 +178,8 @@ void setup_microenvironment( void )
 		default_microenvironment_options.Dirichlet_condition_vector[ECM_i] = 1;  
 		default_microenvironment_options.Dirichlet_activation_vector[ECM_i] = false;
 	}
+	
+	coarse_vasculature_setup(); // ANGIO 
 		
 	initialize_microenvironment(); 	
 

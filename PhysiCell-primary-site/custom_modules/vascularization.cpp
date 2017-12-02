@@ -75,7 +75,11 @@ void Coarse_Vasculature::sync_to_BioFVM( void )
 	if( oxygen_i < 0 )
 	{
 		std::cout << "Adding oxygen to the microenvironment ... " << std::endl; 
-		pMicroenvironment->add_density( "oxygen", "mmHg" , 1e5 , 0.1 ); 
+		
+		if( default_microenvironment_options.use_oxygen_as_first_field == true )
+		{ pMicroenvironment->set_density( 0 , "oxygen", "mmHg" , 1e5 , 0.1 ); std::cout << "??" << std::endl; } 
+		else
+		{ pMicroenvironment->add_density( "oxygen", "mmHg" , 1e5 , 0.1 ); } 
 		oxygen_i = pMicroenvironment->find_density_index( "oxygen" ); 
 		
 		default_microenvironment_options.Dirichlet_condition_vector[oxygen_i] = 38.0;  
@@ -143,9 +147,6 @@ void coarse_vasculature_setup( void )
 	pME->bulk_supply_target_densities_function = vascular_target_function;
 	pME->bulk_uptake_rate_function = vascular_uptake_function;
 	
-	
-	
-	
 	// USER EDITS TO default_vascular_options GO HERE!!!
 	
 	
@@ -173,7 +174,7 @@ void update_coarse_vasculature( double dt )
 	
 	extern std::vector<Cell*> *all_cells; 
 	
-	static double degradation_rate_per_cell = 1e-5; 
+	static double degradation_rate_per_cell = 1e-4; // 1e-5; 
 	static double temp = 1.0 + dt*degradation_rate_per_cell; 
 
 	
@@ -266,12 +267,20 @@ void vascular_supply_function( Microenvironment* microenvironment, int voxel_ind
 		setup_done = true; 
 	}
 	
-	// figure out which coarse voxel I live in 
+	// functional_vascular_density * source_rates * on_off 
 	
 	extern Coarse_Vasculature coarse_vasculature; 
+
+	for( int i=0 ; i < write_here->size() ; i++ )
+	{
+		(*write_here)[i] = coarse_vasculature( microenvironment->mesh.voxels[voxel_index].center ).functional;
+		(*write_here)[i] *= delivery_rate_vector[i];
+	}
+	return; 
+
 	
-	*(write_here) = delivery_rate_vector; // S_i = delivery_rate 
-	*(write_here) *= coarse_vasculature( microenvironment->mesh.voxels[voxel_index].center ).functional; // S_i = functional(i)*delivery_rate; 
+//	*(write_here) = delivery_rate_vector; // S_i = delivery_rate 
+//	*(write_here) *= coarse_vasculature( microenvironment->mesh.voxels[voxel_index].center ).functional; // S_i = functional(i)*delivery_rate; 
 	
 	return; 
 }
@@ -283,7 +292,13 @@ void vascular_target_function( Microenvironment* microenvironment, int voxel_ind
 	// use this syntax to access the jth substrate in voxel voxel_index of microenvironment: 
 	// microenvironment->density_vector(voxel_index)[j]
 	
-	(*write_here) = default_microenvironment_options.Dirichlet_condition_vector; 
+	extern Coarse_Vasculature coarse_vasculature; 
+	
+	for( int i=0 ; i < write_here->size() ; i++ )
+	{ (*write_here)[i] = coarse_vasculature.vascular_substrate_densities[i]; }
+	return; 
+	
+//	(*write_here) = default_microenvironment_options.Dirichlet_condition_vector; 
 
 	return; 
 }
@@ -291,9 +306,12 @@ void vascular_target_function( Microenvironment* microenvironment, int voxel_ind
 
 void vascular_uptake_function( Microenvironment* microenvironment, int voxel_index, std::vector<double>* write_here )
 {
-	static std::vector<double> uptake_rate_vector( 0.0 , microenvironment->number_of_densities() ); 
-	
-	(*write_here) = uptake_rate_vector; 
+//	static std::vector<double> uptake_rate_vector( 1.0 , microenvironment->number_of_densities() ); 
+
+	for( int i=0 ; i < write_here->size() ; i++ )
+	{ (*write_here)[i] = 0.0; } 
+		
+//	(*write_here) = uptake_rate_vector; 
 	return; 
 }
 

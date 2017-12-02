@@ -103,7 +103,7 @@ int main( int argc, char* argv[] )
 	
 	setup_microenvironment(); 
 	
-	coarse_vasculature_setup();  // ANGIO setup here! 
+	// coarse_vasculature_setup();  // ANGIO setup here! 
 
 	
 
