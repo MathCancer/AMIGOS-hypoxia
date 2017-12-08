@@ -359,6 +359,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	// set phenotype in response to temporary or permanent changes 
 	
+/*	
 	// model 1
 	// if hypoxic, motile. 
 	if( pO2 < phenotype_hypoxic_switch )
@@ -369,10 +370,9 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = false; 
 	}
-	
+*/	
 	// model 2
 	// if green, motile 
-/*	
 	if( pCell->custom_data.vector_variables[proteins_i].value[green_i] > 0.5 )
 	{
 		phenotype.motility.is_motile = true; 
@@ -381,7 +381,6 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = false; 
 	}
-*/
 	
 	// model 3
 	// if green, motile. but only for awhile
