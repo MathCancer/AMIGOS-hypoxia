@@ -71,6 +71,9 @@ void create_cell_types( void )
 	// for all runs 
 	SeedRandom(0); 
 	
+	int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
+	
 	// housekeeping 
 	
 	initialize_default_cell_definition();
@@ -106,9 +109,14 @@ void create_cell_types( void )
 	
 	// set default uptake and secretion 
 	// oxygen 
-	cell_defaults.phenotype.secretion.secretion_rates[0] = 0; 
-	cell_defaults.phenotype.secretion.uptake_rates[0] = 10; 
-	cell_defaults.phenotype.secretion.saturation_densities[0] = 38; 
+	cell_defaults.phenotype.secretion.secretion_rates[oxygen_i] = 0; 
+	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = 10; 
+	cell_defaults.phenotype.secretion.saturation_densities[oxygen_i] = 38; 
+	
+	// VEGF 
+	cell_defaults.phenotype.secretion.secretion_rates[VEGF_i] = 0; 
+	cell_defaults.phenotype.secretion.uptake_rates[VEGF_i] = 0; 
+	cell_defaults.phenotype.secretion.saturation_densities[VEGF_i] = 1.0; 
 
 	// set the default cell type to no phenotype updates 
 	
@@ -126,13 +134,14 @@ void create_cell_types( void )
 	// 0.0077; // 90 minute half-life 
 	// 0.019; // 90% degrades in 120 minutes 
 	
-	std::vector<double> degradation_rates = { default_degradation_rate , default_degradation_rate }; // degrade by 90% in 120 minutes 
+	std::vector<double> degradation_rates = { default_degradation_rate , default_degradation_rate }; 
 	
-	double default_production_rate = 0.0019; // 6 hours to reach 50% 
+	double default_production_rate = 4.8e-4; // 24 hour half ramp-up 
+	// 0.0019; // 6 hours to reach 50% 
 	// 0.0068; // 1.7 hours to reach 50% 
 	// 0.23; // 10 minutes to reach 90% 
 	
-	std::vector<double> creation_rates = { default_production_rate , default_production_rate }; // 10 minute time scale 
+	std::vector<double> creation_rates = { default_production_rate , default_production_rate }; 
 	
 	cell_defaults.custom_data.add_vector_variable( "genes" , "dimensionless", genes ); 
 	cell_defaults.custom_data.add_vector_variable( "proteins" , "dimensionless", proteins ); 

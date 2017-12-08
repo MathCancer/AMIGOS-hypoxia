@@ -51,6 +51,10 @@ class Coarse_Vasculature
 	Cartesian_Mesh mesh; 
 	std::vector<Vascular_Densities> vascular_densities; 
 	
+	std::vector<double> VEGF; 
+	std::vector<Vascular_Densities> net_vascular_density_fluxes; 
+	
+	
 	Microenvironment* pMicroenvironment; 
 	
 	Vascular_Densities& operator()( std::vector<double> position ); // get densities neariest to (x,y,z)
@@ -68,6 +72,8 @@ class Coarse_Vasculature
 	// set to size of BioFVM, add VEGF to TME, check for O2 
 	// 
 	void sync_to_BioFVM( void ); // done 
+	
+	void compute_coarse_VEGF( void ); 
 }; 
 
 void coarse_vasculature_setup( void ); 

@@ -51,6 +51,11 @@ Coarse_Vasculature::Coarse_Vasculature()
 	
 	blood_substrate_densities = default_vascular_options.blood_substrate_densities; 
 	
+	
+	VEGF.resize(1); 
+	net_vascular_density_fluxes.resize(1); 
+	
+	
 	pMicroenvironment = NULL; 
 	
 	return; 
@@ -125,6 +130,11 @@ void Coarse_Vasculature::sync_to_BioFVM( void )
 	// next, make sure the vascular densities are of the right size 
 
 	vascular_densities.resize( mesh.voxels.size() ); 
+	
+	// now, make sure that the angiogenesis helper variables have the right size 
+	
+	VEGF.resize( mesh.voxels.size() ); 
+	net_vascular_density_fluxes.resize( mesh.voxels.size() ); 
 
 	return; 
 }
@@ -140,6 +150,19 @@ Vascular_Densities& Coarse_Vasculature::operator()( int i, int j, int k )
 
 Vascular_Densities& Coarse_Vasculature::operator()( Cell* pCell )
 { return this->operator()( pCell->position ); }
+
+void Coarse_Vasculature::compute_coarse_VEGF( void )
+{
+	// if we're not synced to a microenvironment, then exit out 
+	if( pMicroenvironment == NULL )
+	{ return; }
+
+
+	
+	
+	return; 
+}
+
 
 void coarse_vasculature_setup( void )
 {
@@ -307,7 +330,6 @@ void vascular_target_function( Microenvironment* microenvironment, int voxel_ind
 	extern Vascular_Options default_vascular_options; 
 
 	for( int i=0 ; i < write_here->size() ; i++ )
-//	{ (*write_here)[i] = default_vascular_options.blood_substrate_densities[i]; }
 	{ (*write_here)[i] = coarse_vasculature.blood_substrate_densities[i]; }
 	return; 
 /*	
