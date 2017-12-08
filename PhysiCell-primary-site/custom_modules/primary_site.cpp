@@ -94,8 +94,8 @@ void create_cell_types( void )
 	
 	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
 	
-	cell_defaults.parameters.o2_proliferation_saturation = 38.0;  
-	cell_defaults.parameters.o2_reference = 38.0; 
+	cell_defaults.parameters.o2_proliferation_saturation =  38.0;  
+	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
 	
 	// set default motiltiy
 	cell_defaults.phenotype.motility.is_motile = false; 
@@ -163,7 +163,7 @@ void setup_microenvironment( void )
 	// set Dirichlet conditions 
 	
 	default_microenvironment_options.outer_Dirichlet_conditions = true;
-	default_microenvironment_options.Dirichlet_condition_vector[0] = 60; // 38; // physioxic conditions 
+	default_microenvironment_options.Dirichlet_condition_vector[0] = 90; 
 		
 	// add ECM 
 	

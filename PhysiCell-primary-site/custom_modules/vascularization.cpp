@@ -13,11 +13,14 @@ Vascular_Options::Vascular_Options()
 	
 	angiogenesis_dt = 60.0; 
 	
-	std::cout << __FUNCTION__ << std::endl; 
+	blood_substrate_densities.resize( 1 , 1.0 ); 
+	tissue_far_field_substrate_densities.resize( 1 , 1.0 ); 
 	
-	vascular_substrate_densities.resize( 1 , 1.0 ); 
+	blood_oxygen_tension = 38.0; 
+	tissue_far_field_oxygen_tension = 38.0;  
+	
+	degradation_rate_per_cell = degradation_rate_per_cell = 1e-4; // 1e-5; 
 
-	std::cout << __FUNCTION__ << std::endl; 
 
 	return; 
 }
@@ -28,7 +31,8 @@ void Vascular_Options::sync_to_BioFVM( void )
 	// make sure it has the right number of densities. 
 	// set them equal to the boundary conditions for BioFVM 
 	
-	vascular_substrate_densities = default_microenvironment_options.Dirichlet_condition_vector; 
+	blood_substrate_densities = default_microenvironment_options.Dirichlet_condition_vector; 
+	tissue_far_field_substrate_densities = default_microenvironment_options.Dirichlet_condition_vector; 
 
 	return; 
 }
@@ -44,7 +48,8 @@ Coarse_Vasculature::Coarse_Vasculature()
 {
 	mesh.resize(1,1,1) ; 
 	vascular_densities.resize(1); 
-	vascular_substrate_densities = default_vascular_options.vascular_substrate_densities; 
+	
+	blood_substrate_densities = default_vascular_options.blood_substrate_densities; 
 	
 	pMicroenvironment = NULL; 
 	
@@ -77,20 +82,20 @@ void Coarse_Vasculature::sync_to_BioFVM( void )
 		std::cout << "Adding oxygen to the microenvironment ... " << std::endl; 
 		
 		if( default_microenvironment_options.use_oxygen_as_first_field == true )
-		{ pMicroenvironment->set_density( 0 , "oxygen", "mmHg" , 1e5 , 0.1 ); std::cout << "??" << std::endl; } 
+		{ pMicroenvironment->set_density( 0 , "oxygen", "mmHg" , 1e5 , 0.1 ); } 
 		else
 		{ pMicroenvironment->add_density( "oxygen", "mmHg" , 1e5 , 0.1 ); } 
 		oxygen_i = pMicroenvironment->find_density_index( "oxygen" ); 
 		
-		default_microenvironment_options.Dirichlet_condition_vector[oxygen_i] = 38.0;  
+		default_microenvironment_options.Dirichlet_condition_vector[oxygen_i] = default_vascular_options.tissue_far_field_oxygen_tension;  
 		default_microenvironment_options.Dirichlet_activation_vector[oxygen_i] = true; 		
 	}
 	
 	// next, make sure the microenvironment has VEGF 
 	
 	int VEGF_i = pMicroenvironment->find_density_index( "VEGF" ); 
-	{
 	if( VEGF_i < 0 )
+	{
 		// 5.8 × 10−11 m2 s−1. // https://www.nature.com/articles/nprot.2012.051
 		
 		// decay 72h half-life : http://walter.deback.net/old/media/KohnLuque_etal_PhysBiol_2013.pdf 
@@ -115,7 +120,7 @@ void Coarse_Vasculature::sync_to_BioFVM( void )
 		
 	// set the substrate densities to the correct values 
 	
-	vascular_substrate_densities = default_vascular_options.vascular_substrate_densities;  
+	blood_substrate_densities = default_vascular_options.blood_substrate_densities;  
 
 	// next, make sure the vascular densities are of the right size 
 
@@ -148,8 +153,9 @@ void coarse_vasculature_setup( void )
 	pME->bulk_uptake_rate_function = vascular_uptake_function;
 	
 	// USER EDITS TO default_vascular_options GO HERE!!!
-	
-	
+
+	default_vascular_options.blood_oxygen_tension = 90; 
+	default_vascular_options.tissue_far_field_oxygen_tension = 90.0;  
 	
 	// END OF USER EDITS TO default_vascular_options
 	
@@ -174,9 +180,8 @@ void update_coarse_vasculature( double dt )
 	
 	extern std::vector<Cell*> *all_cells; 
 	
-	static double degradation_rate_per_cell = 1e-4; // 1e-5; 
-	static double temp = 1.0 + dt*degradation_rate_per_cell; 
-
+	// static double degradation_rate_per_cell = 1e-4; // 1e-5; 
+	static double temp = 1.0 + dt*default_vascular_options.degradation_rate_per_cell; 
 	
 	#pragma omp parallel for 
 	for( int i=0; i < (*all_cells).size() ; i++ )
@@ -187,7 +192,6 @@ void update_coarse_vasculature( double dt )
 
 	// simulate bulk sources and sinks 
 	microenvironment.simulate_bulk_sources_and_sinks( dt ); 
-	
 	
 	if( t_angio > t_next_angio_update )
 	{
@@ -253,9 +257,19 @@ void vascular_supply_function( Microenvironment* microenvironment, int voxel_ind
 	// (*write_here)[j]
 	// use this syntax to access the jth substrate in voxel voxel_index of microenvironment: 
 	// microenvironment->density_vector(voxel_index)[j]
+	
+	extern Vascular_Options default_vascular_options; 
+	extern Coarse_Vasculature coarse_vasculature; 
+	
+/*	
+	// DEBUG
+	for( int i=0 ; i < write_here->size() ; i++ )
+	{ (*write_here)[i] = 0.0; } 
+	return; 
+*/
 
 	// figure out which substrate get delivered to/from the vasculature 
-	static std::vector<double> delivery_rate_vector( 10.0 , microenvironment->number_of_densities() ); 
+	static std::vector<double> delivery_rate_vector( microenvironment->number_of_densities() , 1000.0 ); 
 	static bool setup_done = false; 
 	if( setup_done == false )
 	{
@@ -269,7 +283,7 @@ void vascular_supply_function( Microenvironment* microenvironment, int voxel_ind
 	
 	// functional_vascular_density * source_rates * on_off 
 	
-	extern Coarse_Vasculature coarse_vasculature; 
+
 
 	for( int i=0 ; i < write_here->size() ; i++ )
 	{
@@ -292,12 +306,18 @@ void vascular_target_function( Microenvironment* microenvironment, int voxel_ind
 	// use this syntax to access the jth substrate in voxel voxel_index of microenvironment: 
 	// microenvironment->density_vector(voxel_index)[j]
 	
-	extern Coarse_Vasculature coarse_vasculature; 
-	
+//	extern Coarse_Vasculature coarse_vasculature; 
+	extern Vascular_Options default_vascular_options; 
+
 	for( int i=0 ; i < write_here->size() ; i++ )
-	{ (*write_here)[i] = coarse_vasculature.vascular_substrate_densities[i]; }
+	{ (*write_here)[i] = default_vascular_options.blood_substrate_densities[i]; }
 	return; 
-	
+/*	
+	for( int i=0 ; i < write_here->size() ; i++ )
+	{ (*write_here)[i] = coarse_vasculature.blood_substrate_densities[i]; }
+	return; 
+*/	
+
 //	(*write_here) = default_microenvironment_options.Dirichlet_condition_vector; 
 
 	return; 
@@ -307,6 +327,12 @@ void vascular_target_function( Microenvironment* microenvironment, int voxel_ind
 void vascular_uptake_function( Microenvironment* microenvironment, int voxel_index, std::vector<double>* write_here )
 {
 //	static std::vector<double> uptake_rate_vector( 1.0 , microenvironment->number_of_densities() ); 
+
+	// DEBUG
+	for( int i=0 ; i < write_here->size() ; i++ )
+	{ (*write_here)[i] = 0.0; } 
+	return; 
+
 
 	for( int i=0 ; i < write_here->size() ; i++ )
 	{ (*write_here)[i] = 0.0; } 

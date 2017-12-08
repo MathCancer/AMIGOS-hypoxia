@@ -19,7 +19,13 @@ class Vascular_Options
 	
 	double angiogenesis_dt; 
 	
-	std::vector<double> vascular_substrate_densities; 
+	double degradation_rate_per_cell; 
+	
+	std::vector<double> blood_substrate_densities; 
+	std::vector<double> tissue_far_field_substrate_densities; 
+	
+	double blood_oxygen_tension; 
+	double tissue_far_field_oxygen_tension; 
 	
 	Vascular_Options(); // done
 	
@@ -57,7 +63,7 @@ class Coarse_Vasculature
 	
 	Coarse_Vasculature(); // done 
 	
-	std::vector<double> vascular_substrate_densities; 
+	std::vector<double> blood_substrate_densities; 
 	
 	// set to size of BioFVM, add VEGF to TME, check for O2 
 	// 
