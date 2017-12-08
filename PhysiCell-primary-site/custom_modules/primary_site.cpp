@@ -320,7 +320,6 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// set genes 
 	
-	static int oxygen_i = pCell->get_microenvironment()->find_density_index( "oxygen" ); 
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
 	static double FP_hypoxic_switch = 5.0; // 10.0; 
@@ -362,7 +361,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	// model 1
 	// if hypoxic, motile. 
-	if( pO2 < hypoxic_switch )
+	if( pO2 < phenotype_hypoxic_switch )
 	{
 		phenotype.motility.is_motile = true; 
 	}
