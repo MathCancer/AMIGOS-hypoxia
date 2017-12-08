@@ -209,9 +209,6 @@ void update_coarse_vasculature( double dt )
 		t_next_angio_update = t_angio + default_vascular_options.angiogenesis_dt; 
 	}
 	
-
-	
-	
 	t_angio += dt; 
 	
 	return; 
@@ -306,11 +303,12 @@ void vascular_target_function( Microenvironment* microenvironment, int voxel_ind
 	// use this syntax to access the jth substrate in voxel voxel_index of microenvironment: 
 	// microenvironment->density_vector(voxel_index)[j]
 	
-//	extern Coarse_Vasculature coarse_vasculature; 
+	extern Coarse_Vasculature coarse_vasculature; 
 	extern Vascular_Options default_vascular_options; 
 
 	for( int i=0 ; i < write_here->size() ; i++ )
-	{ (*write_here)[i] = default_vascular_options.blood_substrate_densities[i]; }
+//	{ (*write_here)[i] = default_vascular_options.blood_substrate_densities[i]; }
+	{ (*write_here)[i] = coarse_vasculature.blood_substrate_densities[i]; }
 	return; 
 /*	
 	for( int i=0 ; i < write_here->size() ; i++ )
