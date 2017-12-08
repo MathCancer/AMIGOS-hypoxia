@@ -105,7 +105,7 @@ void create_cell_types( void )
 	cell_defaults.functions.update_migration_bias = oxygen_taxis_motility; 
 	cell_defaults.phenotype.motility.persistence_time = 15.0; 
 	cell_defaults.phenotype.motility.migration_bias = 0.5; 
-	cell_defaults.phenotype.motility.migration_speed = 0.5; 
+	cell_defaults.phenotype.motility.migration_speed = 0.05; // 0.5 
 	
 	// set default uptake and secretion 
 	// oxygen 
@@ -157,7 +157,7 @@ void setup_microenvironment( void )
 {
 	// set domain parameters
 
-	default_microenvironment_options.X_range = {-1000, 1000}; 
+	default_microenvironment_options.X_range = {-2000, 2000}; 
 	default_microenvironment_options.Y_range = {-1000, 1000}; 
 	default_microenvironment_options.simulate_2D = true; 
 	
@@ -299,6 +299,9 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 	static int hypoxic_memory_i = pCell->custom_data.find_variable_index( "hypoxic memory" ); 
 	
+	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
+	
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
 	
 	// if cell is dead, don't bother with future phenotype changes. 
@@ -320,12 +323,22 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	static int oxygen_i = pCell->get_microenvironment()->find_density_index( "oxygen" ); 
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double hypoxic_switch = 10.0; 
+	static double FP_hypoxic_switch = 5.0; // 10.0; 
+	static double phenotype_hypoxic_switch = 9.8; // 
 	
-	if( pO2 < hypoxic_switch )
+	if( pO2 < FP_hypoxic_switch )
 	{
 		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
 		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
+	}
+	
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+	}
+	else
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
 	}
 
 	// update the proteins
