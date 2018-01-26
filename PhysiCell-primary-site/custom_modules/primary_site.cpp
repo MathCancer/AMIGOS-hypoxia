@@ -71,6 +71,9 @@ void create_cell_types( void )
 	// for all runs 
 	SeedRandom(0); 
 	
+	int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
+	
 	// housekeeping 
 	
 	initialize_default_cell_definition();
@@ -94,22 +97,26 @@ void create_cell_types( void )
 	
 	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
 	
-	cell_defaults.parameters.o2_proliferation_saturation = 38.0;  
-	cell_defaults.parameters.o2_reference = 38.0; 
+	cell_defaults.parameters.o2_proliferation_saturation =  38.0;  
+	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
 	
 	// set default motiltiy
 	cell_defaults.phenotype.motility.is_motile = false; 
 	cell_defaults.functions.update_migration_bias = oxygen_taxis_motility; 
 	cell_defaults.phenotype.motility.persistence_time = 15.0; 
 	cell_defaults.phenotype.motility.migration_bias = 0.5; 
-	cell_defaults.phenotype.motility.migration_speed = 0.5; 
-
+	cell_defaults.phenotype.motility.migration_speed = 0.05; // 0.5 
 	
 	// set default uptake and secretion 
 	// oxygen 
-	cell_defaults.phenotype.secretion.secretion_rates[0] = 0; 
-	cell_defaults.phenotype.secretion.uptake_rates[0] = 10; 
-	cell_defaults.phenotype.secretion.saturation_densities[0] = 38; 
+	cell_defaults.phenotype.secretion.secretion_rates[oxygen_i] = 0; 
+	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = 10; 
+	cell_defaults.phenotype.secretion.saturation_densities[oxygen_i] = 38; 
+	
+	// VEGF 
+	cell_defaults.phenotype.secretion.secretion_rates[VEGF_i] = 0; 
+	cell_defaults.phenotype.secretion.uptake_rates[VEGF_i] = 0; 
+	cell_defaults.phenotype.secretion.saturation_densities[VEGF_i] = 1.0; 
 
 	// set the default cell type to no phenotype updates 
 	
@@ -127,13 +134,14 @@ void create_cell_types( void )
 	// 0.0077; // 90 minute half-life 
 	// 0.019; // 90% degrades in 120 minutes 
 	
-	std::vector<double> degradation_rates = { default_degradation_rate , default_degradation_rate }; // degrade by 90% in 120 minutes 
+	std::vector<double> degradation_rates = { default_degradation_rate , default_degradation_rate }; 
 	
-	double default_production_rate = 0.0019; // 6 hours to reach 50% 
+	double default_production_rate = 4.8e-4; // 24 hour half ramp-up 
+	// 0.0019; // 6 hours to reach 50% 
 	// 0.0068; // 1.7 hours to reach 50% 
 	// 0.23; // 10 minutes to reach 90% 
 	
-	std::vector<double> creation_rates = { default_production_rate , default_production_rate }; // 10 minute time scale 
+	std::vector<double> creation_rates = { default_production_rate , default_production_rate }; 
 	
 	cell_defaults.custom_data.add_vector_variable( "genes" , "dimensionless", genes ); 
 	cell_defaults.custom_data.add_vector_variable( "proteins" , "dimensionless", proteins ); 
@@ -149,7 +157,7 @@ void setup_microenvironment( void )
 {
 	// set domain parameters
 
-	default_microenvironment_options.X_range = {-1000, 1000}; 
+	default_microenvironment_options.X_range = {-2000, 2000}; 
 	default_microenvironment_options.Y_range = {-1000, 1000}; 
 	default_microenvironment_options.simulate_2D = true; 
 	
@@ -164,7 +172,7 @@ void setup_microenvironment( void )
 	// set Dirichlet conditions 
 	
 	default_microenvironment_options.outer_Dirichlet_conditions = true;
-	default_microenvironment_options.Dirichlet_condition_vector[0] = 60; // 38; // physioxic conditions 
+	default_microenvironment_options.Dirichlet_condition_vector[0] = 90; 
 		
 	// add ECM 
 	
@@ -179,6 +187,8 @@ void setup_microenvironment( void )
 		default_microenvironment_options.Dirichlet_condition_vector[ECM_i] = 1;  
 		default_microenvironment_options.Dirichlet_activation_vector[ECM_i] = false;
 	}
+	
+	coarse_vasculature_setup(); // ANGIO 
 		
 	initialize_microenvironment(); 	
 
@@ -289,6 +299,9 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 	static int hypoxic_memory_i = pCell->custom_data.find_variable_index( "hypoxic memory" ); 
 	
+	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
+	
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
 	
 	// if cell is dead, don't bother with future phenotype changes. 
@@ -307,15 +320,24 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// set genes 
 	
-	static int oxygen_i = pCell->get_microenvironment()->find_density_index( "oxygen" ); 
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double hypoxic_switch = 10.0; 
+	static double FP_hypoxic_switch = 5.0; // 10.0; 
+	static double phenotype_hypoxic_switch = 9.8; // 
 	
-	if( pO2 < hypoxic_switch )
+	if( pO2 < FP_hypoxic_switch )
 	{
 		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
 		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
+	}
+	
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+	}
+	else
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
 	}
 
 	// update the proteins
@@ -337,9 +359,10 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	// set phenotype in response to temporary or permanent changes 
 	
+/*	
 	// model 1
 	// if hypoxic, motile. 
-	if( pO2 < hypoxic_switch )
+	if( pO2 < phenotype_hypoxic_switch )
 	{
 		phenotype.motility.is_motile = true; 
 	}
@@ -347,10 +370,9 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = false; 
 	}
-	
+*/	
 	// model 2
 	// if green, motile 
-/*	
 	if( pCell->custom_data.vector_variables[proteins_i].value[green_i] > 0.5 )
 	{
 		phenotype.motility.is_motile = true; 
@@ -359,7 +381,6 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = false; 
 	}
-*/
 	
 	// model 3
 	// if green, motile. but only for awhile

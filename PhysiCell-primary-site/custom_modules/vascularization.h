@@ -19,7 +19,13 @@ class Vascular_Options
 	
 	double angiogenesis_dt; 
 	
-	std::vector<double> vascular_substrate_densities; 
+	double degradation_rate_per_cell; 
+	
+	std::vector<double> blood_substrate_densities; 
+	std::vector<double> tissue_far_field_substrate_densities; 
+	
+	double blood_oxygen_tension; 
+	double tissue_far_field_oxygen_tension; 
 	
 	Vascular_Options(); // done
 	
@@ -45,6 +51,10 @@ class Coarse_Vasculature
 	Cartesian_Mesh mesh; 
 	std::vector<Vascular_Densities> vascular_densities; 
 	
+	std::vector<double> VEGF; 
+	std::vector<Vascular_Densities> net_vascular_density_fluxes; 
+	
+	
 	Microenvironment* pMicroenvironment; 
 	
 	Vascular_Densities& operator()( std::vector<double> position ); // get densities neariest to (x,y,z)
@@ -57,11 +67,13 @@ class Coarse_Vasculature
 	
 	Coarse_Vasculature(); // done 
 	
-	std::vector<double> vascular_substrate_densities; 
+	std::vector<double> blood_substrate_densities; 
 	
 	// set to size of BioFVM, add VEGF to TME, check for O2 
 	// 
 	void sync_to_BioFVM( void ); // done 
+	
+	void compute_coarse_VEGF( void ); 
 }; 
 
 void coarse_vasculature_setup( void ); 
