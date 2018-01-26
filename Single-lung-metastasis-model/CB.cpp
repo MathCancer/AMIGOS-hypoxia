@@ -33,7 +33,7 @@ Phenotype::Phenotype()
      motility = 135.0/60; // um^2/hr?
      spatial_mechanical_factor = 0.95; // Gives the percentage above maximum cell packing that cells can grow to (on the voxel level)
      spatial_proliferation_factor = 1.05; // Gives the percentage of maxium cell packing at which the cells start to spill into neighboring voxels;
-     base_secretion_rate = 1;  // Base/max AF secretion rate (dimensionless)
+     base_secretion_rate = 1.0;  // Base/max AF secretion rate (dimensionless)
      hypoxic_o2_threshold = 5.0/38.0; // Matches PC hypoxic threshold for breast cancer, oxygen well vasculartized equals 38 mmHg
      critical_o2_threshold = 2.5/38.0; // Matches PC critical for breast cancer, oxygen well vasculartized equals 38 mmHg
      cell_volume = (4/3)*3.1415926*10E3;  //
@@ -408,6 +408,42 @@ void Tissue::link_tumor_spheroid( double test_distance, double shared_surface_ar
     return;
 }
 
+void Tissue::spherical_geometry_linker (double dr, double tumor_radius )  // Seg fault - where and why?
+{
+    int number_of_voxels = tumor_radius/(dr);
+    double r_position;
+    double y_position = 0; // not being used
+    double z_position =0;  // not being used
+    double voxel_volume;
+    std::vector<double> normal_vector_i_to_j;
+    normal_vector_i_to_j.assign(3, 1.0); // not currently implimented
+    
+    for(int i=0; i<number_of_voxels; i++ )
+    {
+        r_position = i*dr+0.5*dr;
+        voxel_volume = 4.0/3.0*3.1415926*(pow(r_position+0.5*dr,3)-pow(r_position-0.5*dr,3));
+        tissue_mesh.add_voxel(r_position,y_position,z_position,voxel_volume);
+
+    }
+    
+    tissue_mesh.activate_voxel_links();
+    
+    for(int i=0; i<tissue_mesh.voxels.size()-1;i++)
+    {
+        
+        double shared_surface_area = pow((tissue_mesh.voxels[i].center[0] + 0.5*dr), 2) * 4 * 3.141592654;
+
+        tissue_mesh.link_voxels(tissue_mesh.voxels[i].mesh_index, tissue_mesh.voxels[i+1].mesh_index, shared_surface_area, dr, normal_vector_i_to_j);
+        
+    }
+    
+    
+    std::cout<<"Domain of concentric spheres in use. Voxels and voxel links made."<<std::endl;
+    
+    return;
+    
+}
+    
 void Tissue::update_substrates( double dt )  // Needs targets, secretions, and decays for all substrates, cell types, and cell fractions.  Those values should go into the phenotype vector for the voxel.
 {
     for(int k=0; k<substrate_vectors.size(); k++)  // selects all individually stored substrate vectors (accesses all voxels)
@@ -424,12 +460,18 @@ void Tissue::update_substrates( double dt )  // Needs targets, secretions, and d
                                          voxel_population_vectors[k].phenotypes_vector[j].secretion_rate[i][1] * voxel_population_vectors[k].apoptotic_cell_counts[j] +
                                          voxel_population_vectors[k].phenotypes_vector[j].secretion_rate[i][2] * voxel_population_vectors[k].necrotic_cell_counts[j])/
                                          voxel_population_vectors[k].phenotypes_vector[j].max_cells;
+                
+                double temp_target =voxel_population_vectors[k].phenotypes_vector[j].substrate_target[i][0]; // May need to weight this by cell fraction type (L, A, N)
 
-                double temp_target = (voxel_population_vectors[k].phenotypes_vector[j].substrate_target[i][0] * voxel_population_vectors[k].live_cell_counts[j] +
-                                      voxel_population_vectors[k].phenotypes_vector[j].substrate_target[i][1] * voxel_population_vectors[k].apoptotic_cell_counts[j] +
-                                      voxel_population_vectors[k].phenotypes_vector[j].substrate_target[i][2] * voxel_population_vectors[k].necrotic_cell_counts[j])/
-                                      voxel_population_vectors[k].phenotypes_vector[j].max_cells;
+                // REMOVED 1-26-18 by JPM - can't be weighted by total cells in voxel
+                
+//                double temp_target = (voxel_population_vectors[k].phenotypes_vector[j].substrate_target[i][0] * voxel_population_vectors[k].live_cell_counts[j] +
+//                                      voxel_population_vectors[k].phenotypes_vector[j].substrate_target[i][1] * voxel_population_vectors[k].apoptotic_cell_counts[j] +
+//                                      voxel_population_vectors[k].phenotypes_vector[j].substrate_target[i][2] * voxel_population_vectors[k].necrotic_cell_counts[j])/
+//                                      voxel_population_vectors[k].phenotypes_vector[j].max_cells;
 
+                // FINISH REMOVAL
+                
                 double temp_uptake = (voxel_population_vectors[k].phenotypes_vector[j].uptake_rate[i][0] * voxel_population_vectors[k].live_cell_counts[j] +
                                       voxel_population_vectors[k].phenotypes_vector[j].uptake_rate[i][1] * voxel_population_vectors[k].apoptotic_cell_counts[j] +
                                       voxel_population_vectors[k].phenotypes_vector[j].uptake_rate[i][2] * voxel_population_vectors[k].necrotic_cell_counts[j])/
@@ -458,11 +500,18 @@ void Tissue::run_diffusion ( double dt, int substrate_index)  // Is there any re
         int voxel1_index = pV1->mesh_index;
         int voxel2_index = pV2->mesh_index;
         
-        double density1 = (substrate_vectors[voxel1_index].substrate_quantity[substrate_index])/tissue_mesh.voxels[voxel1_index].volume;  
-        double density2 = (substrate_vectors[voxel2_index].substrate_quantity[substrate_index])/tissue_mesh.voxels[voxel2_index].volume;
+        // REMOVED BY JPM 01.26.18 - values being stored are already densities - converting twice leads to problems on irregular mesh sizes.
         
-        change_in_substrate[i] = -dt*(density2 - density1)/dx*area*substrate_properties_vectors[i].diffusion_coefficients[0];
+//        double density1 = (substrate_vectors[voxel1_index].substrate_quantity[substrate_index])/tissue_mesh.voxels[voxel1_index].volume;
+//        double density2 = (substrate_vectors[voxel2_index].substrate_quantity[substrate_index])/tissue_mesh.voxels[voxel2_index].volume;
         
+        // FINISH REMOVAL
+        
+         // Units for calculation below - [T]*[stuff/[L]^3]/[L]*[L]^2/[T] = stuff
+        
+        change_in_substrate[i] = -dt*(substrate_vectors[voxel2_index].substrate_quantity[substrate_index] - substrate_vectors[voxel1_index].substrate_quantity[substrate_index])/dx*area*substrate_properties_vectors[i].diffusion_coefficients[0];
+        
+
     }
     
     for( int i=0; i<tissue_mesh.voxel_links.size(); i++)
@@ -472,8 +521,8 @@ void Tissue::run_diffusion ( double dt, int substrate_index)  // Is there any re
         int voxel1_index = pV1->mesh_index;
         int voxel2_index = pV2->mesh_index;
         
-        substrate_vectors[voxel1_index].substrate_quantity[substrate_index] = substrate_vectors[voxel1_index].substrate_quantity[substrate_index] - change_in_substrate[i];
-        substrate_vectors[voxel2_index].substrate_quantity[substrate_index] = substrate_vectors[voxel2_index].substrate_quantity[substrate_index] + change_in_substrate[i];
+        substrate_vectors[voxel1_index].substrate_quantity[substrate_index] = substrate_vectors[voxel1_index].substrate_quantity[substrate_index] - change_in_substrate[i]/tissue_mesh.voxels[voxel1_index].volume;
+        substrate_vectors[voxel2_index].substrate_quantity[substrate_index] = substrate_vectors[voxel2_index].substrate_quantity[substrate_index] + change_in_substrate[i]/tissue_mesh.voxels[voxel2_index].volume;
     }
     return;
 }
@@ -523,9 +572,11 @@ void Tissue::flux_vascular_density ( double dt )  // Will be moved to vasculatur
         // END 11/2
         
         // FROM 11/7 - Why would this not work on a sphere?  - well if the diffusion equations aren't right ... like if you accidently get a reversed gradient ... duh.  Fix that first.
+        
+        // Updated to include correct density calculation 1/6/18
 
-        J_ij = -fmax(0,(substrate_vectors[j].substrate_quantity[1] - substrate_vectors[i].substrate_quantity[1])/(1-0))*voxel_population_vectors[i].update_vascular_creep_rate( substrate_vectors[i].substrate_quantity[1])
-        *density1 + fmax(0,(substrate_vectors[i].substrate_quantity[1]-substrate_vectors[j].substrate_quantity[1])/(1-0))
+        J_ij = -fmax(0,(substrate_vectors[j].substrate_quantity[1]/tissue_mesh.voxels[j].volume - substrate_vectors[i].substrate_quantity[1]/tissue_mesh.voxels[i].volume))*voxel_population_vectors[i].update_vascular_creep_rate( substrate_vectors[i].substrate_quantity[1])
+        *density1 + fmax(0,substrate_vectors[i].substrate_quantity[1]/tissue_mesh.voxels[i].volume-substrate_vectors[j].substrate_quantity[1]/tissue_mesh.voxels[j].volume)
         *voxel_population_vectors[j].update_vascular_creep_rate( substrate_vectors[j].substrate_quantity[1])*density2;
         
         // END 11/7
@@ -686,13 +737,28 @@ void Tissue::write_substrate_properties_to_matlab( std::string filename )
     return;
 }
 
-void Tissue::write_all_to_matlab( std::string filename )
+void Tissue::write_all_to_matlab( std::string filename, double t )
 {
     int number_of_data_entries = voxel_population_vectors.size();
-    int size_of_each_datum = 8;
+    int size_of_each_datum = 10;
     
     FILE* fp = write_matlab_header( size_of_each_datum, number_of_data_entries,  filename, "voxels_populations" );  // Note - the size of datum needs to correspond exaectly to the lines of output or there is an error upon importing.
 
+//    for( int i=0; i < 1 ; i++ )
+//    {
+//
+//        fwrite( (char*) &( voxel_population_vectors[i].live_cell_counts.at(0) ) , sizeof(double) , 1 , fp );// Live tumor cells
+//        fwrite( (char*) &( voxel_population_vectors[i].apoptotic_cell_counts.at(0) ) , sizeof(double) , 1 , fp ); //  apoptotic tumor cells
+//        fwrite( (char*) &( voxel_population_vectors[i].necrotic_cell_counts[0] ) , sizeof(double) , 1 , fp );  //  necrotic tumor cells
+//        fwrite( (char*) &( voxel_population_vectors[i].live_cell_counts.at(1) ) , sizeof(double) , 1 , fp );  //  Vascular cells
+//        fwrite( (char*) &( voxel_population_vectors[i].apoptotic_cell_counts.at(1) ) , sizeof(double) , 1 , fp );  //  Vasculars - NOT BEING USED
+//        fwrite( (char*) &( voxel_population_vectors[i].necrotic_cell_counts[1] ) , sizeof(double) , 1 , fp );   //  Vasular field - NOT BEING USED
+//        fwrite( (char*) &( substrate_vectors[i].substrate_quantity.at(0) ) , sizeof(double) , 1 , fp );  //  Oxygen
+//        fwrite( (char*) &( substrate_vectors[i].substrate_quantity.at(1) ) , sizeof(double) , 1 , fp );  //  Anigogenic Factor
+//        fwrite( (char*) &(  t ) , sizeof(double) , 1 , fp );  // time in minutes
+//        std::cout<<i<<std::endl;
+//    }
+    
     for( int i=0; i < number_of_data_entries ; i++ )
     {
         
@@ -704,7 +770,9 @@ void Tissue::write_all_to_matlab( std::string filename )
         fwrite( (char*) &( voxel_population_vectors[i].necrotic_cell_counts[1] ) , sizeof(double) , 1 , fp );   //  Vasular field - NOT BEING USED
         fwrite( (char*) &( substrate_vectors[i].substrate_quantity.at(0) ) , sizeof(double) , 1 , fp );  //  Oxygen
         fwrite( (char*) &( substrate_vectors[i].substrate_quantity.at(1) ) , sizeof(double) , 1 , fp );  //  Anigogenic Factor
-
+        fwrite( (char*) &( voxel_population_vectors[i].phenotypes_vector[0].max_cells ) , sizeof(double) , 1 , fp );  // Max Cells
+        fwrite( (char*) &( t ) , sizeof(double) , 1 , fp );  // time in minutes
+//        fwrite( (char*) &(  formatted_minutes_to_DDHHMM( t ) ) , sizeof(double) , 1 , fp );  // time in minutes
     }
 
     fclose( fp );
@@ -719,7 +787,10 @@ void Tissue::write_population_svg (int population_number, double time, std::stri
     std::ofstream os( filename , std::ios::out );
     
     Write_SVG_start( os, height , width );
-
+//    Write_SVG_text( std::ostream& os, const char* str , double position_x, double position_y, double font_size , const char* color , const char* font);
+//    Write_SVG_text(  os, const char* formatted_minutes_to_DDHHMM( t ) , double 750, double 750, double 12 , const char* "rgb(0,0,0)" , const char* font);  // Needs work ...
+//    formatted_minutes_to_DDHHMM( t );
+    
     for(int i=0; i<tissue_mesh.voxels.size(); i++)
     {
         
@@ -740,7 +811,7 @@ void Tissue::write_population_svg (int population_number, double time, std::stri
         //                         voxel_color = tissue.blue_to_yellow_coloring( &tissue.voxel_population_vectors[i]);
         voxel_color = population_blue_to_yellow_coloring( population_number, &voxel_population_vectors[i]);
         Write_SVG_circle( os, tissue_mesh.voxels[i].center[0]+750, tissue_mesh.voxels[i].center[1]+750, 19, 0.5, "rgb(0,0,0)" , voxel_color[0]);
-        formatted_minutes_to_DDHHMM( time );
+
 //        Write_SVG_text( os, const char* str , double position_x, double position_y, double font_size , const char* color , const char* font);  - This probably needs the structure ...
         //
         //                         std::cout<<tissue.tissue_mesh.voxels[i].center[0]+750<<std::endl;

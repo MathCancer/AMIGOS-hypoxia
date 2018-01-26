@@ -178,6 +178,7 @@ class Tissue
      void make_tumor_spheroid_2D( double tumor_radius , double voxel_radius );  // Hexagonal lattice.  Close to working for 3D spheroid but needs work.
      void link_tumor_spheroid( double test_distance, double shared_surface_area ); // Linking the hexoganol lattice.  doe I neeesd to pass it a reference to the Voxels vector?
      void make_voxel_links( void ); // Done
+     void spherical_geometry_linker (double dr, double tumor_radius ); // Makes and links a domain of concentric spheres.
      void create_population_vectors (void);  // Done
      void create_substrate_vectors (void);  // Done
      void create_substrate_properties_vectors (void);  // Done
@@ -191,7 +192,7 @@ class Tissue
      void write_voxel_populations_to_matlab( std::string filename );  // In development ...
      void write_substrates_to_matlab( std::string filename );  // done
      void write_substrate_properties_to_matlab( std::string filename );  // Deon
-     void write_all_to_matlab( std::string filename );  // Done
+     void write_all_to_matlab( std::string filename, double time );  // Done
      void write_population_svg (int population_number, double time, std::string filename, double height, double width);  // done
      void write_vasculature_svg(std::string filename, double height, double width);
      void write_tissue_apoptotic_svg(std::string filename, double height, double width);

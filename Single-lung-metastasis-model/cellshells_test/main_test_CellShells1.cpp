@@ -111,18 +111,30 @@ int main( int argc, char* argv[] )
     // Perhaps the voxel constructor shoudl just be overloaded to create "tissue" voxels that use the population vectors.  Why not do that?
     
    Tissue tissue;
-    
+    double cell_radius = 6.5; // um
+    double cell_volume = 4.0/3.0* 3.141592654 * pow(cell_radius, 3);
     double voxel_radius = 20; // um - produces voxels containing 29 spherical voxels
     double test_distance = 2*voxel_radius;
-    double tumor_radius = 270; // um
+    double domain_radius = 270; // um
     double exchange_surface_area = 418; // um^2, surface of sphere of radius 20/12 (number of neighbhors on a
-    tissue.make_tumor_spheroid_2D( tumor_radius , voxel_radius );
     
-    tissue.tissue_mesh.activate_voxel_links();
+    // Below three commands are used to make and link a hexagonal lattice carved into a circular shape
     
-    // Link voxels
-
-    tissue.link_tumor_spheroid( test_distance, 418 );  // same radius as the voxel initialixation.  Surface area is voxel SA divided by 12 - number of neighbors in a closest packing 3-D hex lattice.
+//    tissue.make_tumor_spheroid_2D( domain_radius , voxel_radius ); // Makes a 2D spheroid (circle) composed of multiple spheres (a bit like a bunch of HDSs) connected in a hexagonal lattice
+//
+//    // Activates the links structure
+//
+//    tissue.tissue_mesh.activate_voxel_links();
+//
+//    // Link voxels
+//
+//    tissue.link_tumor_spheroid( test_distance, 418 );  // same radius as the voxel initialixation.  Surface area is voxel SA divided by 12 - number of neighbors in a closest packing 3-D hex lattice.
+    
+    // USE BELOW LINE TO MAKE A SPHERICAL DOMAIN
+    
+    tissue.spherical_geometry_linker ( voxel_radius,  domain_radius );  // Actual 3-D concentric spheres.  MAKES DOMAIN, LINKERS Structures, and LINKS all at once.
+    
+    // END Spherical domain 
     
     std::cout<<tissue.tissue_mesh.voxels.size()<<std::endl;
     std::cout<<tissue.tissue_mesh.voxel_links.size()<<std::endl;
@@ -135,7 +147,7 @@ int main( int argc, char* argv[] )
     breast_cancer.uptake_rate[0][0] = 10.2;  // O2 Update  - Live Cells
     breast_cancer.uptake_rate[0][1] = 0.0;  // Apop cells
     breast_cancer.uptake_rate[0][2] = 10.2;  // Necro cells
-    breast_cancer.substrate_target[1][0] = 1.0;  // AF factor max secretion rate
+//    breast_cancer.substrate_target[1][0] = 1.0;  // AF factor max secretion rate - not used in code for some reason - using the "base secretion rate" fro some reason.  
     
     vasculature.phenotype_ID = 1;
     vasculature.name = "Vasculature";
@@ -167,33 +179,45 @@ int main( int argc, char* argv[] )
     
     // These vectors store the base rates.  Environmental modifications made on the fly, just like the birth and death rates.  There is one three member vector (live, apop, necr) per substrate
     vasculature.secretion_rate[0][0]=9.9; // 1/time  Oxygen max secrection from vasculature
-    vasculature.substrate_target[0][0]=1; // 1/time (at times perhaps belongs in substrate/properties??
+    vasculature.substrate_target[0][0]=1.0; // stuff (at times perhaps belongs in substrate/properties??
 
     
-
+    // Initialize Population Structures with phenotype and physical (mesh) information
     
     for(int i=0; i<tissue.voxel_population_vectors.size(); i++)
      {
+         
+         // Tumor cells
+         
          tissue.voxel_population_vectors[i].add_population("Johns_cancer", breast_cancer);
+         
+         // Makes the max population per voxle proportional to voxel volume (as required by voxels that are not of equal volume, like shells)
+         tissue.voxel_population_vectors[i].phenotypes_vector[0].max_cells = tissue.tissue_mesh.voxels[i].volume/cell_volume;
+         std::cout<<tissue.tissue_mesh.voxels[i].volume<<std::endl;
+         std::cout<<tissue.tissue_mesh.voxels[i].volume/cell_volume<<std::endl;
+         // Vasculature
+         
          tissue.voxel_population_vectors[i].add_population("Vasculature", vasculature);
          
      }
     
     // Circle of vasculature and center voxel of "tumor"
     
-    tissue.voxel_population_vectors[84].live_cell_counts[0] = 16.0;
-
-    for(int i=0; i<tissue.tissue_mesh.voxels.size(); i++)
-    {
-        if((tissue.tissue_mesh.voxels[i].center[0]*tissue.tissue_mesh.voxels[i].center[0]
-            +tissue.tissue_mesh.voxels[i].center[1]*tissue.tissue_mesh.voxels[i].center[1])>(tumor_radius-36)*(tumor_radius-36))
-        {
-            tissue.voxel_population_vectors[i].live_cell_counts[1] = 1.0;
-        }
-    }
-    
-    // top and bottom of "sphere" voxels
+//    tissue.voxel_population_vectors[84].live_cell_counts[0] = 16.0;
 //
+//    for(int i=0; i<tissue.tissue_mesh.voxels.size(); i++)
+//    {
+//        if((tissue.tissue_mesh.voxels[i].center[0]*tissue.tissue_mesh.voxels[i].center[0]
+//            +tissue.tissue_mesh.voxels[i].center[1]*tissue.tissue_mesh.voxels[i].center[1])>(tumor_radius-36)*(tumor_radius-36))
+//        {
+//            tissue.voxel_population_vectors[i].live_cell_counts[1] = 1.0;
+//        }
+//    }
+//    
+    // End circle of vasculature initialization
+    
+    // Parallel and opposing lines cells and vasculature - works for circular domain with radius 270 um
+
 //    tissue.voxel_population_vectors[1].live_cell_counts[0] = 29.0;
 //    tissue.voxel_population_vectors[2].live_cell_counts[0] = 29.0;
 //    tissue.voxel_population_vectors[3].live_cell_counts[0] = 29.0;
@@ -207,8 +231,15 @@ int main( int argc, char* argv[] )
 //    tissue.voxel_population_vectors[158].live_cell_counts[1] = 1.0;
 //    tissue.voxel_population_vectors[162].live_cell_counts[1] = 1.0;
 //    tissue.voxel_population_vectors[161].live_cell_counts[1] = 1.0;
-//
-    // end of top-bottom spacing
+
+    // end of opposing-line spacing
+    
+    // Spherical Initialization Pattern = live cells in center of domain and vasculature in outer voxel
+    
+    tissue.voxel_population_vectors[0].live_cell_counts[0] = 29.0;
+    tissue.voxel_population_vectors[tissue.voxel_population_vectors.size()-1].live_cell_counts[1] = 0.5;
+    
+    // End spherical initialization
     
     int number_of_substrates = 2;
 
@@ -231,18 +262,18 @@ int main( int argc, char* argv[] )
         tissue.substrate_properties_vectors[i].add_diffusion_coefficient(10000);
     }
     
-    tissue.tissue_mesh.write_mesh_to_matlab("/Users/JohnMetzcar/Documents/CellShells_Output/mesh.mat");
-    tissue.tissue_mesh.write_links_to_matlab("/Users/JohnMetzcar/Documents/CellShells_Output/links.mat");
-    tissue.write_voxel_populations_to_matlab("/Users/JohnMetzcar/Documents/CellShells_Output/populations.mat");
-    tissue.write_substrates_to_matlab("/Users/JohnMetzcar/Documents/CellShells_Output/substrates.mat");
-    tissue.write_substrate_properties_to_matlab("/Users/JohnMetzcar/Documents/CellShells_Output/properties.mat");
+    tissue.tissue_mesh.write_mesh_to_matlab("./Output/mesh.mat");
+    tissue.tissue_mesh.write_links_to_matlab("./Output/links.mat");
+    tissue.write_voxel_populations_to_matlab("./Output/populations.mat");
+    tissue.write_substrates_to_matlab("./Output/substrates.mat");
+    tissue.write_substrate_properties_to_matlab("./Output/properties.mat");
     
     // Time, output, and simulation loop set up
-    
+   
     double t     = 0.0;
     double t_max = 1440.0*20;
     double dt    = 0.0025;//0.0025;
-    
+    std::cout<<tissue.formatted_minutes_to_DDHHMM( t )<<std::endl;
     double output_interval  = 60.0;  // how often you save data
     double next_output_time = 0.0;     // next time you save data
     double output_factor = output_interval/100; // Adjusts file output names for use with decimal output intervals (if file name would have a decimal in it, the file will be overwritten w/o this
@@ -258,26 +289,26 @@ int main( int argc, char* argv[] )
              filename = new char [1024];
 
 //             std::cout<<output_factor*next_output_time<<std::endl;
-             sprintf( filename, "/Users/JohnMetzcar/Documents/CellShells_Output/Output/output_%06.0f.mat" , next_output_time*output_factor );
+             sprintf( filename, "./Output/output_%06.0f.mat" , next_output_time*output_factor );
              
-             tissue.write_all_to_matlab(filename);  //  Tumor - live, ap, nec; Vas - live, ap, nec; Oxygen; AF
+             tissue.write_all_to_matlab(filename, t);  //  Tumor - live, ap, nec; Vas - live, ap, nec; Oxygen; AF
              
              double height = 1500;
              double width = 1500;
              
-             sprintf( filename, "/Users/JohnMetzcar/Documents/CellShells_Output/SVG/live_cells_%06.0f.svg" , next_output_time*output_factor );
+             sprintf( filename, "./SVG/live_cells_%06.0f.svg" , next_output_time*output_factor );
 
              tissue.write_population_svg(0, t, filename, height, width);  // Live Tumor
 //             tissue.write_tissue_apoptotic_svg(filename, height, width);  // apopotic tumor
 //             tissue.write_tissue_necrotic_svg(filename, height, width);  // necrotic tumor
              
-             sprintf( filename, "/Users/JohnMetzcar/Documents/CellShells_Output/SVG/vasculature_%06.0f.svg" , next_output_time*output_factor );
+             sprintf( filename, "./SVG/vasculature_%06.0f.svg" , next_output_time*output_factor );
              tissue.write_population_svg(1, t, filename, height, width);  // Vasculature - needs moved to its own thing
              
-             sprintf( filename, "/Users/JohnMetzcar/Documents/CellShells_Output/SVG/oxygen_%06.0f.svg" , next_output_time*output_factor );
+             sprintf( filename, "./SVG/oxygen_%06.0f.svg" , next_output_time*output_factor );
              tissue.write_subsrate_svg(0, t, filename, height, width);  // Oxygen
 
-             sprintf( filename, "/Users/JohnMetzcar/Documents/CellShells_Output/SVG/angiogenic_factor_%06.0f.svg" , next_output_time*output_factor );
+             sprintf( filename, "./SVG/angiogenic_factor_%06.0f.svg" , next_output_time*output_factor );
              tissue.write_subsrate_svg(1, t, filename, height, width);  // AF
              
              next_output_time += output_interval;

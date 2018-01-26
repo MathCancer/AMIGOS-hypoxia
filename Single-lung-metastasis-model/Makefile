@@ -112,7 +112,7 @@ clean:
 	rm -f ./examples/perf_test*
 
 data_cleanup:
-	rm *.xml *.svg *.mat
+	rm *.xml ./SVG/*.svg ./Output/*.mat
 	
 zip:
 	zip $$(date +%b_%d_%Y_%H%M).zip *.cpp *.h *akefile* *.xml *.tex *.bib *hanges*.txt config/*.xml *.txt
