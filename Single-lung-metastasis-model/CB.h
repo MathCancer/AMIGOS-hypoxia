@@ -31,8 +31,10 @@ class Phenotype
      double necrotic_death_rate;
      double necrotic_clearance_rate;
      double motility;
+     double aggretion_rate;
      double spatial_mechanical_factor;
      double spatial_proliferation_factor;
+     double spatial_aggregation_density;  // The lower threshold for cell movement - below this threshold, mass will try to move up gradients to a voxel containing more cells than them that is already above this threshold.
      double base_secretion_rate;
      double hypoxic_o2_threshold;
      double critical_o2_threshold;

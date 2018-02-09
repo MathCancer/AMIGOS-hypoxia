@@ -31,8 +31,10 @@ Phenotype::Phenotype()
      necrotic_death_rate = 1.0/(60*1800.0);//0.01*birth_rate;//0.5; //%1/(1*24);%1/(3*24.0); % 1.0/(3 * 24.0 ); % 3 day survival ;
      necrotic_clearance_rate = 1.0/(60*60.0*24.0);
      motility = 135.0/60; // um^2/hr?
+     aggretion_rate = 0.1 * motility; // um^2/hr??? - I hope not!  Needs to be um^2/min!!
      spatial_mechanical_factor = 0.95; // Gives the percentage above maximum cell packing that cells can grow to (on the voxel level)
      spatial_proliferation_factor = 1.05; // Gives the percentage of maxium cell packing at which the cells start to spill into neighboring voxels;
+     spatial_aggregation_density = 0.0; // Gives the percentage of maximum cell packing (% cell density) below which cells start to move up density gradients to other, more packed voxels.
      base_secretion_rate = 1.0;  // Base/max AF secretion rate (dimensionless)
      hypoxic_o2_threshold = 5.0/38.0; // Matches PC hypoxic threshold for breast cancer, oxygen well vasculartized equals 38 mmHg
      critical_o2_threshold = 2.5/38.0; // Matches PC critical for breast cancer, oxygen well vasculartized equals 38 mmHg

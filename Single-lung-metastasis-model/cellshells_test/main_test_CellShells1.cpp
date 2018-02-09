@@ -147,6 +147,7 @@ int main( int argc, char* argv[] )
     breast_cancer.uptake_rate[0][0] = 10.2;  // O2 Update  - Live Cells
     breast_cancer.uptake_rate[0][1] = 0.0;  // Apop cells
     breast_cancer.uptake_rate[0][2] = 10.2;  // Necro cells
+    breast_cancer.spatial_aggregation_density = 0.1; // Starting at 0.0.
 //    breast_cancer.substrate_target[1][0] = 1.0;  // AF factor max secretion rate - not used in code for some reason - using the "base secretion rate" fro some reason.  
     
     vasculature.phenotype_ID = 1;
