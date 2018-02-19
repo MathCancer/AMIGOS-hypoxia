@@ -242,6 +242,24 @@ int main( int argc, char* argv[] )
     
     // End spherical initialization
     
+    // Initialize above and below lower threshold
+    
+//    for(int i=0; i<tissue.tissue_mesh.voxels.size(); i++)
+//    {
+//        if(i%2==0)
+//        {
+//            tissue.voxel_population_vectors[i].live_cell_counts[0] = 0.05*29;
+//        }
+//        
+//        else
+//        {
+//            tissue.voxel_population_vectors[i].live_cell_counts[0] = 16.0;
+//        }
+//        
+//    }
+    
+    // End zigzag initialization
+    
     int number_of_substrates = 2;
 
     tissue.create_substrate_vectors();

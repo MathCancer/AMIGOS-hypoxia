@@ -610,7 +610,7 @@ void Tissue::flux_vascular_density ( double dt )  // Will be moved to vasculatur
 
     return;
 }
-    
+
 void Tissue::flux_cell_populations ( double dt )
 {
     std::vector<double> change_in_live_cell_population;
@@ -622,7 +622,7 @@ void Tissue::flux_cell_populations ( double dt )
     change_in_necrotic_cell_population.assign(tissue_mesh.voxel_links.size(), 0.0);
     
     // Calculate fluxes
-
+    
     for( int i=0; i<tissue_mesh.voxel_links.size(); i++)
     {
         Voxel* pV1 = tissue_mesh.voxel_links[i].pVoxel1;
@@ -631,32 +631,75 @@ void Tissue::flux_cell_populations ( double dt )
         double dx = tissue_mesh.voxel_links[i].center_to_center_distance;
         int voxel1_index = pV1->mesh_index;
         int voxel2_index = pV2->mesh_index;
-
+        
         double total_cells1 = (voxel_population_vectors[voxel1_index].live_cell_counts[0]+voxel_population_vectors[voxel1_index].apoptotic_cell_counts[0]+voxel_population_vectors[voxel1_index].necrotic_cell_counts[0]);
         double total_cells2 = (voxel_population_vectors[voxel2_index].live_cell_counts[0]+voxel_population_vectors[voxel2_index].apoptotic_cell_counts[0]+voxel_population_vectors[voxel2_index].necrotic_cell_counts[0]);
         double density1 = total_cells1/voxel_population_vectors[voxel1_index].phenotypes_vector[0].max_cells;
         double density2 = total_cells2/voxel_population_vectors[voxel2_index].phenotypes_vector[0].max_cells;
         
+        // Logical rules for contact inhibited cell movement/mechanical filling of space (cells sticking in home voxel (i) until home voxel (i) is filled to "confluence" - cells move down density gradients
+        
+        // h_ij == true allows spill over movement out of i --> j; h_ji == true allows spill over movement out out of j-->i
+        
         int h_ij = tissue_mesh.heaviside_fn(total_cells1 - voxel_population_vectors[voxel1_index].phenotypes_vector[0].max_cells*voxel_population_vectors[voxel1_index].phenotypes_vector[0].spatial_mechanical_factor)*
         tissue_mesh.heaviside_fn(density1-density2);
-
+        
         int h_ji = tissue_mesh.heaviside_fn(total_cells2 - voxel_population_vectors[voxel2_index].phenotypes_vector[0].max_cells*voxel_population_vectors[voxel2_index].phenotypes_vector[0].spatial_mechanical_factor)*
         tissue_mesh.heaviside_fn(density2-density1);
         
+        // Calculate change in cell populations due to voxel filling/spill over
         
         change_in_live_cell_population[i] = -dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].motility*(h_ij*
-                                             voxel_population_vectors[voxel1_index].live_cell_counts[0]/(total_cells1+1E-16) + h_ji*
-                                             voxel_population_vectors[voxel2_index].live_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
+                                                                                                                                                 voxel_population_vectors[voxel1_index].live_cell_counts[0]/(total_cells1+1E-16) + h_ji*
+                                                                                                                                                 voxel_population_vectors[voxel2_index].live_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
         
-    change_in_apoptotic_cell_population[i] = -dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].motility*(h_ij*
-                                             voxel_population_vectors[voxel1_index].apoptotic_cell_counts[0]/(total_cells1+1E-16) + h_ji*
-                                             voxel_population_vectors[voxel2_index].apoptotic_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
-
-    change_in_necrotic_cell_population[i] = -dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].motility*(h_ij*
-                                             voxel_population_vectors[voxel1_index].necrotic_cell_counts[0]/(total_cells1+1E-16) + h_ji*
-                                             voxel_population_vectors[voxel2_index].necrotic_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
+        change_in_apoptotic_cell_population[i] = -dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].motility*(h_ij*
+                                                                                                                                                      voxel_population_vectors[voxel1_index].apoptotic_cell_counts[0]/(total_cells1+1E-16) + h_ji*
+                                                                                                                                                      voxel_population_vectors[voxel2_index].apoptotic_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
+        
+        change_in_necrotic_cell_population[i] = -dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].motility*(h_ij*
+                                                                                                                                                     voxel_population_vectors[voxel1_index].necrotic_cell_counts[0]/(total_cells1+1E-16) + h_ji*
+                                                                                                                                                     voxel_population_vectors[voxel2_index].necrotic_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
+        
+        // SPLIT UP the aggregation from the adhesion (operator splitting)
+        
+        // Logical rules for aggregation - a_ij == true allows aggregation out of i --> j; a_ji == true allows aggregation out of j-->i
+        
+        // LOOK AT THESE RULES - ARE THESE THE RULES YOU ARE LOOKING FOR?
+        // Seems to work now. to conserve mass would need to move final bit out of each voxel separately but ... way below discrete/continous bourder - these is no such thing as a 0.001 of a cell ... ask Paul
+        
+        int a_ij = tissue_mesh.heaviside_fn( voxel_population_vectors[voxel1_index].phenotypes_vector[0].max_cells*voxel_population_vectors[voxel1_index].phenotypes_vector[0].spatial_aggregation_density - total_cells1 )
+        
+        * tissue_mesh.heaviside_fn( voxel_population_vectors[voxel2_index].phenotypes_vector[0].max_cells * voxel_population_vectors[voxel2_index].phenotypes_vector[0].spatial_mechanical_factor-total_cells2 )
+        
+        * tissue_mesh.heaviside_fn( total_cells2 - voxel_population_vectors[voxel2_index].phenotypes_vector[0].max_cells * voxel_population_vectors[voxel2_index].phenotypes_vector[0].spatial_aggregation_density)
+        
+        * tissue_mesh.heaviside_fn(density2 - density1)
+        * tissue_mesh.heaviside_fn(density1 - 1E-3);
+        
+        
+        int a_ji = tissue_mesh.heaviside_fn(voxel_population_vectors[voxel2_index].phenotypes_vector[0].max_cells*voxel_population_vectors[voxel2_index].phenotypes_vector[0].spatial_aggregation_density - total_cells2)
+        *tissue_mesh.heaviside_fn(voxel_population_vectors[voxel1_index].phenotypes_vector[0].max_cells*voxel_population_vectors[voxel1_index].phenotypes_vector[0].spatial_mechanical_factor-total_cells1)
+        
+        * tissue_mesh.heaviside_fn(total_cells1 - voxel_population_vectors[voxel1_index].phenotypes_vector[0].max_cells * voxel_population_vectors[voxel1_index].phenotypes_vector[0].spatial_aggregation_density)
+        * tissue_mesh.heaviside_fn(density1 - density2)
+        * tissue_mesh.heaviside_fn(density2 - 1E-3);
+        
+        // Change in voxel population due to aggregation - cell movement up gradients for cells that like a little company
+        
+        change_in_live_cell_population[i] = dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].aggretion_rate*(a_ij*
+                                                                                                                                                      voxel_population_vectors[voxel1_index].live_cell_counts[0] / (total_cells1+1E-16)
+                                                                                                                                                      + a_ji * voxel_population_vectors[voxel2_index].live_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
+        
+        change_in_apoptotic_cell_population[i] = dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].aggretion_rate*(a_ij *
+                                                                                                                                                           voxel_population_vectors[voxel1_index].apoptotic_cell_counts[0] / (total_cells1+1E-16)
+                                                                                                                                                           + a_ji * voxel_population_vectors[voxel2_index].apoptotic_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
+        
+        change_in_necrotic_cell_population[i] = dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].aggretion_rate*(a_ij *
+                                                                                                                                                          voxel_population_vectors[voxel1_index].necrotic_cell_counts[0] / (total_cells1+1E-16)
+                                                                                                                                                          + a_ji * voxel_population_vectors[voxel2_index].necrotic_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
     }
-
+    
     for( int i=0; i<tissue_mesh.voxel_links.size(); i++)
     {
         Voxel* pV1 = tissue_mesh.voxel_links[i].pVoxel1;  // Is there a better way to store/access there rather than just access then twice in a row????
@@ -672,9 +715,74 @@ void Tissue::flux_cell_populations ( double dt )
         voxel_population_vectors[voxel2_index].necrotic_cell_counts[0] = voxel_population_vectors[voxel2_index].necrotic_cell_counts[0] + change_in_necrotic_cell_population[i];
     }
     
-
+    
     return;
 }
+    
+//void Tissue::flux_cell_populations ( double dt )
+//{
+//    std::vector<double> change_in_live_cell_population;
+//    std::vector<double> change_in_apoptotic_cell_population;
+//    std::vector<double> change_in_necrotic_cell_population;
+//    
+//    change_in_live_cell_population.assign(tissue_mesh.voxel_links.size(), 0.0);
+//    change_in_apoptotic_cell_population.assign(tissue_mesh.voxel_links.size(), 0.0);
+//    change_in_necrotic_cell_population.assign(tissue_mesh.voxel_links.size(), 0.0);
+//    
+//    // Calculate fluxes
+//
+//    for( int i=0; i<tissue_mesh.voxel_links.size(); i++)
+//    {
+//        Voxel* pV1 = tissue_mesh.voxel_links[i].pVoxel1;
+//        Voxel* pV2 = tissue_mesh.voxel_links[i].pVoxel2;
+//        double area = tissue_mesh.voxel_links[i].surface_area;
+//        double dx = tissue_mesh.voxel_links[i].center_to_center_distance;
+//        int voxel1_index = pV1->mesh_index;
+//        int voxel2_index = pV2->mesh_index;
+//
+//        double total_cells1 = (voxel_population_vectors[voxel1_index].live_cell_counts[0]+voxel_population_vectors[voxel1_index].apoptotic_cell_counts[0]+voxel_population_vectors[voxel1_index].necrotic_cell_counts[0]);
+//        double total_cells2 = (voxel_population_vectors[voxel2_index].live_cell_counts[0]+voxel_population_vectors[voxel2_index].apoptotic_cell_counts[0]+voxel_population_vectors[voxel2_index].necrotic_cell_counts[0]);
+//        double density1 = total_cells1/voxel_population_vectors[voxel1_index].phenotypes_vector[0].max_cells;
+//        double density2 = total_cells2/voxel_population_vectors[voxel2_index].phenotypes_vector[0].max_cells;
+//        
+//        int h_ij = tissue_mesh.heaviside_fn(total_cells1 - voxel_population_vectors[voxel1_index].phenotypes_vector[0].max_cells*voxel_population_vectors[voxel1_index].phenotypes_vector[0].spatial_mechanical_factor)*
+//        tissue_mesh.heaviside_fn(density1-density2);
+//
+//        int h_ji = tissue_mesh.heaviside_fn(total_cells2 - voxel_population_vectors[voxel2_index].phenotypes_vector[0].max_cells*voxel_population_vectors[voxel2_index].phenotypes_vector[0].spatial_mechanical_factor)*
+//        tissue_mesh.heaviside_fn(density2-density1);
+//        
+//        
+//        change_in_live_cell_population[i] = -dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].motility*(h_ij*
+//                                             voxel_population_vectors[voxel1_index].live_cell_counts[0]/(total_cells1+1E-16) + h_ji*
+//                                             voxel_population_vectors[voxel2_index].live_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
+//        
+//    change_in_apoptotic_cell_population[i] = -dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].motility*(h_ij*
+//                                             voxel_population_vectors[voxel1_index].apoptotic_cell_counts[0]/(total_cells1+1E-16) + h_ji*
+//                                             voxel_population_vectors[voxel2_index].apoptotic_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
+//
+//    change_in_necrotic_cell_population[i] = -dt*((density2 - density1)/dx*(voxel_population_vectors[voxel1_index].phenotypes_vector[0].motility*(h_ij*
+//                                             voxel_population_vectors[voxel1_index].necrotic_cell_counts[0]/(total_cells1+1E-16) + h_ji*
+//                                             voxel_population_vectors[voxel2_index].necrotic_cell_counts[0]/(total_cells2+1E-16)))+0)*area;
+//    }
+//
+//    for( int i=0; i<tissue_mesh.voxel_links.size(); i++)
+//    {
+//        Voxel* pV1 = tissue_mesh.voxel_links[i].pVoxel1;  // Is there a better way to store/access there rather than just access then twice in a row????
+//        Voxel* pV2 = tissue_mesh.voxel_links[i].pVoxel2;
+//        int voxel1_index = pV1->mesh_index;
+//        int voxel2_index = pV2->mesh_index;
+//        
+//        voxel_population_vectors[voxel1_index].live_cell_counts[0] = voxel_population_vectors[voxel1_index].live_cell_counts[0] - change_in_live_cell_population[i];
+//        voxel_population_vectors[voxel2_index].live_cell_counts[0] = voxel_population_vectors[voxel2_index].live_cell_counts[0] + change_in_live_cell_population[i];
+//        voxel_population_vectors[voxel1_index].apoptotic_cell_counts[0] = voxel_population_vectors[voxel1_index].apoptotic_cell_counts[0] - change_in_apoptotic_cell_population[i];
+//        voxel_population_vectors[voxel2_index].apoptotic_cell_counts[0] = voxel_population_vectors[voxel2_index].apoptotic_cell_counts[0] + change_in_apoptotic_cell_population[i];
+//        voxel_population_vectors[voxel1_index].necrotic_cell_counts[0] = voxel_population_vectors[voxel1_index].necrotic_cell_counts[0] - change_in_necrotic_cell_population[i];
+//        voxel_population_vectors[voxel2_index].necrotic_cell_counts[0] = voxel_population_vectors[voxel2_index].necrotic_cell_counts[0] + change_in_necrotic_cell_population[i];
+//    }
+//    
+//
+//    return;
+//}
     
 void Tissue::write_voxel_populations_to_matlab( std::string filename )
 {

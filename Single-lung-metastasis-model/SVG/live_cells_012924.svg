@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with PhysiCell (http://PhysiCell.MathCancer.org/) -->
+<svg 
+ xmlns:dc="http://purl.org/dc/elements/1.1/" 
+ xmlns:cc="http://creativecommons.org/ns#" 
+ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+ xmlns:svg="http://www.w3.org/2000/svg" 
+ xmlns="http://www.w3.org/2000/svg" 
+ version="1.1" 
+ width="1500" 
+ height="1500" 
+ id="svg2">
+  <circle cx="760" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(241,241,14)"/>
+  <circle cx="780" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(241,241,14)"/>
+  <circle cx="800" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(93,93,162)"/>
+  <circle cx="820" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(0,0,255)"/>
+  <circle cx="840" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(0,0,255)"/>
+  <circle cx="860" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(0,0,255)"/>
+  <circle cx="880" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(0,0,255)"/>
+  <circle cx="900" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(0,0,255)"/>
+  <circle cx="920" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(0,0,255)"/>
+  <circle cx="940" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(0,0,255)"/>
+  <circle cx="960" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(0,0,255)"/>
+  <circle cx="980" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(0,0,255)"/>
+  <circle cx="1000" cy="750" r="19" stroke-width="0.5" stroke="rgb(0,0,0)" fill="rgb(0,0,255)"/>
+</svg>
