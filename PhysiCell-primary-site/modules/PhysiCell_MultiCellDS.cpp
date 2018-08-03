@@ -376,7 +376,8 @@ void add_PhysiCell_cells_to_open_xml_pugi( pugi::xml_document& xml_dom, std::str
 			// custom vector variables 
 			for( int i=0; i < (*all_cells)[0]->custom_data.vector_variables.size(); i++ )
 			{
-				size = 3; 
+				// size = 3; // WRONG! Found in 2018 
+				size = (*all_cells)[0]->custom_data.vector_variables[i].value.size(); 
 				char szTemp [1024]; 
 				strcpy( szTemp, (*all_cells)[0]->custom_data.vector_variables[i].name.c_str() ); 
 				node_temp1 = node_temp1.append_child( "label" );

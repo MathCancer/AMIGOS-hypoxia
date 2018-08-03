@@ -2,23 +2,23 @@
 % If you use PhysiCell in your project, please cite PhysiCell and the version %
 % number, such as below:                                                      %
 %                                                                             %
-% We implemented and solved the model using PhysiCell (Version 1.2.2) [1].    %
+% We implemented and solved the model using PhysiCell (Version 1.3.1) [1].    %
 %                                                                             %
 % [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, %
 %     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  %
-%     lar Systems, PLoS Comput. Biol. 2017 (in review).                       %
-%     preprint DOI: 10.1101/088773                                            %
+%     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   %
+%     DOI: 10.1371/journal.pcbi.1005991                                       %
 %                                                                             %
 % Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  %
 %     as below:                                                               %
 %                                                                             %
-% We implemented and solved the model using PhysiCell (Version 1.2.2) [1],    %
+% We implemented and solved the model using PhysiCell (Version 1.3.1) [1],    %
 % with BioFVM [2] to solve the transport equations.                           %
 %                                                                             %
 % [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, %
 %     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  %
-%     lar Systems, PLoS Comput. Biol. 2017 (in review).                       %
-%     preprint DOI: 10.1101/088773                                            %
+%     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   %
+%     DOI: 10.1371/journal.pcbi.1005991                                       %
 %                                                                             %
 % [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- %
 %    llelized diffusive transport solver for 3-D biological simulations,      %
@@ -28,7 +28,7 @@
 %                                                                             %
 % BSD 3-Clause License (see https://opensource.org/licenses/BSD-3-Clause)     %
 %                                                                             %
-% Copyright (c) 2015-2017, Paul Macklin and the PhysiCell Project             %
+% Copyright (c) 2015-2018, Paul Macklin and the PhysiCell Project             %
 % All rights reserved.                                                        %
 %                                                                             %
 % Redistribution and use in source and binary forms, with or without          %
@@ -195,7 +195,7 @@ MCDS.continuum_variables = [];
 for i=0:mylist.getLength - 1
    MCDS.continuum_variables(i+1).name = char( mylist.item(i).getAttribute('name' ) ); 
    MCDS.continuum_variables(i+1).units = char( mylist.item(i).getAttribute('units' ) ); 
-   MCDS.continuum_variables(i+1).diffusion_coefficient = str2num( mylist.item(i).getElementsByTagName( 'diffusion_coefficient' ).item(0).getTextContent ); 
+   MCDS.continuum_variables(i+1).diffusion_coefficient = str2double( mylist.item(i).getElementsByTagName( 'diffusion_coefficient' ).item(0).getTextContent ); 
    MCDS.continuum_variables(i+1).decay_rate = str2num( mylist.item(i).getElementsByTagName( 'decay_rate' ).item(0).getTextContent ); 
    
    if( Cartesian )
@@ -516,15 +516,11 @@ if( isempty( mylist ) == false )
                 i = 19; 
                 new_variable_index = 1; 
                 while( i <= max_label_index && custom_variables_done == false )
-                    mysize = int8( str2num( labels.item(i).getAttribute('size') ) ) ; 
-                    myindex = int8( str2num( labels.item(i).getAttribute('index')) )+1;  
+                    mysize = int8( str2num( labels.item(i).getAttribute('size') ) ) 
+                    myindex = int8( str2num( labels.item(i).getAttribute('index')) )+1 
                     
-                    newname = char(labels.item(i).getTextContent) ; 
+                    newname = char(labels.item(i).getTextContent); 
                     newname = strrep( newname, ' ', '_' ); % replace( newname, ' ', '_' ); 
-                    
-%                     size(MAT)
-%                     myindex
-%                     myindex+mysize-1 
                     
                     newdata = MAT(myindex:myindex+mysize-1,:); 
                     if( mysize > 1 )

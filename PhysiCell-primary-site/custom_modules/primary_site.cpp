@@ -145,6 +145,7 @@ void create_cell_types( void )
 	std::vector<double> creation_rates = { default_production_rate , default_production_rate }; 
 	
 	cell_defaults.custom_data.add_vector_variable( "genes" , "dimensionless", genes ); 
+	
 	cell_defaults.custom_data.add_vector_variable( "proteins" , "dimensionless", proteins ); 
 	cell_defaults.custom_data.add_vector_variable( "creation_rates" , "1/min" , creation_rates ); 
 	cell_defaults.custom_data.add_vector_variable( "degradation_rates" , "1/min" , degradation_rates ); 
@@ -219,6 +220,9 @@ void setup_tissue( void )
 	double x_outer = tumor_radius; 
 	double y = 0.0; 
 	
+	double leader_fraction = 0.10; 
+	double follower_fraction = 1.0 - leader_fraction; 
+	
 	int n = 0; 
 	while( y < tumor_radius )
 	{
@@ -231,6 +235,10 @@ void setup_tissue( void )
 		{
 			pCell = create_cell(); // tumor cell 
 			pCell->assign_position( x , y , 0.0 );
+			
+			
+			if( UniformRandom() <= follower_fraction)
+			{ pCell->type = 1; pCell->type_name = "Follower"; }
 /*			
 			pCell->custom_data[0] = NormalRandom( 1.0, 0.33 );
 			if( pCell->custom_data[0] < 0.0 )
@@ -243,7 +251,10 @@ void setup_tissue( void )
 			{
 				pCell = create_cell(); // tumor cell 
 				pCell->assign_position( x , -y , 0.0 );
-/*				
+
+			if( UniformRandom() <= follower_fraction)
+			{ pCell->type = 1; pCell->type_name = "Follower"; }				
+				/*				
 				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
 				if( pCell->custom_data[0] < 0.0 )
 				{ pCell->custom_data[0] = 0.0; }
@@ -256,6 +267,9 @@ void setup_tissue( void )
 			{ 
 				pCell = create_cell(); // tumor cell 
 				pCell->assign_position( -x , y , 0.0 );
+				
+			if( UniformRandom() <= follower_fraction)
+			{ pCell->type = 1; pCell->type_name = "Follower"; }				
 /*				
 				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
 				if( pCell->custom_data[0] < 0.0 )
@@ -267,6 +281,10 @@ void setup_tissue( void )
 				{
 					pCell = create_cell(); // tumor cell 
 					pCell->assign_position( -x , -y , 0.0 );
+					
+			if( UniformRandom() <= follower_fraction)
+			{ pCell->type = 1; pCell->type_name = "Follower"; }					
+					
 /*					
 					pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
 					if( pCell->custom_data[0] < 0.0 )
@@ -366,7 +384,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// 
 	// change color, but do nothing. 
 	
-	
+/*	
 	// model 1
 	// if pO2 < value, then motile, less proliferation (instantaneous)
 	// if pO2 > value, then not motile, normal proliferation 
@@ -380,27 +398,95 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = false; 
 	}
-/*		
+*/
+	
+//	pCell->type
+/*	
 	// model 2
 	// if green gene on, then motile, less proliferation (permanent change)
 	
 	if( pCell->custom_data.vector_variables[genes_i].value[green_i] > 0.1 )
 	{
 		phenotype.motility.is_motile = true; 
-		phenotype.cycle.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
 	}
-*/
+*/	
+	
 
+
+	// model 2a
+	// if green gene on, then motile, proliferation unchanged (permanent change)
+	// 2a: decrease adhesion 
+	if( pCell->custom_data.vector_variables[genes_i].value[green_i] > 0.1 )
+	{
+		phenotype.motility.is_motile = true; 
+		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		// cell_defaults.phenotype.motility.migration_speed = 0.1; //   migration_bias = 0.85; 
+		
+		phenotype.mechanics.cell_cell_adhesion_strength = 0; 
+	}
 	
-	
-	
-	
+/*	
 	// model 3
 	// if pO2 < threshold, then set motile true, less proliferation  
 	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
-
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.motility.is_motile = true; 
+		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+	}
+	else
+	{
+		static double persistence_time = 360.0; // 6 hours 
+		static double probability = dt/persistence_time; 
+		
+		if( phenotype.motility.is_motile == true )
+		{
+			if( UniformRandom() < probability )
+			{
+				phenotype.motility.is_motile = false; 	
+			}
+			else
+			{
+				phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+			}
+			
+			
+			
+		}
+	}
+*/
+	
+/*	
 	// model 4
 	// same as #3, but only allowed in 10% of cells (permanent leader fraction)
+
+	if( pO2 < phenotype_hypoxic_switch && pCell->type != 1 )
+	{
+		phenotype.motility.is_motile = true; 
+		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+	}
+	else
+	{
+		static double persistence_time = 360.0; // 6 hours 
+		static double probability = dt/persistence_time; 
+		
+		if( phenotype.motility.is_motile == true )
+		{
+			if( UniformRandom() < probability )
+			{
+				phenotype.motility.is_motile = false; 	
+			}
+			else
+			{
+				phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+			}
+			
+			
+			
+		}
+	}
+*/
 	
 	// model 5
 	// initially no leaders, but any follower can become a leader if pO2 is lower_bound
@@ -409,6 +495,8 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	// model 7 leader cells suppress follower conversion, but attract followers by chemotaxis 
 	
+	
+// old! 	
 	
 /*	
 	// model 1
@@ -472,12 +560,13 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 	
 	static int red_i = 0; 
 	static int green_i = 1; 
-	
+
 	// immune are black
 	std::vector< std::string > output( 4, "black" ); 
-	
+/*	
 	if( pCell->type == 1 )
 	{ return output; } 
+*/
 	
 	// live cells are a combination of red and green 
 	if( pCell->phenotype.death.dead == false )

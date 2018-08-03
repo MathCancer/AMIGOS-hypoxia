@@ -2,23 +2,23 @@
 % If you use PhysiCell in your project, please cite PhysiCell and the version %
 % number, such as below:                                                      %
 %                                                                             %
-% We implemented and solved the model using PhysiCell (Version 1.2.2) [1].    %
+% We implemented and solved the model using PhysiCell (Version 1.3.1) [1].    %
 %                                                                             %
 % [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, %
 %     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  %
-%     lar Systems, PLoS Comput. Biol. 2017 (in review).                       %
-%     preprint DOI: 10.1101/088773                                            %
+%     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   %
+%     DOI: 10.1371/journal.pcbi.1005991                                       %
 %                                                                             %
 % Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  %
 %     as below:                                                               %
 %                                                                             %
-% We implemented and solved the model using PhysiCell (Version 1.2.2) [1],    %
+% We implemented and solved the model using PhysiCell (Version 1.3.1) [1],    %
 % with BioFVM [2] to solve the transport equations.                           %
 %                                                                             %
 % [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, %
 %     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  %
-%     lar Systems, PLoS Comput. Biol. 2017 (in review).                       %
-%     preprint DOI: 10.1101/088773                                            %
+%     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   %
+%     DOI: 10.1371/journal.pcbi.1005991                                       %
 %                                                                             %
 % [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- %
 %    llelized diffusive transport solver for 3-D biological simulations,      %
@@ -28,7 +28,7 @@
 %                                                                             %
 % BSD 3-Clause License (see https://opensource.org/licenses/BSD-3-Clause)     %
 %                                                                             %
-% Copyright (c) 2015-2017, Paul Macklin and the PhysiCell Project             %
+% Copyright (c) 2015-2018, Paul Macklin and the PhysiCell Project             %
 % All rights reserved.                                                        %
 %                                                                             %
 % Redistribution and use in source and binary forms, with or without          %
@@ -81,6 +81,8 @@ MCDS_constants.flow_cytometry_cycle_model=2;
 MCDS_constants.live_apoptotic_cycle_model=3;
 MCDS_constants.total_cells_cycle_model=4;
 MCDS_constants.live_cells_cycle_model = 5; 
+
+MCDS_constants.flow_cytometry_separated_cycle_model  = 6; 
 	
 % currently recognized death models 
 MCDS_constants.apoptosis_death_model = 100; 
@@ -106,6 +108,10 @@ MCDS_constants.G2M_phase=11;
 MCDS_constants.G2_phase=12;
 MCDS_constants.M_phase=13;
 MCDS_constants.live=14;
+
+MCDS_constants.G1pm_phase = 15;
+MCDS_constants.G1ps_phase = 16;
+
 	
 MCDS_constants.custom_phase = 9999;
 % death phases
