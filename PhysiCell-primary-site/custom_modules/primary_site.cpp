@@ -168,6 +168,11 @@ void setup_microenvironment( void )
 	default_microenvironment_options.Y_range = {-1000, 1000}; 
 	default_microenvironment_options.simulate_2D = true; 
 	
+	// for 3a: 
+	default_microenvironment_options.X_range = {-1500, 1500}; 
+	default_microenvironment_options.Y_range = {-1500, 1500}; 
+	
+	
 	// gradients needed for this example 
 	
 	default_microenvironment_options.calculate_gradients = true; 
@@ -226,10 +231,7 @@ void setup_tissue( void )
 	double cell_spacing = 0.95 * 2.0 * cell_radius; 
 	
 	double tumor_radius = 250.0; 
-	
-	// for 3a only
-	tumor_radius = 100; 
-	
+		
 	Cell* pCell = NULL; 
 	
 	double x = 0.0; 
@@ -487,7 +489,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	}
 	else
 	{
-		static double persistence_time = 3600; // 
+		static double persistence_time = 5760; // 
 		// 5760; // 4 days 
 		// 3600; // 60 hours 
 		// 360.0; // 6 hours // too short! 
