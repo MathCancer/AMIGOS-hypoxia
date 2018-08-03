@@ -1,0 +1,82 @@
+Dec 15, 2017 (from Ines)
+
+
+cancer cells invade at 14-20 micron/hour (at edge)
+
+cells at leading edge have faster velocity. (Daniele)
+
+
+Now, look at protein_Measures_for_paul
+
+Looking at the RFP and GFP curves, it seems like: 
+
+1) The RFP decay half life is on the order of a week
+
+2) It takes maybe 1-1.5 days to double GFP expression
+
+3) There may be some lag before low O2 change to GFP gene expression and protein expression, but maybe let's not get too fancy! 
+
+Does this seem reasonable?
+
+
+Next, by Daniele's talk and plots: 
+
+* pO2 ~ 85 mmHg in the normal tissue. 
+
+* it drops from ~70 mmHg to 20 mmHg in about 1.1 mm. 
+
+* eagle eyeing it: 250-200 microns from 70 mmHg at edge to 38 mmHg (perinecrotic)
+
+* about 1 more mm to get 10 mmHg (RFP -> GFP) 
+
+
+
+
+other notes;
+
+
+1) how do we tune migration? [done for now]
+* email thread says overall rate of movement is ~0.05 micron/minute. 
+* we start with this, but may increase to account for randomness
++ models will need to test ideas of "who" is migrating. 
++ what does it take to still get a necrotic core? 
+
+2) need to formalize the "memory" more [not done]
+
+3) need to implement "bumper cars" [not done]
+
+4) need to recalibrate RFP / GFP switching times [done for now]
+* about 48 hours to complete
++ we implement to have 90% done at 48 hours for now
++ Daniele needs to get us more tracking data
+
+5) need to finish up basic angiogenesis model [in progresss] 
+
+6) need to start calibration oxygenation [in progress]
+* I calibrated the far-field conditions, fixed boundary code
++ need to debug on OSX
+
+I'll work on #2 and #3 tonight, perhaps work more on #6. 
+
+John, please let me know your plans. 
+
+Also, we should discuss the NCI pilot with Daniele. 
+
+
+
+
+***** intravital
+
+Cool!
+
+Wow, that’s a lot slower! 
+
+500 microns / (7 days * 24 hours * 60 min ) ~ 0.05 micron / min. You nailed it—about 1/10 less! 
+
+Maybe we use something slightly higher since they won’t be traveling straight lines???
+
+
+
+
+
+

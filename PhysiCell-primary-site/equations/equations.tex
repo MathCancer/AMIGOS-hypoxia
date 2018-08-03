@@ -15,6 +15,9 @@
 \newcommand{\beqa}{\begin{eqnarray}}
 \newcommand{\eeqa}{\end{eqnarray}}
 
+\newcommand{\beq}{\begin{equation}}
+\newcommand{\eeq}{\end{equation}}
+
 \pagestyle{plain}
 
 \begin{document}
@@ -48,7 +51,8 @@ We will model a set of genes $\vec{G}$ that encode proteins $\vec{P}$ with the f
 \frac{ d P_i }{dt} & = & \alpha_i G_i - \beta_i P_i, \hspace{.25in} i = 1, 2, \ldots 
 \end{eqnarray}
 where $\alpha_i$ is a protein creation rate, and $\beta_i$ is a protein degradation rate. (Notice that this 
-skips modeling RNA transcription.) Here, we will model the following genes: \\
+skips modeling RNA transcription.) We will assume throughout that $0 \le G_i \le 1$. 
+Here, we will model the following genes: \\
 
 \begin{center}
 \begin{tabular}{c|c|l}
@@ -75,40 +79,51 @@ Now, suppose that $P^*$ is a protein value where negative feedback reduces eithe
 \beqa
 \frac{ dP_i }{dt } & = & \alpha_i G_i \left( P_i^* - P_i \right) - \beta_i P_i. 
 \eeqa
-By equilibrium analysis, the maximum protein value is 
+By equilibrium analysis (and noting the maximum gene expression of $G_i = 1$, the maximum 
+equilibrium protein value is 
 \beqa
 \overline{P}_i & =& 
-\frac{\alpha_i P_i^*}{\alpha_i + \beta_i }
+\frac{\alpha_i }{\alpha_i + \beta_i } P_i^* = 
+\gamma_i P_i^*, 
 \eeqa
+where
+\beq
+\gamma_i = \frac{ \alpha_i }{ \alpha_i + \beta_i }. 
+\eeq
+
+
 If we nondimensionalize by this, we get: 
 \beqa
 \frac{ dP_i }{dt} & = & 
-G_i \left( \alpha_i + \beta_i \right) - \left( \alpha_i G_i + \beta_i \right) P_i \nonumber \\
-& = & 
-G_i \alpha_i \left( 1 - P_i \right) + \beta_i \left( G_i - P_i \right) . 
+% G_i \left( \alpha_i + \beta_i \right) - \left( \alpha_i G_i + \beta_i \right) P_i \nonumber \\
+\alpha_i G_i \left( \frac{1}{\gamma_i} - P_i \right) - \beta_i P_i, 
 \eeqa
-Notice that in this form, $\alpha_i$ sets the rate of approaching the maximum protein expression (1) 
-when the gene is expressed, and $\beta_i$ sets the rate of decay. 
+which has the expected (dimensionless) equilibria $P_i = 1$ if $G_i = 1$, 
+and $P_i = 0$ if $G_i = 0$. 
+
+Note that we can write this without $\gamma_i$ in the form 
+\beqa
+& = & 
+G_i \alpha_i \left( 1 - P_i \right) + \beta_i \left( G_i - P_i \right) .
+\eeqa
+In this form, $\alpha_i$ sets the rate of approaching the maximum protein expression (1) 
+when the gene is expressed, and $\beta_i$ sets the rate of decay when the gene is not expressed. 
 
 \subsubsection{Parameter estimates}
-Let's suppose for now that it takes about 10 minutes to ramp up a protein level to 90\% of its 
-maximum value. Then in the absence of degradation, we have 
+Based upon experimental data, it takes GFP on the order of 1-1.5 days to double its brightness. 
+Let's suppose for now that it takes about 1 day to reach 50\% of its maximum value. 
+Then in the absence of degradation, we have 
 \beqa
-\frac{dP_i}{dt} & \approx & G_i \alpha_i \left( 1 - P_i \right). 
+\frac{dP_i}{dt} & \approx & \alpha_i \left( 1 - P_i \right). 
 \eeqa
-So, if we want to reach $P_i = 0.9$ after $T_{S,i} = 10 \textrm{ min}$ time, then 
+So, if we want to reach $P_i = 0.5$ after 1440 min time, then 
 \beqa
-\alpha_i &  =&  -\frac{ \ln{10} }{ T_{S,i} } \approx 0.23  \textrm{ min}^{-1}. 
+\alpha_i &  \sim & \frac{ \ln{2} }{ 1440 \mathrm{ min}} \approx 4.8e-4  \textrm{ min}^{-1}. 
 \eeqa
-Similarly, if $G_i = 0$, we can easily fit $\beta_i$ by a decay time scale $T_{D,i}$, defined 
-for us to be the time to degrade 90\% of the protein. Let's suppose for now $T_{D,i} = 120 \textrm{ min}$. 
-Then 
+Similarly, if $G_i = 0$, we can easily fit $\beta_i$. More experimental data suggests a 
+half life on the order of 7 days. Thus, 
 \beqa
-\frac{dP_i}{dt} & \approx & - \beta_i  P_i  
-\eeqa
-and so 
-\beqa
-\beta_i & = & -\frac{ \ln{10} }{ T_{D,i} } \approx 0.019 ? \textrm{ min}^{-1}. 
+\beta_i & \sim & 6.9e-5 \textrm{ min}^{-1}.
 \eeqa
 
 \subsubsection{Simple implicit numerical scheme}
@@ -118,6 +133,9 @@ P^{n+1}_i
 & = & 
 \frac{ P_i^n + \Delta t G_i^n \left( \alpha_i + \beta_i \right) }{ 1 + \Delta t \left( \alpha_i G_i^n + \beta_i \right)}
 \eeqa
+
+
+\subsection{Motility}
 
 
 

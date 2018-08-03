@@ -10,6 +10,9 @@ set motiltiy to 0.05 or 0.10 micron/minute
 
 hypoxic cells secrete VEGF at the same hypoxic switch value (set to independent?)
 
+
+
+
 to do::
 improve the "memory model"
 
