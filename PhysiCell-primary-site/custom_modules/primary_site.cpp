@@ -323,9 +323,10 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double FP_hypoxic_switch = 5.0; // 10.0; 
-	static double phenotype_hypoxic_switch = 9.8; // 
+	static double FP_hypoxic_switch = 10.0; // 
+	static double phenotype_hypoxic_switch = 10.0;  // 
 	
+	// permanent gene switch 
 	if( pO2 < FP_hypoxic_switch )
 	{
 		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
@@ -343,7 +344,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// update the proteins
 	
-	for( int i=0; i < pCell->custom_data.vector_variables.size(); i++ )
+	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].size(); i++ )
 	{
 		double temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i
 		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // alpha_i + beta_i 
@@ -361,8 +362,52 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// set phenotype in response to temporary or permanent changes 
 	
 	
-	// model 1 
+	// model 0 
+	// 
+	// change color, but do nothing. 
 	
+	
+	// model 1
+	// if pO2 < value, then motile, less proliferation (instantaneous)
+	// if pO2 > value, then not motile, normal proliferation 
+	
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.motility.is_motile = true; 
+		phenotype.cycle.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+	}
+	else
+	{
+		phenotype.motility.is_motile = false; 
+	}
+/*		
+	// model 2
+	// if green gene on, then motile, less proliferation (permanent change)
+	
+	if( pCell->custom_data.vector_variables[genes_i].value[green_i] > 0.1 )
+	{
+		phenotype.motility.is_motile = true; 
+		phenotype.cycle.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+	}
+*/
+
+	
+	
+	
+	
+	// model 3
+	// if pO2 < threshold, then set motile true, less proliferation  
+	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
+
+	// model 4
+	// same as #3, but only allowed in 10% of cells (permanent leader fraction)
+	
+	// model 5
+	// initially no leaders, but any follower can become a leader if pO2 is lower_bound
+	
+	// model 6 leader cells suppress follower conversion
+	
+	// model 7 leader cells suppress follower conversion, but attract followers by chemotaxis 
 	
 	
 /*	
@@ -379,6 +424,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 */	
 	// model 2
 	// if green, motile 
+	/*
 	if( pCell->custom_data.vector_variables[proteins_i].value[green_i] > 0.5 )
 	{
 		phenotype.motility.is_motile = true; 
@@ -387,6 +433,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = false; 
 	}
+	*/
 	
 	// model 3
 	// if green, motile. but only for awhile
