@@ -1,6 +1,7 @@
 done::
 
 change oxygen continues in normal tissue to ~90 mmHg
+ *** need to fix in coarse vasculature 
 
 chanage RFP and GFP time scales to 24-hour half-life (up and down)
 

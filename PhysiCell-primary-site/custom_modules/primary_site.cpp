@@ -168,7 +168,7 @@ void setup_microenvironment( void )
 	default_microenvironment_options.Y_range = {-1000, 1000}; 
 	default_microenvironment_options.simulate_2D = true; 
 	
-	// no gradients needed for this example 
+	// gradients needed for this example 
 	
 	default_microenvironment_options.calculate_gradients = true; 
 	
@@ -195,6 +195,14 @@ void setup_microenvironment( void )
 		default_microenvironment_options.Dirichlet_activation_vector[ECM_i] = false;
 	}
 	
+/*	
+	// add "repressor" signal 
+	
+	pME->add_density( "Repressor" , 6.4e4 , .1 ); // 80 micron length scale 
+	// turn off Dirichlet for this factor 
+	default_microenvironment_options.Dirichlet_activation_vector[2] = false; 
+*/	
+	
 	coarse_vasculature_setup(); // ANGIO 
 		
 	initialize_microenvironment(); 	
@@ -218,6 +226,9 @@ void setup_tissue( void )
 	double cell_spacing = 0.95 * 2.0 * cell_radius; 
 	
 	double tumor_radius = 250.0; 
+	
+	// for 3a only
+	tumor_radius = 100; 
 	
 	Cell* pCell = NULL; 
 	
@@ -434,7 +445,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	}
 	*/
 	
-	
+/*	
 	// model 3
 	// if pO2 < threshold, then set motile true, less proliferation  
 	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
@@ -463,36 +474,72 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 			
 		}
 	}
+*/	
 	
-/*	
-	// model 4
-	// same as #3, but only allowed in 10% of cells (permanent leader fraction)
-
-	if( pO2 < phenotype_hypoxic_switch && pCell->type != 1 )
+	// model 3a
+	// if pO2 < threshold, then set motile true, less proliferation  
+	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
+	if( pO2 < phenotype_hypoxic_switch )
 	{
 		phenotype.motility.is_motile = true; 
-		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
 	}
 	else
 	{
-		static double persistence_time = 360.0; // 6 hours 
+		static double persistence_time = 3600; // 
+		// 5760; // 4 days 
+		// 3600; // 60 hours 
+		// 360.0; // 6 hours // too short! 
 		static double probability = dt/persistence_time; 
 		
 		if( phenotype.motility.is_motile == true )
 		{
 			if( UniformRandom() < probability )
 			{
-				phenotype.motility.is_motile = false; 	
+				phenotype.motility.is_motile = false; 
+
 			}
 			else
 			{
-				phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+				// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
 			}
-			
-			
 			
 		}
 	}
+	
+/*	
+	// model 4
+	// same as #3a, but only allowed in 10% of cells (permanent leader fraction)
+
+	
+	if( pO2 < phenotype_hypoxic_switch && pCell->type != 1 )
+	{
+		phenotype.motility.is_motile = true; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+	}
+	else
+	{
+		static double persistence_time = 3600; // 60 hours 
+		// 360.0; // 6 hours // too short! 
+		static double probability = dt/persistence_time; 
+		
+		if( phenotype.motility.is_motile == true )
+		{
+			if( UniformRandom() < probability )
+			{
+				phenotype.motility.is_motile = false; 
+
+			}
+			else
+			{
+				// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+			}
+			
+		}
+	}
+
 */
 	
 	// model 5
