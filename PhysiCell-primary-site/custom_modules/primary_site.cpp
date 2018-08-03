@@ -152,6 +152,11 @@ void create_cell_types( void )
 	
 	cell_defaults.custom_data.add_variable( "hypoxic memory" , "min" , 0.0 ); 
 	
+	
+	std::vector<double> color = {255, 255, 255};
+	cell_defaults.custom_data.add_vector_variable( "nuclear_color" , "dimensionless", color ); 
+	cell_defaults.custom_data.add_vector_variable( "cytoplasmic_color" , "dimensionless", color ); 
+	
 	return; 
 }
 
@@ -383,7 +388,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// model 0 
 	// 
 	// change color, but do nothing. 
-	
+
 /*	
 	// model 1
 	// if pO2 < value, then motile, less proliferation (instantaneous)
@@ -392,14 +397,16 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	if( pO2 < phenotype_hypoxic_switch )
 	{
 		phenotype.motility.is_motile = true; 
-		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
 	}
 	else
 	{
 		phenotype.motility.is_motile = false; 
 	}
-*/
-	
+*/	
+
+/*	
 //	pCell->type
 	// model 2
 	// if green gene on, then motile, less proliferation (permanent change)
@@ -410,7 +417,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 //		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
 		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
 	}
-	
+*/
 
 /*
 	// model 2a
@@ -428,14 +435,14 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	*/
 	
 	
-/*	
 	// model 3
 	// if pO2 < threshold, then set motile true, less proliferation  
 	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
 	if( pO2 < phenotype_hypoxic_switch )
 	{
 		phenotype.motility.is_motile = true; 
-		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
 	}
 	else
 	{
@@ -446,18 +453,16 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		{
 			if( UniformRandom() < probability )
 			{
-				phenotype.motility.is_motile = false; 	
+				phenotype.motility.is_motile = false; 
+
 			}
 			else
 			{
-				phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+				// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
 			}
-			
-			
 			
 		}
 	}
-*/
 	
 /*	
 	// model 4
@@ -569,6 +574,10 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 	if( pCell->type == 1 )
 	{ return output; } 
 */
+
+	static int cyto_color_i = 4;
+	static int nuclear_color_i = 5;
+
 	
 	// live cells are a combination of red and green 
 	if( pCell->phenotype.death.dead == false )
@@ -584,6 +593,14 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 		sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/2.0) , (int)round(output[0][1]/2.0) , (int)round(output[0][2]/2.0) );
 		output[2].assign( szTempString );
 		
+		pCell->custom_data.vector_variables[cyto_color_i].value[0] = red; 
+		pCell->custom_data.vector_variables[cyto_color_i].value[1] = green; 
+		pCell->custom_data.vector_variables[cyto_color_i].value[2] = 0.0; 
+		
+		pCell->custom_data.vector_variables[nuclear_color_i].value[0] = red / 2.0; 
+		pCell->custom_data.vector_variables[nuclear_color_i].value[1] = green / 2.0; 
+		pCell->custom_data.vector_variables[nuclear_color_i].value[2] = 0.0 / 2.0; 
+		
 		return output; 
 	}
 
@@ -593,6 +610,15 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 	{
 		output[0] = "rgb(255,0,0)";
 		output[2] = "rgb(125,0,0)";
+		
+		pCell->custom_data.vector_variables[cyto_color_i].value[0] = 255; 
+		pCell->custom_data.vector_variables[cyto_color_i].value[1] = 0; 
+		pCell->custom_data.vector_variables[cyto_color_i].value[2] = 0.0; 
+		
+		pCell->custom_data.vector_variables[nuclear_color_i].value[0] = 125; 
+		pCell->custom_data.vector_variables[nuclear_color_i].value[1] = 0; 
+		pCell->custom_data.vector_variables[nuclear_color_i].value[2] = 0; 		
+		
 	}
 	
 	// Necrotic - Brown
@@ -602,6 +628,14 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 	{
 		output[0] = "rgb(250,138,38)";
 		output[2] = "rgb(139,69,19)";
+		
+		pCell->custom_data.vector_variables[cyto_color_i].value[0] = 250; 
+		pCell->custom_data.vector_variables[cyto_color_i].value[1] = 138; 
+		pCell->custom_data.vector_variables[cyto_color_i].value[2] = 38; 
+		
+		pCell->custom_data.vector_variables[nuclear_color_i].value[0] = 139; 
+		pCell->custom_data.vector_variables[nuclear_color_i].value[1] = 69; 
+		pCell->custom_data.vector_variables[nuclear_color_i].value[2] = 19;
 	}	
 	
 	return output; 
