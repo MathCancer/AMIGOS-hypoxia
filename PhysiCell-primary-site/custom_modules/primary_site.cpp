@@ -130,7 +130,8 @@ void create_cell_types( void )
 	std::vector<double> genes = { 1.0, 0.0 }; // RFP, GFP 
 	std::vector<double> proteins = {1.0, 0.0 }; // RFP, GFP; 
 	
-	double default_degradation_rate = 4.8e-4; // 24 hour half-life 
+	double default_degradation_rate = 6.8e-5; // 7-day half-life 
+	// 4.8e-4; // 24 hour half-life 
 	// 0.0077; // 90 minute half-life 
 	// 0.019; // 90% degrades in 120 minutes 
 	
@@ -157,7 +158,7 @@ void setup_microenvironment( void )
 {
 	// set domain parameters
 
-	default_microenvironment_options.X_range = {-2000, 2000}; 
+	default_microenvironment_options.X_range = {-1000, 1000}; 
 	default_microenvironment_options.Y_range = {-1000, 1000}; 
 	default_microenvironment_options.simulate_2D = true; 
 	
@@ -358,6 +359,11 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	}
 	
 	// set phenotype in response to temporary or permanent changes 
+	
+	
+	// model 1 
+	
+	
 	
 /*	
 	// model 1
