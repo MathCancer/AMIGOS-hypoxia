@@ -344,7 +344,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// update the proteins
 	
-	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].size(); i++ )
+	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].value.size(); i++ )
 	{
 		double temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i
 		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // alpha_i + beta_i 
@@ -374,7 +374,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	if( pO2 < phenotype_hypoxic_switch )
 	{
 		phenotype.motility.is_motile = true; 
-		phenotype.cycle.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
 	}
 	else
 	{

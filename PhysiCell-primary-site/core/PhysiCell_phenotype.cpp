@@ -3,23 +3,23 @@
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version 1.2.2) [1].    #
+# We implemented and solved the model using PhysiCell (Version 1.3.1) [1].    #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
-#     lar Systems, PLoS Comput. Biol. 2017 (in review).                       #
-#     preprint DOI: 10.1101/088773                                            #
+#     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
+#     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
 #     as below:                                                               #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version 1.2.2) [1],    #
+# We implemented and solved the model using PhysiCell (Version 1.3.1) [1],    #
 # with BioFVM [2] to solve the transport equations.                           #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
-#     lar Systems, PLoS Comput. Biol. 2017 (in review).                       #
-#     preprint DOI: 10.1101/088773                                            #
+#     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
+#     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
 #    llelized diffusive transport solver for 3-D biological simulations,      #
@@ -29,7 +29,7 @@
 #                                                                             #
 # BSD 3-Clause License (see https://opensource.org/licenses/BSD-3-Clause)     #
 #                                                                             #
-# Copyright (c) 2015-2017, Paul Macklin and the PhysiCell Project             #
+# Copyright (c) 2015-2018, Paul Macklin and the PhysiCell Project             #
 # All rights reserved.                                                        #
 #                                                                             #
 # Redistribution and use in source and binary forms, with or without          #
@@ -65,6 +65,7 @@
 
 #include "../BioFVM/BioFVM.h"
 #include "./PhysiCell_constants.h"
+#include "./PhysiCell_utilities.h"
 
 using namespace BioFVM; 
 
@@ -305,7 +306,7 @@ void Cycle_Model::advance_model( Cell* pCell, Phenotype& phenotype, double dt )
 			else
 			{
 				double prob = phenotype.cycle.data.transition_rates[i][k]*dt; 
-				if( uniform_random() <= prob )
+				if( UniformRandom() <= prob )
 				{
 					continue_transition = true; 
 				}
@@ -440,7 +441,7 @@ bool Death::check_for_death( double dt )
 	int i = 0; 
 	while( !dead && i < rates.size() )
 	{
-		if( uniform_random() < rates[i]*dt )
+		if( UniformRandom() < rates[i]*dt )
 		{
 			// update the Death data structure 
 			dead = true; 
@@ -640,10 +641,110 @@ Mechanics::Mechanics()
 	
 	// this is a multiple of the cell (equivalent) radius
 	relative_maximum_adhesion_distance = 1.25; 
-	maximum_adhesion_distance = 0.0; 
+	// maximum_adhesion_distance = 0.0; 
 	
 	return; 
 }
+
+
+// new on July 29, 2018
+// change the ratio without changing the repulsion strength or equilibrium spacing 
+void Mechanics::set_relative_maximum_adhesion_distance( double new_value )
+{
+	// get old equilibrium spacing, based on equilibriation of pairwise adhesive/repulsive forces at that distance. 
+	
+		// relative equilibrium spacing (relative to mean cell radius)
+	double s_relative = 2.0; 
+//	std::cout << "----------------" << std::endl; 
+//	std::cout << __FILE__ << " : " << __FUNCTION__ << " : " << __LINE__ << ": " << s_relative << std::endl; 
+	
+	double temp1 = cell_cell_adhesion_strength; 
+	temp1 /= cell_cell_repulsion_strength;
+	temp1 = sqrt( temp1 ); 
+	
+	double temp2 = 1.0; 
+	temp2 -= temp1; //  1 - sqrt( alpha_CCA / alpha_CCR );
+	
+	
+	s_relative *= temp2; // 2*( 1 - sqrt( alpha_CCA / alpha_CCR ) ); 
+	
+	temp1 /= relative_maximum_adhesion_distance; // sqrt( alpha_CCA / alpha_CCR)/f;
+	temp2 = 1.0; 
+	temp2 -= temp1; // 1 - sqrt( alpha_CCA / alpha_CCR )/f;
+
+	s_relative /= temp2; // 2*( 1 - sqrt( alpha_CCA / alpha_CCR ) ) / ( 1-1/f) ; 
+	
+	std::cout << "\t\t\t" << s_relative << std::endl; 
+	
+	// now, adjust the relative max adhesion distance 
+	
+	relative_maximum_adhesion_distance = new_value; 
+	
+	// adjust the adhesive coefficient to preserve the old equilibrium distance
+
+	temp1 = s_relative; 
+	temp1 /= 2.0; 
+	
+	temp2 = 1.0;
+	temp2 -= temp1; // 1 - s_relative/2.0 
+	
+	temp1 /= relative_maximum_adhesion_distance; // s_relative/(2*relative_maximum_adhesion_distance); 
+	temp1 *= -1.0; // -s_relative/(2*relative_maximum_adhesion_distance); 
+	temp1 += 1.0; // 1.0 -s_relative/(2*relative_maximum_adhesion_distance); 
+	
+	temp2 /= temp1; 
+	temp2 *= temp2; 
+	
+	cell_cell_adhesion_strength = cell_cell_repulsion_strength;
+	cell_cell_adhesion_strength *= temp2; 
+
+	return; 
+}		
+		
+// new on July 29, 2018
+// set the cell-cell equilibrium spacing, accomplished by changing the 
+// cell-cell adhesion strength, while leaving the cell-cell repulsion 
+// strength and the maximum adhesion distance unchanged 
+void Mechanics::set_relative_equilibrium_distance( double new_value )
+{
+	if( new_value > 2.0 )
+	{
+		std::cout << "**** Warning in function " << __FUNCTION__ << " in " << __FILE__ << " : " << std::endl 
+			<< "\tAttempted to set equilibrium distance exceeding two cell radii." << std::endl
+			<< "\tWe will cap the equilibrium distance at 2.0 cell radii." << std::endl 
+			<< "****" << std::endl << std::endl; 
+			
+			new_value = 2.0; 
+	}
+ 
+	// adjust the adhesive coefficient to achieve the new (relative) equilibrium distance
+
+	double temp1 = new_value; 
+	temp1 /= 2.0; 
+	
+	double temp2 = 1.0;
+	temp2 -= temp1; // 1 - s_relative/2.0 
+	
+	temp1 /= relative_maximum_adhesion_distance; // s_relative/(2*relative_maximum_adhesion_distance); 
+	temp1 *= -1.0; // -s_relative/(2*relative_maximum_adhesion_distance); 
+	temp1 += 1.0; // 1.0 -s_relative/(2*relative_maximum_adhesion_distance); 
+	
+	temp2 /= temp1; 
+	temp2 *= temp2; 
+	
+	cell_cell_adhesion_strength = cell_cell_repulsion_strength;
+	cell_cell_adhesion_strength *= temp2; 
+
+	return; 
+}
+
+void Mechanics::set_absolute_equilibrium_distance( Phenotype& phenotype, double new_value )
+{
+	return set_relative_equilibrium_distance( new_value / phenotype.geometry.radius ); 
+}
+
+// void Mechanics::set_absolute_maximum_adhesion_distance( double new_value );
+// void 
 	
 	
 Motility::Motility()
@@ -789,6 +890,8 @@ Cell_Functions::Cell_Functions()
 	calculate_distance_to_membrane = NULL; 
 	
 	set_orientation = NULL; 
+	
+	contact_function = NULL; 
 
 	return; 
 }
