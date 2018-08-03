@@ -421,9 +421,10 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = true; 
 		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-		// cell_defaults.phenotype.motility.migration_speed = 0.1; //   migration_bias = 0.85; 
+		phenotype.motility.migration_speed = 0.5; //   migration_bias = 0.85; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
 		
-		phenotype.mechanics.cell_cell_adhesion_strength = 0; 
+		// phenotype.mechanics.cell_cell_adhesion_strength = 0; 
 	}
 	
 /*	
