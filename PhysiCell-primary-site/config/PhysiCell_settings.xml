@@ -90,7 +90,7 @@
 	</parallel> 
 	
 	<save>
-		<folder>model_2a_2018</folder> <!-- use . for root --> 
+		<folder>model_2_2018</folder> <!-- use . for root --> 
 
 		<full_data>
 			<interval units="min">60</interval>

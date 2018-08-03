@@ -401,19 +401,18 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 */
 	
 //	pCell->type
-/*	
 	// model 2
 	// if green gene on, then motile, less proliferation (permanent change)
 	
 	if( pCell->custom_data.vector_variables[genes_i].value[green_i] > 0.1 )
 	{
 		phenotype.motility.is_motile = true; 
-		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+//		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
 	}
-*/	
 	
 
-
+/*
 	// model 2a
 	// if green gene on, then motile, proliferation unchanged (permanent change)
 	// 2a: decrease adhesion 
@@ -426,6 +425,8 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		
 		// phenotype.mechanics.cell_cell_adhesion_strength = 0; 
 	}
+	*/
+	
 	
 /*	
 	// model 3
