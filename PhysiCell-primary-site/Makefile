@@ -46,16 +46,21 @@ PhysiCell_pugixml.o PhysiCell_settings.o
 # put your custom objects here (they should be in the custom_modules directory)
 
 PhysiCell_custom_module_OBJECTS := primary_site.o vascularization.o
+PhysiCell_custom_module_OBJECTS_3D := primary_site3D.o vascularization.o
 
 pugixml_OBJECTS := pugixml.o
 
 PhysiCell_OBJECTS := $(BioFVM_OBJECTS)  $(pugixml_OBJECTS) $(PhysiCell_core_OBJECTS) $(PhysiCell_module_OBJECTS)
+
 ALL_OBJECTS := $(PhysiCell_OBJECTS) $(PhysiCell_custom_module_OBJECTS)
+ALL_OBJECTS_3D := $(PhysiCell_OBJECTS) $(PhysiCell_custom_module_OBJECTS_3D)
 
 # compile the project  
 
-all: main.cpp $(ALL_OBJECTS)
-	$(COMPILE_COMMAND) -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp 
+all: main-primary2D.cpp main-primary3D.cpp $(ALL_OBJECTS) $(ALL_OBJECTS_3D)
+all: main-primary3D.cpp $(ALL_OBJECTS_3D)
+	$(COMPILE_COMMAND) -o $(PROGRAM_NAME)_2D $(ALL_OBJECTS) main-primary2D.cpp 
+	$(COMPILE_COMMAND) -o $(PROGRAM_NAME)_3D $(ALL_OBJECTS_3D) main-primary3D.cpp 
 
 # PhysiCell core components	
 
@@ -136,6 +141,9 @@ PhysiCell_settings.o: ./modules/PhysiCell_settings.cpp
 
 primary_site.o: ./custom_modules/primary_site.cpp 
 	$(COMPILE_COMMAND) -c ./custom_modules/primary_site.cpp
+
+primary_site3D.o: ./custom_modules/primary_site3D.cpp 
+	$(COMPILE_COMMAND) -c ./custom_modules/primary_site3D.cpp
 	
 vascularization.o: ./custom_modules/vascularization.cpp 
 	$(COMPILE_COMMAND) -c ./custom_modules/vascularization.cpp	

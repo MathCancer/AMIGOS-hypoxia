@@ -61,7 +61,7 @@
 ###############################################################################
 */
 
-#include "./primary_site.h"
+#include "./primary_site3D.h"
 
 void create_cell_types( void )
 {
@@ -83,12 +83,14 @@ void create_cell_types( void )
 	// so it's easier to turn off proliferation
 	
 	cell_defaults.phenotype.cycle.sync_to_cycle_model( live ); 
-	
+
+/*	
 	// Make sure we're ready for 2D
 	
 	cell_defaults.functions.set_orientation = up_orientation; 
-	cell_defaults.phenotype.geometry.polarity = 1.0; 
-	cell_defaults.phenotype.motility.restrict_to_2D = true; 
+	cell_defaults.phenotype.geometry.polarity = 0.0;  // 3D
+	cell_defaults.phenotype.motility.restrict_to_2D = false; // 3D 
+*/
 	
 	// use default proliferation and death 
 	
@@ -105,7 +107,7 @@ void create_cell_types( void )
 	cell_defaults.functions.update_migration_bias = oxygen_taxis_motility; 
 	cell_defaults.phenotype.motility.persistence_time = 15.0; 
 	cell_defaults.phenotype.motility.migration_bias = 0.5; 
-	cell_defaults.phenotype.motility.migration_speed = 0.05; // 0.5 
+	cell_defaults.phenotype.motility.migration_speed = 0.25; // 0.5 
 	
 	// set default uptake and secretion 
 	// oxygen 
@@ -166,12 +168,17 @@ void setup_microenvironment( void )
 
 	default_microenvironment_options.X_range = {-1000, 1000}; 
 	default_microenvironment_options.Y_range = {-1000, 1000}; 
-	default_microenvironment_options.simulate_2D = true; 
+	default_microenvironment_options.Z_range = {-1000, 1000}; 
+	default_microenvironment_options.simulate_2D = false; // 3D 
+	
+	std::cout << "here! 3D" << std::endl; 
+	system("pause"); 
 
+/*
 	// for 3a and 4 
 	default_microenvironment_options.X_range = {-1500, 1500}; 
 	default_microenvironment_options.Y_range = {-1500, 1500}; 
-	
+*/	
 	
 	// gradients needed for this example 
 	
@@ -215,6 +222,37 @@ void setup_microenvironment( void )
 	return; 
 }	
 
+std::vector<std::vector<double>> create_cell_sphere_positions(double cell_radius, double sphere_radius)
+{
+	std::vector<std::vector<double>> cells;
+	int xc=0,yc=0,zc=0;
+	double x_spacing= cell_radius*sqrt(3);
+	double y_spacing= cell_radius*2;
+	double z_spacing= cell_radius*sqrt(3);
+	
+	std::vector<double> tempPoint(3,0.0);
+	// std::vector<double> cylinder_center(3,0.0);
+	
+	for(double z=-sphere_radius;z<sphere_radius;z+=z_spacing, zc++)
+	{
+		for(double x=-sphere_radius;x<sphere_radius;x+=x_spacing, xc++)
+		{
+			for(double y=-sphere_radius;y<sphere_radius;y+=y_spacing, yc++)
+			{
+				tempPoint[0]=x + (zc%2) * 0.5 * cell_radius;
+				tempPoint[1]=y + (xc%2) * cell_radius;
+				tempPoint[2]=z;
+				
+				if(sqrt(norm_squared(tempPoint))< sphere_radius)
+				{ cells.push_back(tempPoint); }
+			}
+			
+		}
+	}
+	return cells;
+	
+}
+
 void setup_tissue( void )
 {
 	static int genes_i = 0; 
@@ -242,83 +280,17 @@ void setup_tissue( void )
 	leader_fraction = 0.025; // model 4a  0.01 is a bit too small for this small starting group 
 	double follower_fraction = 1.0 - leader_fraction; 
 	
-	int n = 0; 
-	while( y < tumor_radius )
+	
+	std::vector<std::vector<double>> positions = create_cell_sphere_positions(cell_radius,tumor_radius); 
+	std::cout << "creating " << positions.size() << " closely-packed tumor cells ... " << std::endl; 
+	
+	for( int i=0; i < positions.size(); i++ )
 	{
-		x = 0.0; 
-		if( n % 2 == 1 )
-		{ x = 0.5*cell_spacing; }
-		x_outer = sqrt( tumor_radius*tumor_radius - y*y ); 
+		pCell = create_cell(); // tumor cell 
+		pCell->assign_position( positions[i] );
 		
-		while( x < x_outer )
-		{
-			pCell = create_cell(); // tumor cell 
-			pCell->assign_position( x , y , 0.0 );
-			
-			
-			if( UniformRandom() <= follower_fraction)
-			{ pCell->type = 1; pCell->type_name = "Follower"; }
-/*			
-			pCell->custom_data[0] = NormalRandom( 1.0, 0.33 );
-			if( pCell->custom_data[0] < 0.0 )
-			{ pCell->custom_data[0] = 0.0; }
-			if( pCell->custom_data[0] > 2.0 )
-			{ pCell->custom_data[0] = .0; }
-*/		
-			
-			if( fabs( y ) > 0.01 )
-			{
-				pCell = create_cell(); // tumor cell 
-				pCell->assign_position( x , -y , 0.0 );
-
-			if( UniformRandom() <= follower_fraction)
-			{ pCell->type = 1; pCell->type_name = "Follower"; }				
-				/*				
-				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-				if( pCell->custom_data[0] < 0.0 )
-				{ pCell->custom_data[0] = 0.0; }
-				if( pCell->custom_data[0] > 2.0 )
-				{ pCell->custom_data[0] = .0; }
-*/			
-			}
-			
-			if( fabs( x ) > 0.01 )
-			{ 
-				pCell = create_cell(); // tumor cell 
-				pCell->assign_position( -x , y , 0.0 );
-				
-			if( UniformRandom() <= follower_fraction)
-			{ pCell->type = 1; pCell->type_name = "Follower"; }				
-/*				
-				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-				if( pCell->custom_data[0] < 0.0 )
-				{ pCell->custom_data[0] = 0.0; }
-				if( pCell->custom_data[0] > 2.0 )
-				{ pCell->custom_data[0] = .0; }
-*/				
-				if( fabs( y ) > 0.01 )
-				{
-					pCell = create_cell(); // tumor cell 
-					pCell->assign_position( -x , -y , 0.0 );
-					
-			if( UniformRandom() <= follower_fraction)
-			{ pCell->type = 1; pCell->type_name = "Follower"; }					
-					
-/*					
-					pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-					if( pCell->custom_data[0] < 0.0 )
-					{ pCell->custom_data[0] = 0.0; }
-					if( pCell->custom_data[0] > 2.0 )
-					{ pCell->custom_data[0] = .0; }
-*/				
-				}
-			}
-			x += cell_spacing; 
-			
-		}
-		
-		y += cell_spacing * sqrt(3.0)/2.0; 
-		n++; 
+		if( UniformRandom() <= follower_fraction)
+		{ pCell->type = 1; pCell->type_name = "Follower"; }		
 	}
 	
 	return; 
@@ -479,7 +451,6 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	}
 */	
 	
-/*	
 	// model 3a
 	// if pO2 < threshold, then set motile true, less proliferation  
 	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
@@ -511,8 +482,8 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 			
 		}
 	}
-*/	
-	
+
+/*	
 	// model 4 and 4a
 	// same as #3a, but only allowed in 10% of cells (permanent leader fraction)
 	if( pO2 < phenotype_hypoxic_switch && pCell->type != 1 )
@@ -543,6 +514,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 			
 		}
 	}
+*/	
 
 	
 	// model 5

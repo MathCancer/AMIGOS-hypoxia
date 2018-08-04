@@ -9,3 +9,7 @@ PhysiCell-primary-site/primary_site.exe
 PhysiCell-primary-site/primary_site.o
 *.o
 PhysiCell-primary-site/primary_site.exe
+*.jpg
+*.gif
+*.avi
+*.exe
