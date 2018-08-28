@@ -58,7 +58,7 @@ ALL_OBJECTS_3D := $(PhysiCell_OBJECTS) $(PhysiCell_custom_module_OBJECTS_3D)
 # compile the project  
 
 all: main-primary2D.cpp main-primary3D.cpp $(ALL_OBJECTS) $(ALL_OBJECTS_3D)
-all: main-primary3D.cpp $(ALL_OBJECTS_3D)
+# all: main-primary3D.cpp $(ALL_OBJECTS_3D)
 	$(COMPILE_COMMAND) -o $(PROGRAM_NAME)_2D $(ALL_OBJECTS) main-primary2D.cpp 
 	$(COMPILE_COMMAND) -o $(PROGRAM_NAME)_3D $(ALL_OBJECTS_3D) main-primary3D.cpp 
 
