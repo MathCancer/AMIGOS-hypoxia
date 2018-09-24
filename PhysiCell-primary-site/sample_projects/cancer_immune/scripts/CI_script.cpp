@@ -70,7 +70,7 @@
 #include <fstream>
 
 // set number of threads for OpenMP (parallel computing)
-int omp_num_threads = 8; // set this to # of CPU cores x 2 (for hyperthreading)
+int omp_num_threads = 4; // set this to # of CPU cores x 2 (for hyperthreading)
 
 int main( int argc, char* argv[] )
 {
@@ -78,10 +78,10 @@ int main( int argc, char* argv[] )
 	omp_set_num_threads(omp_num_threads);
 
 	#pragma omp parallel for 
-	for( int i= atoi( argv[1] ) ; i <= atoi( argv[2] ); i++ )
+	for( int i= atoi( argv[2] ) ; i <= atoi( argv[3] ); i++ )
 	{
 		char str [1024]; 
-		sprintf( str , "CI_vis %i", i ); 
+		sprintf( str , "AMGIOS %s %i", argv[1], i ); 
 		system( str ); 
 		
 		std::cout << i << " " << str << std::endl; 
