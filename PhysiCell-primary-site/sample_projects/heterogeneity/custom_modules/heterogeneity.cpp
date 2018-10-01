@@ -3,17 +3,21 @@
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version 1.3.1) [1].    #
+# We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
 #     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
+# See VERSION.txt or call get_PhysiCell_version() to get the current version  #
+#     x.y.z. Call display_citations() to get detailed information on all cite-#
+#     able software used in your PhysiCell application.                       #
+#                                                                             #
 # Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
 #     as below:                                                               #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version 1.3.1) [1],    #
+# We implemented and solved the model using PhysiCell (Version x.y.z) [1],    #
 # with BioFVM [2] to solve the transport equations.                           #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
@@ -22,8 +26,8 @@
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
-#    llelized diffusive transport solver for 3-D biological simulations,      #
-#    Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730   #
+#     llelized diffusive transport solver for 3-D biological simulations,     #
+#     Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #
 #                                                                             #
 ###############################################################################
 #                                                                             #
@@ -62,6 +66,7 @@
 */
 
 #include "./heterogeneity.h"
+#include "../modules/PhysiCell_settings.h"
 
 void create_cell_types( void )
 {
@@ -69,7 +74,8 @@ void create_cell_types( void )
 	// same initial histogram of oncoprotein, even if threading means 
 	// that future division and other events are still not identical 
 	// for all runs 
-	SeedRandom(0); 
+	
+	SeedRandom( parameters.ints( "random_seed" ) ); 
 	
 	// housekeeping 
 	
@@ -83,7 +89,8 @@ void create_cell_types( void )
 	
 	// Make sure we're ready for 2D
 	
-	cell_defaults.functions.set_orientation = up_orientation; 
+	cell_defaults.functions.set_orientation = up_orientation;  
+	
 	cell_defaults.phenotype.geometry.polarity = 1.0; 
 	cell_defaults.phenotype.motility.restrict_to_2D = true; 
 	
@@ -121,9 +128,17 @@ void setup_microenvironment( void )
 {
 	// set domain parameters
 
+/* now this is in XML 
 	default_microenvironment_options.X_range = {-1000, 1000}; 
 	default_microenvironment_options.Y_range = {-1000, 1000}; 
 	default_microenvironment_options.simulate_2D = true; 
+*/
+	// make sure ot override and go back to 2D 
+	if( default_microenvironment_options.simulate_2D == false )
+	{
+		std::cout << "Warning: overriding XML config option and setting to 2D!" << std::endl; 
+		default_microenvironment_options.simulate_2D = true; 
+	}
 	
 	// no gradients needed for this example 
 	
@@ -150,13 +165,23 @@ void setup_tissue( void )
 	double cell_radius = cell_defaults.phenotype.geometry.radius; 
 	double cell_spacing = 0.95 * 2.0 * cell_radius; 
 	
-	double tumor_radius = 250.0; 
+	double tumor_radius = parameters.doubles( "tumor_radius" ); // 250.0; 
+	
+	// Parameter<double> temp; 
+	
+	std::cout << parameters << std::endl; 
+	int i = parameters.doubles.find_index( "tumor_radius" ); 
 	
 	Cell* pCell = NULL; 
 	
 	double x = 0.0; 
 	double x_outer = tumor_radius; 
 	double y = 0.0; 
+	
+	double p_mean = parameters.doubles( "oncoprotein_mean" ); 
+	double p_sd = parameters.doubles( "oncoprotein_sd" ); 
+	double p_min = parameters.doubles( "oncoprotein_min" ); 
+	double p_max = parameters.doubles( "oncoprotein_max" ); 
 	
 	int n = 0; 
 	while( y < tumor_radius )
@@ -170,43 +195,42 @@ void setup_tissue( void )
 		{
 			pCell = create_cell(); // tumor cell 
 			pCell->assign_position( x , y , 0.0 );
-			pCell->custom_data[0] = NormalRandom( 1.0, 0.33 );
-			if( pCell->custom_data[0] < 0.0 )
-			{ pCell->custom_data[0] = 0.0; }
-			if( pCell->custom_data[0] > 2.0 )
-			{ pCell->custom_data[0] = .0; }
+			pCell->custom_data[0] = NormalRandom( p_mean, p_sd );
+			if( pCell->custom_data[0] < p_min )
+			{ pCell->custom_data[0] = p_min; }
+			if( pCell->custom_data[0] > p_max )
+			{ pCell->custom_data[0] = p_max; }
 			
 			if( fabs( y ) > 0.01 )
 			{
 				pCell = create_cell(); // tumor cell 
 				pCell->assign_position( x , -y , 0.0 );
-				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-				if( pCell->custom_data[0] < 0.0 )
-				{ pCell->custom_data[0] = 0.0; }
-				if( pCell->custom_data[0] > 2.0 )
-				{ pCell->custom_data[0] = .0; }
-				
+				pCell->custom_data[0] = NormalRandom( p_mean, p_sd );
+				if( pCell->custom_data[0] < p_min )
+				{ pCell->custom_data[0] = p_min; }
+				if( pCell->custom_data[0] > p_max )
+				{ pCell->custom_data[0] = p_max; }				
 			}
 			
 			if( fabs( x ) > 0.01 )
 			{ 
 				pCell = create_cell(); // tumor cell 
 				pCell->assign_position( -x , y , 0.0 );
-				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-				if( pCell->custom_data[0] < 0.0 )
-				{ pCell->custom_data[0] = 0.0; }
-				if( pCell->custom_data[0] > 2.0 )
-				{ pCell->custom_data[0] = .0; }
-				
+				pCell->custom_data[0] = NormalRandom( p_mean, p_sd );
+				if( pCell->custom_data[0] < p_min )
+				{ pCell->custom_data[0] = p_min; }
+				if( pCell->custom_data[0] > p_max )
+				{ pCell->custom_data[0] = p_max; }
+		
 				if( fabs( y ) > 0.01 )
 				{
 					pCell = create_cell(); // tumor cell 
 					pCell->assign_position( -x , -y , 0.0 );
-					pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-					if( pCell->custom_data[0] < 0.0 )
-					{ pCell->custom_data[0] = 0.0; }
-					if( pCell->custom_data[0] > 2.0 )
-					{ pCell->custom_data[0] = .0; }
+					pCell->custom_data[0] = NormalRandom( p_mean, p_sd );
+					if( pCell->custom_data[0] < p_min )
+					{ pCell->custom_data[0] = p_min; }
+					if( pCell->custom_data[0] > p_max )
+					{ pCell->custom_data[0] = p_max; }
 				}
 			}
 			x += cell_spacing; 
@@ -274,6 +298,9 @@ std::vector<std::string> heterogeneity_coloring_function( Cell* pCell )
 {
 	static int oncoprotein_i = pCell->custom_data.find_variable_index( "oncoprotein" ); 
 	
+	static double p_min = parameters.doubles( "oncoprotein_min" ); 
+	static double p_max = parameters.doubles( "oncoprotein_max" ); 
+	
 	// immune are black
 	std::vector< std::string > output( 4, "black" ); 
 	
@@ -283,13 +310,13 @@ std::vector<std::string> heterogeneity_coloring_function( Cell* pCell )
 	// live cells are green, but shaded by oncoprotein value 
 	if( pCell->phenotype.death.dead == false )
 	{
-		int oncoprotein = (int) round( 0.5 * pCell->custom_data[oncoprotein_i] * 255.0 ); 
+		int oncoprotein = (int) round( (1.0/(p_max-p_min)) * (pCell->custom_data[oncoprotein_i]-p_min) * 255.0 ); 
 		char szTempString [128];
 		sprintf( szTempString , "rgb(%u,%u,%u)", oncoprotein, oncoprotein, 255-oncoprotein );
 		output[0].assign( szTempString );
 		output[1].assign( szTempString );
 
-		sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/2.0) , (int)round(output[0][1]/2.0) , (int)round(output[0][2]/2.0) );
+		sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/p_max) , (int)round(output[0][1]/p_max) , (int)round(output[0][2]/p_max) );
 		output[2].assign( szTempString );
 		
 		return output; 

@@ -1,4 +1,4 @@
-VERSION := 1.3.1
+VERSION := $(shell grep . VERSION.txt | cut -f1 -d:)
 PROGRAM_NAME := cancer_immune_3D
 
 CC := g++
@@ -141,6 +141,9 @@ reset:
 	cp ./sample_projects/Makefile-default Makefile 
 	rm -f ./custom_modules/*
 	touch ./custom_modules/empty.txt 
+	touch ALL_CITATIONS.txt 
+	rm ALL_CITATIONS.txt 
+	cp ./config/PhysiCell_settings_default.xml ./config/PhysiCell_settings.xml 
 	
 clean:
 	rm -f *.o
