@@ -63,6 +63,8 @@
 
 #include "./primary_site.h"
 
+
+
 void create_cell_types( void )
 {
 	// use the same random seed so that future experiments have the 
@@ -120,7 +122,7 @@ void create_cell_types( void )
 
 	// set the default cell type to no phenotype updates 
 	
-	cell_defaults.functions.update_phenotype = tumor_cell_phenotype; 
+	cell_defaults.functions.update_phenotype = tumor_cell_phenotype2; 
 	
 	cell_defaults.name = "cancer cell"; 
 	cell_defaults.type = 0; 
@@ -130,19 +132,21 @@ void create_cell_types( void )
 	std::vector<double> genes = { 1.0, 0.0 }; // RFP, GFP 
 	std::vector<double> proteins = {1.0, 0.0 }; // RFP, GFP; 
 	
-	double default_degradation_rate = 6.8e-5; // 7-day half-life 
+	double default_degradation_rateRFP = 6.8e-5;
+	double default_degradation_rateGFP = 6.8e-5;  // 7-day half-life 
 	// 4.8e-4; // 24 hour half-life 
 	// 0.0077; // 90 minute half-life 
 	// 0.019; // 90% degrades in 120 minutes 
 	
-	std::vector<double> degradation_rates = { default_degradation_rate , default_degradation_rate }; 
+	std::vector<double> degradation_rates = { default_degradation_rateRFP , default_degradation_rateGFP }; 
 	
-	double default_production_rate = 4.8e-4; // 24 hour half ramp-up 
+	double default_production_rateRFP = 4.8e-4;
+	double default_production_rateGFP = 4.8e-4;	// 24 hour half ramp-up 
 	// 0.0019; // 6 hours to reach 50% 
 	// 0.0068; // 1.7 hours to reach 50% 
 	// 0.23; // 10 minutes to reach 90% 
 	
-	std::vector<double> creation_rates = { default_production_rate , default_production_rate }; 
+	std::vector<double> creation_rates = { default_production_rateRFP , default_production_rateGFP }; 
 	
 	cell_defaults.custom_data.add_vector_variable( "genes" , "dimensionless", genes ); 
 	
@@ -325,8 +329,474 @@ void setup_tissue( void )
 }
 
 // custom cell phenotype function to scale immunostimulatory factor with hypoxia 
-void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
+void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
 {
+	// model 0 
+	// change color, but do nothing. 
+
+	static int genes_i = 0; 
+	static int proteins_i =1; 
+	static int creation_rates_i = 2; 
+	static int degradation_rates_i = 3; 
+	
+	static int red_i = 0; 
+	static int green_i = 1; 	
+
+	static int hypoxic_memory_i = pCell->custom_data.find_variable_index( "hypoxic memory" ); 
+	
+	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
+	
+	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	
+	// if cell is dead, don't bother with future phenotype changes. 
+	if( phenotype.death.dead == true )
+	{
+		pCell->functions.update_phenotype = NULL; 		
+		return; 
+	}
+
+	// multiply proliferation rate by the oncoprotein 
+	
+	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	
+//	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
+
+	// set genes 
+	
+	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
+	
+	static double FP_hypoxic_switch = 10.0; // 
+	static double phenotype_hypoxic_switch = 10.0;  // 
+	
+	// permanent gene switch 
+	if( pO2 < FP_hypoxic_switch )
+	{
+		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
+		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
+	}
+	
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+	}
+	else
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+	}
+
+	// update the proteins
+	
+	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].value.size(); i++ )
+	{
+		double temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // alpha_i + beta_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n ( alpha_i + beta_i ); 
+		temp *= dt; // dt*G_i^n ( alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] += temp; // P_i = P_i + dt*G_i^n ( alpha_i + beta_i ); 
+		temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n * alpha_i 
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // G_i^n * alpha_i + beta_i 
+		temp *= dt; // dt*( G_i^n * alpha_i + beta_i ); 
+		temp += 1.0; // 1.0 + dt*( G_i^n * alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] /= temp; // P_i = ( P_i + dt*G_i^n ( alpha_i + beta_i ) ) / ( 1.0 + dt*( G_i^n * alpha_i + beta_i ) ); 
+	}
+		
+	return; 
+}
+
+
+void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	// model 1
+	// if pO2 < value, then motile, less proliferation (instantaneous)
+	// if pO2 > value, then not motile, normal proliferation 
+	static int genes_i = 0; 
+	static int proteins_i =1; 
+	static int creation_rates_i = 2; 
+	static int degradation_rates_i = 3; 
+	
+	static int red_i = 0; 
+	static int green_i = 1; 	
+
+	static int hypoxic_memory_i = pCell->custom_data.find_variable_index( "hypoxic memory" ); 
+	
+	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
+	
+	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	
+	// if cell is dead, don't bother with future phenotype changes. 
+	if( phenotype.death.dead == true )
+	{
+		pCell->functions.update_phenotype = NULL; 		
+		return; 
+	}
+
+	// multiply proliferation rate by the oncoprotein 
+	
+	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	
+//	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
+
+	// set genes 
+	
+	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
+	
+	static double FP_hypoxic_switch = 10.0; // 
+	static double phenotype_hypoxic_switch = 10.0;  // 
+	
+	// permanent gene switch 
+	if( pO2 < FP_hypoxic_switch )
+	{
+		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
+		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
+	}
+	
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+	}
+	else
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+	}
+
+	// update the proteins
+	
+	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].value.size(); i++ )
+	{
+		double temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // alpha_i + beta_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n ( alpha_i + beta_i ); 
+		temp *= dt; // dt*G_i^n ( alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] += temp; // P_i = P_i + dt*G_i^n ( alpha_i + beta_i ); 
+		temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n * alpha_i 
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // G_i^n * alpha_i + beta_i 
+		temp *= dt; // dt*( G_i^n * alpha_i + beta_i ); 
+		temp += 1.0; // 1.0 + dt*( G_i^n * alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] /= temp; // P_i = ( P_i + dt*G_i^n ( alpha_i + beta_i ) ) / ( 1.0 + dt*( G_i^n * alpha_i + beta_i ) ); 
+	}
+	
+	// model 1
+	// if pO2 < value, then motile, less proliferation (instantaneous)
+	// if pO2 > value, then not motile, normal proliferation 
+	
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.motility.is_motile = true; 
+		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+	}
+	else
+	{
+		phenotype.motility.is_motile = false; 
+	}
+
+	return; 
+}
+
+
+void tumor_cell_phenotype2( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	// model 2
+	// if green gene on, then motile, less proliferation (permanent change)
+
+	static int genes_i = 0; 
+	static int proteins_i =1; 
+	static int creation_rates_i = 2; 
+	static int degradation_rates_i = 3; 
+	
+	static int red_i = 0; 
+	static int green_i = 1; 	
+
+	static int hypoxic_memory_i = pCell->custom_data.find_variable_index( "hypoxic memory" ); 
+	
+	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
+	
+	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	
+	// if cell is dead, don't bother with future phenotype changes. 
+	if( phenotype.death.dead == true )
+	{
+		pCell->functions.update_phenotype = NULL; 		
+		return; 
+	}
+
+	// multiply proliferation rate by the oncoprotein 
+	
+	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	
+//	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
+
+	// set genes 
+	
+	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
+	
+	static double FP_hypoxic_switch = 10.0; // 
+	static double phenotype_hypoxic_switch = 10.0;  // 
+	
+	// permanent gene switch 
+	if( pO2 < FP_hypoxic_switch )
+	{
+		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
+		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
+	}
+	
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+	}
+	else
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+	}
+
+	// update the proteins
+	
+	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].value.size(); i++ )
+	{
+		double temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // alpha_i + beta_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n ( alpha_i + beta_i ); 
+		temp *= dt; // dt*G_i^n ( alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] += temp; // P_i = P_i + dt*G_i^n ( alpha_i + beta_i ); 
+		temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n * alpha_i 
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // G_i^n * alpha_i + beta_i 
+		temp *= dt; // dt*( G_i^n * alpha_i + beta_i ); 
+		temp += 1.0; // 1.0 + dt*( G_i^n * alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] /= temp; // P_i = ( P_i + dt*G_i^n ( alpha_i + beta_i ) ) / ( 1.0 + dt*( G_i^n * alpha_i + beta_i ) ); 
+	}
+	
+	// set phenotype in response to temporary or permanent changes 
+	
+	// model 2
+	// if green gene on, then motile, less proliferation (permanent change)
+	
+	if( pCell->custom_data.vector_variables[genes_i].value[green_i] > 0.1 )
+	{
+		phenotype.motility.is_motile = true; 
+//		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+	}
+
+	return; 
+}
+
+
+void tumor_cell_phenotype2a( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	// model 2a
+	// if green gene on, then motile, proliferation unchanged (permanent change)
+	// 2a: decrease adhesion 
+
+	static int genes_i = 0; 
+	static int proteins_i =1; 
+	static int creation_rates_i = 2; 
+	static int degradation_rates_i = 3; 
+	
+	static int red_i = 0; 
+	static int green_i = 1; 	
+
+	static int hypoxic_memory_i = pCell->custom_data.find_variable_index( "hypoxic memory" ); 
+	
+	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
+	
+	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	
+	// if cell is dead, don't bother with future phenotype changes. 
+	if( phenotype.death.dead == true )
+	{
+		pCell->functions.update_phenotype = NULL; 		
+		return; 
+	}
+
+	// multiply proliferation rate by the oncoprotein 
+	
+	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	
+//	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
+
+	// set genes 
+	
+	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
+	
+	static double FP_hypoxic_switch = 10.0; // 
+	static double phenotype_hypoxic_switch = 10.0;  // 
+	
+	// permanent gene switch 
+	if( pO2 < FP_hypoxic_switch )
+	{
+		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
+		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
+	}
+	
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+	}
+	else
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+	}
+
+	// update the proteins
+	
+	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].value.size(); i++ )
+	{
+		double temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // alpha_i + beta_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n ( alpha_i + beta_i ); 
+		temp *= dt; // dt*G_i^n ( alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] += temp; // P_i = P_i + dt*G_i^n ( alpha_i + beta_i ); 
+		temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n * alpha_i 
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // G_i^n * alpha_i + beta_i 
+		temp *= dt; // dt*( G_i^n * alpha_i + beta_i ); 
+		temp += 1.0; // 1.0 + dt*( G_i^n * alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] /= temp; // P_i = ( P_i + dt*G_i^n ( alpha_i + beta_i ) ) / ( 1.0 + dt*( G_i^n * alpha_i + beta_i ) ); 
+	}
+	
+	// set phenotype in response to temporary or permanent changes 
+
+	// model 2a
+	// if green gene on, then motile, proliferation unchanged (permanent change)
+	// 2a: decrease adhesion 
+	if( pCell->custom_data.vector_variables[genes_i].value[green_i] > 0.1 )
+	{
+		phenotype.motility.is_motile = true; 
+		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		phenotype.motility.migration_speed = 0.5; //   migration_bias = 0.85; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		
+		// phenotype.mechanics.cell_cell_adhesion_strength = 0; 
+	}
+	return; 
+}
+
+
+void tumor_cell_phenotype3( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	// model 3
+	// if pO2 < threshold, then set motile true, less proliferation  
+	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
+	static int genes_i = 0; 
+	static int proteins_i =1; 
+	static int creation_rates_i = 2; 
+	static int degradation_rates_i = 3; 
+	
+	static int red_i = 0; 
+	static int green_i = 1; 	
+
+	static int hypoxic_memory_i = pCell->custom_data.find_variable_index( "hypoxic memory" ); 
+	
+	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
+	
+	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	
+	// if cell is dead, don't bother with future phenotype changes. 
+	if( phenotype.death.dead == true )
+	{
+		pCell->functions.update_phenotype = NULL; 		
+		return; 
+	}
+
+	// multiply proliferation rate by the oncoprotein 
+	
+	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	
+//	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
+
+	// set genes 
+	
+	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
+	
+	static double FP_hypoxic_switch = 10.0; // 
+	static double phenotype_hypoxic_switch = 10.0;  // 
+	
+	// permanent gene switch 
+	if( pO2 < FP_hypoxic_switch )
+	{
+		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
+		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
+	}
+	
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+	}
+	else
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+	}
+
+	// update the proteins
+	
+	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].value.size(); i++ )
+	{
+		double temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // alpha_i + beta_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n ( alpha_i + beta_i ); 
+		temp *= dt; // dt*G_i^n ( alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] += temp; // P_i = P_i + dt*G_i^n ( alpha_i + beta_i ); 
+		temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n * alpha_i 
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // G_i^n * alpha_i + beta_i 
+		temp *= dt; // dt*( G_i^n * alpha_i + beta_i ); 
+		temp += 1.0; // 1.0 + dt*( G_i^n * alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] /= temp; // P_i = ( P_i + dt*G_i^n ( alpha_i + beta_i ) ) / ( 1.0 + dt*( G_i^n * alpha_i + beta_i ) ); 
+	}
+	
+	// set phenotype in response to temporary or permanent changes 
+
+	
+	// model 3
+	// if pO2 < threshold, then set motile true, less proliferation  
+	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.motility.is_motile = true; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+	}
+	else
+	{
+		static double persistence_time = 360.0; // 6 hours 
+		static double probability = dt/persistence_time; 
+		
+		if( phenotype.motility.is_motile == true )
+		{
+			if( UniformRandom() < probability )
+			{
+				phenotype.motility.is_motile = false; 
+
+			}
+			else
+			{
+				// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+			}
+			
+		}
+	}
+	return; 
+}
+
+
+void tumor_cell_phenotype3a( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	// model 3a
+	// if pO2 < threshold, then set motile true, less proliferation  
+	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
 	static int genes_i = 0; 
 	static int proteins_i =1; 
 	static int creation_rates_i = 2; 
@@ -399,87 +869,6 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// set phenotype in response to temporary or permanent changes 
 	
 	
-	// model 0 
-	// 
-	// change color, but do nothing. 
-
-/*	
-	// model 1
-	// if pO2 < value, then motile, less proliferation (instantaneous)
-	// if pO2 > value, then not motile, normal proliferation 
-	
-	if( pO2 < phenotype_hypoxic_switch )
-	{
-		phenotype.motility.is_motile = true; 
-		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
-	}
-	else
-	{
-		phenotype.motility.is_motile = false; 
-	}
-*/	
-
-/*	
-//	pCell->type
-	// model 2
-	// if green gene on, then motile, less proliferation (permanent change)
-	
-	if( pCell->custom_data.vector_variables[genes_i].value[green_i] > 0.1 )
-	{
-		phenotype.motility.is_motile = true; 
-//		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
-	}
-*/
-
-/*
-	// model 2a
-	// if green gene on, then motile, proliferation unchanged (permanent change)
-	// 2a: decrease adhesion 
-	if( pCell->custom_data.vector_variables[genes_i].value[green_i] > 0.1 )
-	{
-		phenotype.motility.is_motile = true; 
-		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-		phenotype.motility.migration_speed = 0.5; //   migration_bias = 0.85; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
-		
-		// phenotype.mechanics.cell_cell_adhesion_strength = 0; 
-	}
-	*/
-	
-/*	
-	// model 3
-	// if pO2 < threshold, then set motile true, less proliferation  
-	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
-	if( pO2 < phenotype_hypoxic_switch )
-	{
-		phenotype.motility.is_motile = true; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
-		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-	}
-	else
-	{
-		static double persistence_time = 360.0; // 6 hours 
-		static double probability = dt/persistence_time; 
-		
-		if( phenotype.motility.is_motile == true )
-		{
-			if( UniformRandom() < probability )
-			{
-				phenotype.motility.is_motile = false; 
-
-			}
-			else
-			{
-				// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-			}
-			
-		}
-	}
-*/	
-	
-/*	
 	// model 3a
 	// if pO2 < threshold, then set motile true, less proliferation  
 	// if pO2 > threshold and motile is true, probability rate*dt of turning motility false, restoring proliferation rate 
@@ -511,8 +900,8 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 			
 		}
 	}
-*/	
 	
+/* 	
 	// model 4 and 4a
 	// same as #3a, but only allowed in 10% of cells (permanent leader fraction)
 	if( pO2 < phenotype_hypoxic_switch && pCell->type != 1 )
@@ -544,7 +933,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		}
 	}
 
-	
+	 */
 	// model 5
 	// initially no leaders, but any follower can become a leader if pO2 is lower_bound
 	
@@ -607,6 +996,120 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	return; 
 }
+
+
+void tumor_cell_phenotype4( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	// model 4 and 4a
+	// same as #3a, but only allowed in 10% of cells (permanent leader fraction)
+	static int genes_i = 0; 
+	static int proteins_i =1; 
+	static int creation_rates_i = 2; 
+	static int degradation_rates_i = 3; 
+	
+	static int red_i = 0; 
+	static int green_i = 1; 	
+
+	static int hypoxic_memory_i = pCell->custom_data.find_variable_index( "hypoxic memory" ); 
+	
+	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
+	
+	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	
+	// if cell is dead, don't bother with future phenotype changes. 
+	if( phenotype.death.dead == true )
+	{
+		pCell->functions.update_phenotype = NULL; 		
+		return; 
+	}
+
+	// multiply proliferation rate by the oncoprotein 
+	
+	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	
+//	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
+
+	// set genes 
+	
+	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
+	
+	static double FP_hypoxic_switch = 10.0; // 
+	static double phenotype_hypoxic_switch = 10.0;  // 
+	
+	// permanent gene switch 
+	if( pO2 < FP_hypoxic_switch )
+	{
+		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
+		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
+	}
+	
+	if( pO2 < phenotype_hypoxic_switch )
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+	}
+	else
+	{
+		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+	}
+
+	// update the proteins
+	
+	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].value.size(); i++ )
+	{
+		double temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // alpha_i + beta_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n ( alpha_i + beta_i ); 
+		temp *= dt; // dt*G_i^n ( alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] += temp; // P_i = P_i + dt*G_i^n ( alpha_i + beta_i ); 
+		temp = pCell->custom_data.vector_variables[creation_rates_i].value[i]; // alpha_i 
+		temp *= pCell->custom_data.vector_variables[genes_i].value[i]; // G_i^n * alpha_i 
+		temp += pCell->custom_data.vector_variables[degradation_rates_i].value[i]; // G_i^n * alpha_i + beta_i 
+		temp *= dt; // dt*( G_i^n * alpha_i + beta_i ); 
+		temp += 1.0; // 1.0 + dt*( G_i^n * alpha_i + beta_i ); 
+		pCell->custom_data.vector_variables[proteins_i].value[i] /= temp; // P_i = ( P_i + dt*G_i^n ( alpha_i + beta_i ) ) / ( 1.0 + dt*( G_i^n * alpha_i + beta_i ) ); 
+	}
+	
+	// set phenotype in response to temporary or permanent changes 
+	
+	
+	// model 4 and 4a
+	// same as #3a, but only allowed in 10% of cells (permanent leader fraction)
+	if( pO2 < phenotype_hypoxic_switch && pCell->type != 1 )
+	{
+		phenotype.motility.is_motile = true; 
+		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+	}
+	else
+	{
+		static double persistence_time = 1440; // 
+		// 5760; // 4 days 
+		// 3600; // 60 hours 
+		// 360.0; // 6 hours // too short! 
+		static double probability = dt/persistence_time; 
+		
+		if( phenotype.motility.is_motile == true )
+		{
+			if( UniformRandom() < probability )
+			{
+				phenotype.motility.is_motile = false; 
+
+			}
+			else
+			{
+				// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+			}
+			
+		}
+	}
+
+	
+
+	return; 
+}
+
 
 std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 {

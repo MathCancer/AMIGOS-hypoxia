@@ -3,17 +3,21 @@
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version 1.3.1) [1].    #
+# We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
 #     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
+# See VERSION.txt or call get_PhysiCell_version() to get the current version  #
+#     x.y.z. Call display_citations() to get detailed information on all cite-#
+#     able software used in your PhysiCell application.                       #
+#                                                                             #
 # Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
 #     as below:                                                               #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version 1.3.1) [1],    #
+# We implemented and solved the model using PhysiCell (Version x.y.z) [1],    #
 # with BioFVM [2] to solve the transport equations.                           #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
@@ -22,8 +26,8 @@
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
-#    llelized diffusive transport solver for 3-D biological simulations,      #
-#    Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730   #
+#     llelized diffusive transport solver for 3-D biological simulations,     #
+#     Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #
 #                                                                             #
 ###############################################################################
 #                                                                             #
@@ -68,19 +72,17 @@
 #include <cmath>
 #include <omp.h>
 #include <fstream>
+#include <string> 
 
 #include "./core/PhysiCell.h"
 #include "./modules/PhysiCell_standard_modules.h" 
 
 // custom user modules 
 
-#include "./custom_modules/primary_site.h" 
+#include "./custom_modules/heterogeneity.h" 
 	
 using namespace BioFVM;
 using namespace PhysiCell;
-
-// set number of threads for OpenMP (parallel computing)
-int omp_num_threads = 8; // set this to # of CPU cores x 2 (for hyperthreading)
 
 int main( int argc, char* argv[] )
 {
@@ -93,7 +95,7 @@ int main( int argc, char* argv[] )
 	{ XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" ); }
 	if( !XML_status )
 	{ exit(-1); }
-	
+
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);
 	
@@ -105,9 +107,7 @@ int main( int argc, char* argv[] )
 
 	/* Microenvironment setup */ 
 	
-	setup_microenvironment(); // modify this in the custom code 
-	
-	// coarse_vasculature_setup();  // ANGIO setup here! 
+	setup_microenvironment(); 
 
 	/* PhysiCell setup */ 
  	
@@ -115,13 +115,13 @@ int main( int argc, char* argv[] )
 	double mechanics_voxel_size = 30; 
 	Cell_Container* cell_container = create_cell_container_for_microenvironment( microenvironment, mechanics_voxel_size );
 	
-	/* Users typically start modifying here. START USERMODS */ 
-	
 	create_cell_types();
 	setup_tissue();
-
+	
+	/* Users typically start modifying here. START USERMODS */ 
+	
 	/* Users typically stop modifying here. END USERMODS */ 
-
+	
 	// set MultiCellDS save options 
 
 	set_save_biofvm_mesh_as_matlab( true ); 
@@ -134,7 +134,7 @@ int main( int argc, char* argv[] )
 	char filename[1024];
 	sprintf( filename , "%s/initial" , PhysiCell_settings.folder.c_str() ); 
 	save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
-
+	
 	// save a quick SVG cross section through z = 0, after setting its 
 	// length bar to 200 microns 
 
@@ -142,10 +142,12 @@ int main( int argc, char* argv[] )
 
 	// for simplicity, set a pathology coloring function 
 	
-	std::vector<std::string> (*cell_coloring_function)(Cell*) = AMIGOS_coloring_function;
+	std::vector<std::string> (*cell_coloring_function)(Cell*) = heterogeneity_coloring_function;
 	
 	sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() ); 
 	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	
+	display_citations(); 
 	
 	// set the performance timers 
 
@@ -164,7 +166,7 @@ int main( int argc, char* argv[] )
 	// main loop 
 	
 	try 
-	{		
+	{	
 		while( PhysiCell_globals.current_time < PhysiCell_settings.max_time + 0.1*diffusion_dt )
 		{
 			// save data if it's time. 
@@ -199,16 +201,12 @@ int main( int argc, char* argv[] )
 					PhysiCell_globals.next_SVG_save_time  += PhysiCell_settings.SVG_save_interval;
 				}
 			}
-
+			
 			// update the microenvironment
 			microenvironment.simulate_diffusion_decay( diffusion_dt );
 			
 			// run PhysiCell 
 			((Cell_Container *)microenvironment.agent_container)->update_all_cells( PhysiCell_globals.current_time );
-			
-			// add angiogenesis here??
-			
-			update_coarse_vasculature( diffusion_dt);  // ANGIO 
 			
 			PhysiCell_globals.current_time += diffusion_dt;
 		}
