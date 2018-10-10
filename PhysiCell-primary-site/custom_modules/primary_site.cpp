@@ -121,8 +121,37 @@ void create_cell_types( void )
 	cell_defaults.phenotype.secretion.saturation_densities[VEGF_i] = 1.0; 
 
 	// set the default cell type to no phenotype updates 
+	static std::string tumorphenotype = parameters.strings("tumorphenotype");
 	
+	if (tumorphenotype == "model0")
+	{
+	cell_defaults.functions.update_phenotype = tumor_cell_phenotype0; 
+	}
+	
+	if (tumorphenotype == "model1")
+	{
+	cell_defaults.functions.update_phenotype = tumor_cell_phenotype1; 
+	}
+	
+	if (tumorphenotype == "model2")
+	{
 	cell_defaults.functions.update_phenotype = tumor_cell_phenotype2; 
+	}
+	
+	if (tumorphenotype == "model2a")
+	{
+	cell_defaults.functions.update_phenotype = tumor_cell_phenotype2a; 
+	}
+
+	if (tumorphenotype == "model3")
+	{
+	cell_defaults.functions.update_phenotype = tumor_cell_phenotype3; 
+	}
+
+	if (tumorphenotype == "model4")
+	{
+	cell_defaults.functions.update_phenotype = tumor_cell_phenotype4; 
+	}	
 	
 	cell_defaults.name = "cancer cell"; 
 	cell_defaults.type = 0; 
@@ -132,16 +161,16 @@ void create_cell_types( void )
 	std::vector<double> genes = { 1.0, 0.0 }; // RFP, GFP 
 	std::vector<double> proteins = {1.0, 0.0 }; // RFP, GFP; 
 	
-	double default_degradation_rateRFP = 6.8e-5;
-	double default_degradation_rateGFP = 6.8e-5;  // 7-day half-life 
+	double default_degradation_rateRFP = parameters.doubles("default_degradation_rateRFP");
+	double default_degradation_rateGFP = parameters.doubles("default_degradation_rateGFP"); 
 	// 4.8e-4; // 24 hour half-life 
 	// 0.0077; // 90 minute half-life 
 	// 0.019; // 90% degrades in 120 minutes 
 	
 	std::vector<double> degradation_rates = { default_degradation_rateRFP , default_degradation_rateGFP }; 
 	
-	double default_production_rateRFP = 4.8e-4;
-	double default_production_rateGFP = 4.8e-4;	// 24 hour half ramp-up 
+	double default_production_rateRFP = parameters.doubles("default_production_rateRFP");
+	double default_production_rateGFP = parameters.doubles("default_production_rateGFP");	// 24 hour half ramp-up 
 	// 0.0019; // 6 hours to reach 50% 
 	// 0.0068; // 1.7 hours to reach 50% 
 	// 0.23; // 10 minutes to reach 90% 
@@ -944,7 +973,7 @@ void tumor_cell_phenotype3a( Cell* pCell, Phenotype& phenotype, double dt )
 	
 // old! 	
 	
-/*	
+
 	// model 1
 	// if hypoxic, motile. 
 	if( pO2 < phenotype_hypoxic_switch )
@@ -955,7 +984,7 @@ void tumor_cell_phenotype3a( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = false; 
 	}
-*/	
+
 	// model 2
 	// if green, motile 
 	/*

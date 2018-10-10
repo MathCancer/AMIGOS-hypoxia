@@ -87,7 +87,7 @@
 	</domain>
 	
 	<overall>
-		<max_time units="min">64800</max_time> <!-- 5 days * 24 h * 60 min -->
+		<max_time units="min">7200</max_time> <!-- 5 days * 24 h * 60 min -->
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 	</overall>
@@ -121,6 +121,58 @@
 		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
 		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
 		<random_seed type="int" units="dimensionless">0</random_seed>
+
+		<!--> Tumor phenotype model type input is represented in string. (Options, 0,1,2,2a,3,3a,4)  -->
+		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
+		<color type="bool" units="dimensionless">true</color>
+		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
+		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
+		<default_degradation_rateRFP type="double" units="1/week">6.8e-5</default_degradation_rateRFP>
+		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
+
+<!-->
+		<tumor_cell_phenotype_model1="string" units="dimensionless">model1</tumor_cell_phenotype_model1>
+		<color type="bool" units="dimensionless">true</color>
+		<production_RFP type="double" units="1/week">true</production_RFP>
+		<production_GFP type="double" units="1/week">true</production_GFP>
+		<degradation_RFP type="double" units="1/week">true</degradation_RFP>
+		<degradation_GFP type="double" units="1/week">true</degradation_GFP>
+		<migration_speed type="double" units="microns/minute">true</motility_speed>
+		<migration_bias type="double" units="dimensionless">true</migration_bias>
+		<adhesion_distance type="double" units="microns">true</adhesion_distance>
+
+		<tumor_cell_phenotype_model2="string" units="dimensionless">model1</tumor_cell_phenotype_model2>
+		<color type="bool" units="dimensionless">true</color>
+		<production_RFP type="double" units="1/week">true</production_RFP>
+		<production_GFP type="double" units="1/week">true</production_GFP>
+		<degradation_RFP type="double" units="1/week">true</degradation_RFP>
+		<degradation_GFP type="double" units="1/week">true</degradation_GFP>
+		<migration_speed type="double" units="microns/minute">true</motility_speed>
+		<migration_bias type="double" units="dimensionless">true</migration_bias>
+		<adhesion_distance type="double" units="microns">true</adhesion_distance>
+
+		<tumor_cell_phenotype_model3a="string" units="dimensionless">model2</tumor_cell_phenotype_model3a>
+		<color type="bool" units="dimensionless">true</color>
+		<production_RFP type="double" units="1/week">true</production_RFP>
+		<production_GFP type="double" units="1/week">true</production_GFP>
+		<degradation_RFP type="double" units="1/week">true</degradation_RFP>
+		<degradation_GFP type="double" units="1/week">true</degradation_GFP>
+		<migration_speed type="double" units="microns/minute">true</motility_speed>
+		<migration_bias type="double" units="dimensionless">true</migration_bias>
+		<adhesion_distance type="double" units="microns">true</adhesion_distance>
+		<persistence_time type="double" units="minutes">true</persistence_time>
+
+		<tumor_cell_phenotype_model4="string" units="dimensionless">model2</tumor_cell_phenotype_model4>
+		<color type="bool" units="dimensionless">true</color>
+		<production_RFP type="double" units="1/week">true</production_RFP>
+		<production_GFP type="double" units="1/week">true</production_GFP>
+		<degradation_RFP type="double" units="1/week">true</degradation_RFP>
+		<degradation_GFP type="double" units="1/week">true</degradation_GFP>
+		<migration_speed type="double" units="microns/minute">true</motility_speed>
+		<migration_bias type="double" units="dimensionless">true</migration_bias>
+		<adhesion_distance type="double" units="microns">true</adhesion_distance>
+		<persistence_time type="double" units="minutes">true</persistence_time>
+-->
 	</user_parameters>
 	
 </PhysiCell_settings>
