@@ -121,7 +121,9 @@ void create_cell_types( void )
 	cell_defaults.phenotype.secretion.saturation_densities[VEGF_i] = 1.0; 
 
 	// set the default cell type to no phenotype updates 
-	static std::string tumorphenotype = parameters.strings("tumorphenotype");
+	
+	
+	std::string tumorphenotype = parameters.strings("tumorphenotype");
 	
 	if (tumorphenotype == "model0")
 	{
@@ -518,7 +520,8 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = true; 
 		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		phenotype.motility.migration_speed = parameters.doubles("migration_speed"); 
+		// migration_bias = parameters.doubles("migration_bias"); 
 	}
 	else
 	{
@@ -612,7 +615,8 @@ void tumor_cell_phenotype2( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = true; 
 //		phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		phenotype.motility.migration_speed = parameters.doubles("migration_speed"); 
+		// migration_bias = parameters.doubles("migration_bias");
 	}
 
 	return; 
@@ -703,10 +707,10 @@ void tumor_cell_phenotype2a( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.motility.is_motile = true; 
 		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-		phenotype.motility.migration_speed = 0.5; //   migration_bias = 0.85; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		phenotype.motility.migration_speed = parameters.doubles("migration_speed"); 
+		// migration_bias = parameters.doubles("migration_bias");
 		
-		// phenotype.mechanics.cell_cell_adhesion_strength = 0; 
+		// phenotype.mechanics.cell_cell_adhesion_strength = parameters.doubles("adhesion_distance"); 
 	}
 	return; 
 }
@@ -795,12 +799,14 @@ void tumor_cell_phenotype3( Cell* pCell, Phenotype& phenotype, double dt )
 	if( pO2 < phenotype_hypoxic_switch )
 	{
 		phenotype.motility.is_motile = true; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
-		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
+		phenotype.motility.migration_speed = parameters.doubles("migration_speed"); 
+		// migration_bias = parameters.doubles("migration_bias");
+		
+		// phenotype.mechanics.cell_cell_adhesion_strength = parameters.doubles("adhesion_distance"); 
 	}
 	else
 	{
-		static double persistence_time = 360.0; // 6 hours 
+		static double persistence_time = parameters.doubles("persistence_time"); // 6 hours 
 		static double probability = dt/persistence_time; 
 		
 		if( phenotype.motility.is_motile == true )
@@ -904,12 +910,14 @@ void tumor_cell_phenotype3a( Cell* pCell, Phenotype& phenotype, double dt )
 	if( pO2 < phenotype_hypoxic_switch )
 	{
 		phenotype.motility.is_motile = true; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		phenotype.motility.migration_speed = parameters.doubles("migration_speed"); 
+		// migration_bias = parameters.doubles("migration_bias");
+		
 		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
 	}
 	else
 	{
-		static double persistence_time = 1440; // 
+		static double persistence_time = parameters.doubles("persistence_time"); // 
 		// 5760; // 4 days 
 		// 3600; // 60 hours 
 		// 360.0; // 6 hours // too short! 
@@ -929,99 +937,6 @@ void tumor_cell_phenotype3a( Cell* pCell, Phenotype& phenotype, double dt )
 			
 		}
 	}
-	
-/* 	
-	// model 4 and 4a
-	// same as #3a, but only allowed in 10% of cells (permanent leader fraction)
-	if( pO2 < phenotype_hypoxic_switch && pCell->type != 1 )
-	{
-		phenotype.motility.is_motile = true; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
-		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-	}
-	else
-	{
-		static double persistence_time = 1440; // 
-		// 5760; // 4 days 
-		// 3600; // 60 hours 
-		// 360.0; // 6 hours // too short! 
-		static double probability = dt/persistence_time; 
-		
-		if( phenotype.motility.is_motile == true )
-		{
-			if( UniformRandom() < probability )
-			{
-				phenotype.motility.is_motile = false; 
-
-			}
-			else
-			{
-				// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
-			}
-			
-		}
-	}
-
-	 */
-	// model 5
-	// initially no leaders, but any follower can become a leader if pO2 is lower_bound
-	
-	// model 6 leader cells suppress follower conversion
-	
-	// model 7 leader cells suppress follower conversion, but attract followers by chemotaxis 
-	
-	
-// old! 	
-	
-
-	// model 1
-	// if hypoxic, motile. 
-	if( pO2 < phenotype_hypoxic_switch )
-	{
-		phenotype.motility.is_motile = true; 
-	}
-	else
-	{
-		phenotype.motility.is_motile = false; 
-	}
-
-	// model 2
-	// if green, motile 
-	/*
-	if( pCell->custom_data.vector_variables[proteins_i].value[green_i] > 0.5 )
-	{
-		phenotype.motility.is_motile = true; 
-	}
-	else
-	{
-		phenotype.motility.is_motile = false; 
-	}
-	*/
-	
-	// model 3
-	// if green, motile. but only for awhile
-/*	
-	if( pO2 < hypoxic_switch )
-	{ 
-		pCell->custom_data[hypoxic_memory_i] += 3.0*dt; 
-	}
-	else
-	{
-		pCell->custom_data[hypoxic_memory_i] -= dt; 
-		if( pCell->custom_data[hypoxic_memory_i] < 0.0 )
-		{ 
-			pCell->custom_data[hypoxic_memory_i] = 0.0; 
-		}
-	}
-	if( pCell->custom_data.vector_variables[proteins_i].value[green_i] > 0.5 && pCell->custom_data[hypoxic_memory_i] > 0.0 )
-	{
-		phenotype.motility.is_motile = true; 
-	}
-	else
-	{
-		phenotype.motility.is_motile = false; 
-	}
-*/	
 	
 	return; 
 }
@@ -1108,12 +1023,13 @@ void tumor_cell_phenotype4( Cell* pCell, Phenotype& phenotype, double dt )
 	if( pO2 < phenotype_hypoxic_switch && pCell->type != 1 )
 	{
 		phenotype.motility.is_motile = true; 
-		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
+		phenotype.motility.migration_speed = parameters.doubles("migration_speed"); 
+		// migration_bias = parameters.doubles("migration_bias");
 		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
 	}
 	else
 	{
-		static double persistence_time = 1440; // 
+		static double persistence_time = parameters.doubles("persistence_time"); // 
 		// 5760; // 4 days 
 		// 3600; // 60 hours 
 		// 360.0; // 6 hours // too short! 
