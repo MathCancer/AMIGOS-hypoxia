@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
@@ -66,86 +64,105 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#ifndef __PhysiCell_constants_h__
+#define __PhysiCell_constants_h__
 
-<PhysiCell_settings version="devel-version">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+#include <string>
+
+namespace PhysiCell
+{
 	
-	<overall>
-		<max_time units="min">7200</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
+class PhysiCell_constants
+{
+ public:
+	static constexpr double pi=3.1415926535897932384626433832795;
 	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
+	static constexpr double cell_removal_threshold_volume = 20; // 20 cubic microns -- about 1% of typical cell 
+	static const int keep_pushed_out_cells_in_outer_voxel=1;
+	static const int solid_boundary = 2;
+	static const int default_boundary_condition_for_pushed_out_agents = keep_pushed_out_cells_in_outer_voxel;		
 	
-	<save>
-		<folder>output</folder> <!-- use . for root --> 
+	static const int deterministic_necrosis = 0;
+	static const int stochastic_necrosis = 1;
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+	static const int oxygen_index = 0; // deprecate
+	static const int glucose_index = 1; // deprecate 
 	
-	<user_parameters>
-		<tumor_radius type="double" units="micron">250.0</tumor_radius>
-		<oncoprotein_mean type="double" units="dimensionless">1.0</oncoprotein_mean>
-		<oncoprotein_sd type="double" units="dimensionless">0.25</oncoprotein_sd>
-		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
-		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
-		<random_seed type="int" units="dimensionless">0</random_seed>
+	static const int TUMOR_TYPE=0; // deprecate 
+	static const int VESSEL_TYPE=1; // deprecate 
 
-		<!--> Tumor phenotype model type input can be specified in string. (Options, 0,1,2,2a,3,3a,4)
-			- Each model depends on previous parameters. Therefore previous parameters should not be commented. -->
-		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
-		
-		<color type="bool" units="dimensionless">true</color>
-		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
-		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
-		<default_degradation_rateRFP type="double" units="1/week">6.8e-5</default_degradation_rateRFP>
-		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
-
-		
-<!--> Model 1
-		<motility_speed type="double" units="microns/minute">0.25</motility_speed>
-		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
-		
-	  Model 2,2a
-		<adhesion_distance type="double" units="microns">0</adhesion_distance>
-
-	  Model 3
-		<persistence_time type="double" units="minutes">true</persistence_time> 
-
-	  Model 4
-
--->
-	</user_parameters>
+	static const int mesh_min_x_index=0;
+	static const int mesh_min_y_index=1;
+	static const int mesh_min_z_index=2;
+	static const int mesh_max_x_index=3;
+	static const int mesh_max_y_index=4;
+	static const int mesh_max_z_index=5;			
 	
-</PhysiCell_settings>
+	static const int mesh_lx_face_index=0;
+	static const int mesh_ly_face_index=1;
+	static const int mesh_lz_face_index=2;
+	static const int mesh_ux_face_index=3;
+	static const int mesh_uy_face_index=4;
+	static const int mesh_uz_face_index=5;
+	
+	// currently recognized cell cycle models 
+	static const int advanced_Ki67_cycle_model= 0;
+	static const int basic_Ki67_cycle_model=1;
+	static const int flow_cytometry_cycle_model=2;
+	static const int live_apoptotic_cycle_model=3;
+	static const int total_cells_cycle_model=4;
+	static const int live_cells_cycle_model = 5; 
+	static const int flow_cytometry_separated_cycle_model = 6; 
+	static const int cycling_quiescent_model = 7; 
+	
+	// currently recognized death models 
+	static const int apoptosis_death_model = 100; 
+	static const int necrosis_death_model = 101; 
+	static const int autophagy_death_model = 102; 
+	
+	static const int custom_cycle_model=9999; 
+	
+	// currently recognized cell cycle and death phases 
+	// cycle phases
+	static const int Ki67_positive_premitotic=0; 
+	static const int Ki67_positive_postmitotic=1; 
+	static const int Ki67_positive=2; 
+	static const int Ki67_negative=3; 
+	static const int G0G1_phase=4;
+	static const int G0_phase=5;
+	static const int G1_phase=6; 
+	static const int G1a_phase=7; 
+	static const int G1b_phase=8;
+	static const int G1c_phase=9;
+	static const int S_phase=10;
+	static const int G2M_phase=11;
+	static const int G2_phase=12;
+	static const int M_phase=13;
+	static const int live=14;
+	
+	static const int G1pm_phase = 15;
+	static const int G1ps_phase = 16; 
+	
+	static const int cycling = 17; 
+	static const int quiescent = 18; 
+	
+	
+	static const int custom_phase = 9999;
+	// death phases
+	static const int apoptotic=100;
+	static const int necrotic_swelling=101;
+	static const int necrotic_lysed=102;
+	static const int necrotic=103; 
+	static const int debris=104; 
+};
+
+static std::string time_units = "min";
+static std::string space_units = "micron";
+static double diffusion_dt = 0.01; 
+static double mechanics_dt = 0.1;
+static double phenotype_dt = 6.0;
+
+};
+
+#endif

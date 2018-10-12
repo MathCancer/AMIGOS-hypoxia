@@ -1,0 +1,26 @@
+done::
+
+change oxygen continues in normal tissue to ~90 mmHg
+ *** need to fix in coarse vasculature 
+
+chanage RFP and GFP time scales to 24-hour half-life (up and down)
+
+set GFP / RFP switch to 5 mmHg 
+
+set motiltiy to 0.05 or 0.10 micron/minute
+
+hypoxic cells secrete VEGF at the same hypoxic switch value (set to independent?)
+
+
+
+
+to do::
+improve the "memory model"
+
+finish angiogenesis 
+
+ECM bias for the future? 
+
+"bumper cars" to set low persistence in higher-pressure areas 
+
+tumor motiltiy on in happy cells but wiht no bias? 

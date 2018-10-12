@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
@@ -66,86 +64,69 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#ifndef __PhysiCell_standard_models_h__
+#define __PhysiCell_standard_models_h__
 
-<PhysiCell_settings version="devel-version">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+#include "./PhysiCell_constants.h" 
+#include "./PhysiCell_phenotype.h" 
+
+namespace PhysiCell
+{
+
+// standard cycle models: 
+
+extern Cycle_Model Ki67_advanced, Ki67_basic, live, flow_cytometry_cycle_model, flow_cytometry_separated_cycle_model, cycling_quiescent; 
+extern Cycle_Model apoptosis, necrosis, inert; 
+extern Death_Parameters apoptosis_parameters, necrosis_parameters; 
+
+
+extern bool PhysiCell_standard_models_initialized; 
+extern bool PhysiCell_standard_death_models_initialized; 
+extern bool PhysiCell_standard_cycle_models_initialized; 
+
+// standard entry function for the cycle models 
+
+void standard_Ki67_positive_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+void standard_Ki67_negative_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+void standard_live_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+
+void G1_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); 
+void G0_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); 
+void S_phase_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+
+void standard_apoptosis_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+void standard_necrosis_entry_function( Cell* pCell, Phenotype& phenotype, double dt );  // done 
+void standard_lysis_entry_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+
+bool standard_necrosis_arrest_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+
+// standard volume functions 
+
+void standard_volume_update_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+
+// standard mechanics functions 
+
+void standard_update_cell_velocity( Cell* pCell, Phenotype& phenotype, double dt); // done 
+void standard_add_basement_membrane_interactions( Cell* pCell, Phenotype phenotype, double dt );
+
+// other standard functions 
+
+void empty_function( Cell* pCell, Phenotype& phenotype, double dt ); // done 
+void up_orientation( Cell* pCell, Phenotype& phenotype, double dt ); // done
+
+// standard o2-based phenotype changes 
+
+void update_cell_and_death_parameters_O2_based( Cell* pCell, Phenotype& phenotype, double dt ); 
+
+// create standard models 
+
+bool create_standard_cell_cycle_models( void ); // done 
+bool create_standard_cell_death_models( void ); // done 
+bool create_standard_cycle_and_death_models( void ); // done 
+
+void initialize_default_cell_definition( void ); // done 
 	
-	<overall>
-		<max_time units="min">7200</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
-	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
-	
-	<save>
-		<folder>output</folder> <!-- use . for root --> 
+};
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
-	
-	<user_parameters>
-		<tumor_radius type="double" units="micron">250.0</tumor_radius>
-		<oncoprotein_mean type="double" units="dimensionless">1.0</oncoprotein_mean>
-		<oncoprotein_sd type="double" units="dimensionless">0.25</oncoprotein_sd>
-		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
-		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
-		<random_seed type="int" units="dimensionless">0</random_seed>
-
-		<!--> Tumor phenotype model type input can be specified in string. (Options, 0,1,2,2a,3,3a,4)
-			- Each model depends on previous parameters. Therefore previous parameters should not be commented. -->
-		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
-		
-		<color type="bool" units="dimensionless">true</color>
-		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
-		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
-		<default_degradation_rateRFP type="double" units="1/week">6.8e-5</default_degradation_rateRFP>
-		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
-
-		
-<!--> Model 1
-		<motility_speed type="double" units="microns/minute">0.25</motility_speed>
-		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
-		
-	  Model 2,2a
-		<adhesion_distance type="double" units="microns">0</adhesion_distance>
-
-	  Model 3
-		<persistence_time type="double" units="minutes">true</persistence_time> 
-
-	  Model 4
-
--->
-	</user_parameters>
-	
-</PhysiCell_settings>
+#endif 

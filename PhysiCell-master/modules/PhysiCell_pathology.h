@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
@@ -66,86 +64,62 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#include <vector>
+#include <string>
 
-<PhysiCell_settings version="devel-version">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+#ifndef __PhysiCell_pathology__
+#define __PhysiCell_pathology__
+
+#include "../core/PhysiCell.h"
+
+#include "./PhysiCell_SVG.h"
+#include "../BioFVM/BioFVM_utilities.h"
+
+namespace PhysiCell{
 	
-	<overall>
-		<max_time units="min">7200</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
+struct PhysiCell_SVG_options_struct {
+	bool plot_nuclei = true; 
+
+	std::string simulation_time_units = "min";
+	std::string mu = "&#956;";
+	std::string simulation_space_units = "&#956;m";
 	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
+	std::string label_time_units = "days"; 
 	
-	<save>
-		<folder>output</folder> <!-- use . for root --> 
+	double font_size = 200; 
+	std::string font_color = "black";
+	std::string font = "Arial";
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
-	
-	<user_parameters>
-		<tumor_radius type="double" units="micron">250.0</tumor_radius>
-		<oncoprotein_mean type="double" units="dimensionless">1.0</oncoprotein_mean>
-		<oncoprotein_sd type="double" units="dimensionless">0.25</oncoprotein_sd>
-		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
-		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
-		<random_seed type="int" units="dimensionless">0</random_seed>
+	double length_bar = 100; 
+}; 
 
-		<!--> Tumor phenotype model type input can be specified in string. (Options, 0,1,2,2a,3,3a,4)
-			- Each model depends on previous parameters. Therefore previous parameters should not be commented. -->
-		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
-		
-		<color type="bool" units="dimensionless">true</color>
-		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
-		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
-		<default_degradation_rateRFP type="double" units="1/week">6.8e-5</default_degradation_rateRFP>
-		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
+extern PhysiCell_SVG_options_struct PhysiCell_SVG_options;
 
-		
-<!--> Model 1
-		<motility_speed type="double" units="microns/minute">0.25</motility_speed>
-		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
-		
-	  Model 2,2a
-		<adhesion_distance type="double" units="microns">0</adhesion_distance>
+// done 
+std::vector<double> transmission( std::vector<double>& incoming_light, std::vector<double>& absorb_color, double thickness , double stain );
 
-	  Model 3
-		<persistence_time type="double" units="minutes">true</persistence_time> 
+// these give (in order) the cytoplasm color, cytoplasm outline color, nuclear color, nuclear outline color, 
+// each string is either rgb(R,G,B) or none 
 
-	  Model 4
+std::vector<std::string> simple_cell_coloring( Cell* pCell ); // done 
+std::vector<std::string> false_cell_coloring_Ki67( Cell* pCell ); // done 
+std::vector<std::string> false_cell_coloring_live_dead( Cell* pCell ); // done 
 
--->
-	</user_parameters>
-	
-</PhysiCell_settings>
+std::vector<std::string> false_cell_coloring_cycling_quiescent( Cell* pCell ); // done 
+
+std::vector<std::string> false_cell_coloring_cytometry( Cell* pCell ); 
+
+std::vector<std::string> hematoxylin_and_eosin_cell_coloring( Cell* pCell ); // done 
+std::vector<std::string> hematoxylin_and_eosin_stroma_coloring( double& ECM_fraction , double& blood_vessel_fraction); // planned 
+
+std::string formatted_minutes_to_DDHHMM( double minutes ); 
+
+void SVG_plot( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) ); // done
+
+void SVG_plot_with_stroma( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) , 
+	int ECM_index, std::vector<std::string> (*ECM_coloring_function)(double) ); // planned
+
+};
+
+#endif

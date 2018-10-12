@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
@@ -66,86 +64,65 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#ifndef __PhysiCell_cell_container_h__
+#define __PhysiCell_cell_container_h__
 
-<PhysiCell_settings version="devel-version">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+#include <vector>
+#include "PhysiCell_cell.h"
+#include "../BioFVM/BioFVM_agent_container.h"
+#include "../BioFVM/BioFVM_mesh.h"
+#include "../BioFVM/BioFVM_microenvironment.h"
+
+namespace PhysiCell{
+
+class Cell; 
+
+class Cell_Container : public BioFVM::Agent_Container
+{
+ private:	
+	std::vector<Cell*> cells_ready_to_divide; // the index of agents ready to divide
+	std::vector<Cell*> cells_ready_to_die;
+	int boundary_condition_for_pushed_out_agents; 	// what to do with pushed out cells
+	bool initialzed = false;
 	
-	<overall>
-		<max_time units="min">7200</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
+ public:
+	BioFVM::Cartesian_Mesh underlying_mesh;
+	std::vector<double> max_cell_interactive_distance_in_voxel;
+	int num_divisions_in_current_step;
+	int num_deaths_in_current_step;
+
+	double last_diffusion_time  = 0.0; 
+	double last_cell_cycle_time = 0.0;
+	double last_mechanics_time  = 0.0;
+	Cell_Container();
+ 	void initialize(double x_start, double x_end, double y_start, double y_end, double z_start, double z_end , double voxel_size);
+	void initialize(double x_start, double x_end, double y_start, double y_end, double z_start, double z_end , double dx, double dy, double dz);
+	std::vector<std::vector<Cell*> > agent_grid;
+	std::vector<std::vector<Cell*> > agents_in_outer_voxels;
 	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
+	void update_all_cells(double t);
+	void update_all_cells(double t, double dt);
+	void update_all_cells(double t, double phenotype_dt, double mechanics_dt);
+	void update_all_cells(double t, double phenotype_dt, double mechanics_dt, double diffusion_dt ); 
+
+	void register_agent( Cell* agent );
+	void add_agent_to_outer_voxel(Cell* agent);
+	void remove_agent(Cell* agent );
+	void remove_agent_from_voxel(Cell* agent, int voxel_index);
+	void add_agent_to_voxel(Cell* agent, int voxel_index);
 	
-	<save>
-		<folder>output</folder> <!-- use . for root --> 
+	void flag_cell_for_division( Cell* pCell ); 
+	void flag_cell_for_removal( Cell* pCell ); 
+	bool contain_any_cell(int voxel_index);
+};
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
-	
-	<user_parameters>
-		<tumor_radius type="double" units="micron">250.0</tumor_radius>
-		<oncoprotein_mean type="double" units="dimensionless">1.0</oncoprotein_mean>
-		<oncoprotein_sd type="double" units="dimensionless">0.25</oncoprotein_sd>
-		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
-		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
-		<random_seed type="int" units="dimensionless">0</random_seed>
+int find_escaping_face_index(Cell* agent);
+extern std::vector<Cell*> *all_cells; 
 
-		<!--> Tumor phenotype model type input can be specified in string. (Options, 0,1,2,2a,3,3a,4)
-			- Each model depends on previous parameters. Therefore previous parameters should not be commented. -->
-		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
-		
-		<color type="bool" units="dimensionless">true</color>
-		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
-		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
-		<default_degradation_rateRFP type="double" units="1/week">6.8e-5</default_degradation_rateRFP>
-		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
+Cell_Container* create_cell_container_for_microenvironment( BioFVM::Microenvironment& m , double mechanics_voxel_size );
 
-		
-<!--> Model 1
-		<motility_speed type="double" units="microns/minute">0.25</motility_speed>
-		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
-		
-	  Model 2,2a
-		<adhesion_distance type="double" units="microns">0</adhesion_distance>
 
-	  Model 3
-		<persistence_time type="double" units="minutes">true</persistence_time> 
 
-	  Model 4
-
--->
-	</user_parameters>
-	
-</PhysiCell_settings>
+};
+#endif

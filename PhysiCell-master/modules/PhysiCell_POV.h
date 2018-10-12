@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
@@ -66,86 +64,80 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <vector>
 
-<PhysiCell_settings version="devel-version">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+#ifndef _PhysiCell_POV_h_
+#define _PhysiCell_POV_h_
+
+#include "../BioFVM/BioFVM_vector.h" 
+
+class Clipping_Plane
+{
+ private:
+ public:
+	std::vector<double> normal; 
+	std::vector<double> point_on_plane; 
 	
-	<overall>
-		<max_time units="min">7200</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
+	// store [a,b,c,d], where 
+	// [a,b,c].*x + d = 0 on the plane
+	std::vector<double> coefficients; 
 	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
+	double signed_distance_to_plane( std::vector<double>& test_point ); // done 
+	bool is_or_behind_plane( std::vector<double>& test_point );  // done 
+	bool is_in_front_of_plane( std::vector<double>& test_point ); // done 
 	
-	<save>
-		<folder>output</folder> <!-- use . for root --> 
+	Clipping_Plane(); // done
+	void normal_point_to_coefficients( void ); // done 
+	void coefficients_to_normal_point( void );  // done 
+};
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+class POV_Options
+{
+ private:
+ public:
+	POV_Options(); // done 
+
+	std::vector<double> domain_center;
+	std::vector<double> domain_size; 
 	
-	<user_parameters>
-		<tumor_radius type="double" units="micron">250.0</tumor_radius>
-		<oncoprotein_mean type="double" units="dimensionless">1.0</oncoprotein_mean>
-		<oncoprotein_sd type="double" units="dimensionless">0.25</oncoprotein_sd>
-		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
-		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
-		<random_seed type="int" units="dimensionless">0</random_seed>
-
-		<!--> Tumor phenotype model type input can be specified in string. (Options, 0,1,2,2a,3,3a,4)
-			- Each model depends on previous parameters. Therefore previous parameters should not be commented. -->
-		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
-		
-		<color type="bool" units="dimensionless">true</color>
-		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
-		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
-		<default_degradation_rateRFP type="double" units="1/week">6.8e-5</default_degradation_rateRFP>
-		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
-
-		
-<!--> Model 1
-		<motility_speed type="double" units="microns/minute">0.25</motility_speed>
-		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
-		
-	  Model 2,2a
-		<adhesion_distance type="double" units="microns">0</adhesion_distance>
-
-	  Model 3
-		<persistence_time type="double" units="minutes">true</persistence_time> 
-
-	  Model 4
-
--->
-	</user_parameters>
+	std::vector<double> background; 
+ 
+	std::vector<double> camera_position; 
+	std::vector<double> camera_look_at; 
+	std::vector<double> camera_right; 
+	std::vector<double> camera_up; 
+	std::vector<double> camera_sky; 
 	
-</PhysiCell_settings>
+	int max_trace_level;
+	double assumed_gamma;
+	
+	std::vector<double> light_position; 
+	double light_rgb; // a scalar, so it's a shade of white 
+	double light_fade_distance; 
+	int light_fade_power; 
+	
+	bool no_shadow;
+	bool no_reflection; 
+	
+	std::vector<Clipping_Plane> clipping_planes; 
+	
+	// distance from center of domain, angle from x-axis, angle from z-axis 
+	void set_camera_from_spherical_location( double distance, double theta, double phi ); // done 
+};
+
+extern POV_Options default_POV_options; 
+
+void Write_POV_start( POV_Options& options , std::ostream& os ); 
+void Write_POV_start( std::ostream& os ); 
+
+// pigment: [r,g,b,f], where they vary from 0 to 1. I suggest f = 0. 
+// finish: [ambient,diffuse,specular]
+void Write_POV_sphere( std::ostream& os, std::vector<double>& center, double radius, std::vector<double>& pigment, std::vector<double>& finish );
+					
+#endif

@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
@@ -66,86 +64,75 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <iostream>
+#include <fstream>
 
-<PhysiCell_settings version="devel-version">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+#ifndef __PhysiCell_custom__
+#define __PhysiCell_custom__
+
+namespace PhysiCell
+{
 	
-	<overall>
-		<max_time units="min">7200</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
+class Variable
+{
+ private:
+	friend std::ostream& operator<<(std::ostream& os, const Variable& v); // done 
+ public:
+	std::string name; 
+	double value; 
+	std::string units; 
 	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
+	Variable(); 
+};
+
+class Vector_Variable
+{
+ private:
+	friend std::ostream& operator<<(std::ostream& os, const Vector_Variable& v); // done 
 	
-	<save>
-		<folder>output</folder> <!-- use . for root --> 
-
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+ public:
+	std::string name; 
+	std::vector<double> value; 
+	std::string units; 
 	
-	<user_parameters>
-		<tumor_radius type="double" units="micron">250.0</tumor_radius>
-		<oncoprotein_mean type="double" units="dimensionless">1.0</oncoprotein_mean>
-		<oncoprotein_sd type="double" units="dimensionless">0.25</oncoprotein_sd>
-		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
-		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
-		<random_seed type="int" units="dimensionless">0</random_seed>
+	Vector_Variable(); 
+};
 
-		<!--> Tumor phenotype model type input can be specified in string. (Options, 0,1,2,2a,3,3a,4)
-			- Each model depends on previous parameters. Therefore previous parameters should not be commented. -->
-		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
-		
-		<color type="bool" units="dimensionless">true</color>
-		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
-		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
-		<default_degradation_rateRFP type="double" units="1/week">6.8e-5</default_degradation_rateRFP>
-		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
-
-		
-<!--> Model 1
-		<motility_speed type="double" units="microns/minute">0.25</motility_speed>
-		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
-		
-	  Model 2,2a
-		<adhesion_distance type="double" units="microns">0</adhesion_distance>
-
-	  Model 3
-		<persistence_time type="double" units="minutes">true</persistence_time> 
-
-	  Model 4
-
--->
-	</user_parameters>
+class Custom_Cell_Data
+{
+ private:
+	std::unordered_map<std::string,int> name_to_index_map; 
+//	std::unordered_map<std::string,int> vector_name_to_index_map; 
 	
-</PhysiCell_settings>
+	friend std::ostream& operator<<(std::ostream& os, const Custom_Cell_Data& ccd); // done 
+ public:
+	std::vector<Variable> variables; 
+	std::vector<Vector_Variable> vector_variables; 
+	
+	int add_variable( Variable& v ); // done 
+	int add_variable( std::string name , std::string units , double value ); // done 
+	int add_variable( std::string name , double value ); // done 
+
+	int add_vector_variable( Vector_Variable& v ); // done 
+	int add_vector_variable( std::string name , std::string units , std::vector<double>& value ); // done 
+	int add_vector_variable( std::string name , std::vector<double>& value ); // done 
+
+	int find_variable_index( std::string name ); // done 
+//	int find_vector_variable_index( std::string name ); // done 
+
+	// these access the scalar variables 
+	double& operator[]( int i ); // done
+	double& operator[]( std::string name ); // done 
+	
+	
+	Custom_Cell_Data(); // done 
+	Custom_Cell_Data( const Custom_Cell_Data& ccd ); 
+};
+
+}; 
+
+#endif 

@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
@@ -66,86 +64,69 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#include "./PhysiCell_pugixml.h"
 
-<PhysiCell_settings version="devel-version">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+namespace PhysiCell{
 	
-	<overall>
-		<max_time units="min">7200</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
+
+// find the first <find_me> child in <parent_node> 
+pugi::xml_node xml_find_node( pugi::xml_node& parent_node , std::string find_me )
+{
+	return parent_node.child( find_me.c_str() ); 
+}
+
+// get the std:string in <parent_node> <find_me>string_value</find_me> </parent_node> 
+std::string xml_get_string_value( pugi::xml_node& parent_node , std::string find_me )
+{
+	return parent_node.child( find_me.c_str() ).text().get(); 
+}
 	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
 	
-	<save>
-		<folder>output</folder> <!-- use . for root --> 
-
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+// get the double value stored in <parent_node> <find_me>double_value</find_me> </parent_node> 
+double xml_get_double_value( pugi::xml_node& parent_node , std::string find_me )
+{
+	// return strtod( parent_node.child( find_me.c_str() ).text().get() , NULL ); // classic 
 	
-	<user_parameters>
-		<tumor_radius type="double" units="micron">250.0</tumor_radius>
-		<oncoprotein_mean type="double" units="dimensionless">1.0</oncoprotein_mean>
-		<oncoprotein_sd type="double" units="dimensionless">0.25</oncoprotein_sd>
-		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
-		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
-		<random_seed type="int" units="dimensionless">0</random_seed>
+	return parent_node.child( find_me.c_str() ).text().as_double(); // using pugixml conversion 
+}
 
-		<!--> Tumor phenotype model type input can be specified in string. (Options, 0,1,2,2a,3,3a,4)
-			- Each model depends on previous parameters. Therefore previous parameters should not be commented. -->
-		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
-		
-		<color type="bool" units="dimensionless">true</color>
-		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
-		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
-		<default_degradation_rateRFP type="double" units="1/week">6.8e-5</default_degradation_rateRFP>
-		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
 
-		
-<!--> Model 1
-		<motility_speed type="double" units="microns/minute">0.25</motility_speed>
-		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
-		
-	  Model 2,2a
-		<adhesion_distance type="double" units="microns">0</adhesion_distance>
-
-	  Model 3
-		<persistence_time type="double" units="minutes">true</persistence_time> 
-
-	  Model 4
-
--->
-	</user_parameters>
+// get the integer value in <parent_node> <find_me>int_value</find_me> </parent_node> 
+int xml_get_int_value( pugi::xml_node& parent_node , std::string find_me )
+{
+	//	return atoi( parent_node.child( find_me.c_str() ).text().get() ); // classic 
 	
-</PhysiCell_settings>
+	return parent_node.child( find_me.c_str() ).text().as_int(); // using pugixml conversion 
+}
+
+// get the Boolean value in <parent_node> <find_me>int_value</find_me> </parent_node> 
+bool xml_get_bool_value( pugi::xml_node& parent_node , std::string find_me )
+{
+	//	return (bool) atoi( parent_node.child( find_me.c_str() ).text().get() ); // classic (untested)
+	
+	return parent_node.child( find_me.c_str() ).text().as_bool(); // using pugixml conversion 
+}
+ 
+// get the name of the element in <my_node> (the name would be my_node) 
+std::string xml_get_my_name( pugi::xml_node node )
+{
+	return node.name(); 
+}
+
+bool xml_get_my_bool_value( pugi::xml_node node )
+{ return node.text().as_bool(); }
+
+int xml_get_my_int_value( pugi::xml_node node )
+{ return node.text().as_int(); }
+
+double xml_get_my_double_value( pugi::xml_node node )
+{ return node.text().as_double(); }
+
+std::string xml_get_my_string_value( pugi::xml_node node )
+{ return node.text().get(); }
+
+
+
+	
+};

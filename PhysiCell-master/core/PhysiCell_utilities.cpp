@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
@@ -66,86 +64,141 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#include "PhysiCell_utilities.h"
+#include "PhysiCell_constants.h"
 
-<PhysiCell_settings version="devel-version">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+#include "PhysiCell.h" 
+
+#include <iostream>
+#include <fstream>
+
+namespace PhysiCell{
+
+std::random_device rd;
+std::mt19937 gen(rd());
+
+long SeedRandom( long input )
+{
+	gen.seed(input);
+	return input;
+}
+
+
+long SeedRandom( void )
+{ 
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	gen.seed(seed);
+	return seed;
+}
+
+double UniformRandom()
+{
+	return std::generate_canonical<double, 10>(gen);
+}
+
+double NormalRandom( double mean, double standard_deviation )
+{
+	std::normal_distribution<> d(mean,standard_deviation);
+	return d(gen); 
+}
+
+// Squared distance between two points
+// This is already in BioFVM_vector as: 
+// double norm_squared( const std::vector<double>& v ); 
+// The following function will be deprecated. 
+double dist_squared(std::vector<double> p1, std::vector<double> p2)
+{
+	return (p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[1]-p2[1])*(p1[1]-p2[1]) + (p1[2]-p2[2])*(p1[2]-p2[2]);
+}
+
+// Distance between two points
+// This is already in BioFVM_vector as: 
+// double norm( const std::vector<double>& v ); 
+// The following function will be deprecated. 
+double dist(std::vector<double> p1, std::vector<double> p2)
+{
+	return sqrt(dist_squared(p1, p2));
+}
+
+std::string get_PhysiCell_version( void )
+{
+//	extern std::string PhysiCell_version; 
+	return PhysiCell_Version; 
+}	
+void get_PhysiCell_version( std::string& pString )
+{
+//	extern std::string PhysiCell_version; 
+	pString.assign( PhysiCell_Version ); 
+}
+
+std::vector<std::string> software_versions; 
+std::vector<std::string> software_names; 
+std::vector<std::string> software_DOIs; 
+std::vector<std::string> software_URLs; 
+
+void display_citations( std::ostream& os )
+{
+	static bool PhysiCell_citation_added = false; 
+	if( PhysiCell_citation_added == false )
+	{
+		add_software_citation( "PhysiCell" , get_PhysiCell_version() , 
+			PhysiCell_DOI , PhysiCell_URL ); 
+		PhysiCell_citation_added = true; 
+	}
 	
-	<overall>
-		<max_time units="min">7200</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
+	std::ofstream of( "ALL_CITATIONS.txt" , std::ios::out );
+	for( int i=0; i < software_versions.size() ; i++ )
+	{
+		os << "Using " << software_names[i] 
+		<< " version " << software_versions[i] 
+		<< std::endl << "\tPlease cite DOI: " << software_DOIs[i] 
+		<< std::endl << "\tProject website: " << software_URLs[i] 
+		<< std::endl; 
+		
+		of << "Using " << software_names[i] 
+		<< " version " << software_versions[i] 
+		<< std::endl << "\tPlease cite DOI: " << software_DOIs[i] 
+		<< std::endl << "\tProject website: " << software_URLs[i] 
+		<< std::endl; 
+	}
+	os << std::endl << "See ALL_CITATIONS.txt for this list." << std::endl; 
 	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
+	of << std::endl; 
+	of.close(); 
 	
-	<save>
-		<folder>output</folder> <!-- use . for root --> 
+	return; 
+}
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+void display_citations( void )
+{
+	return display_citations( std::cout ); 
+}
+
+void add_software_citation( std::string name , std::string version, std::string DOI , std::string URL )
+{
+	software_names.push_back( name ); 
+	software_versions.push_back( version ); 
+	software_DOIs.push_back( DOI ); 
+	software_URLs.push_back( URL ); 
+	return; 
+}
+
+int choose_event( std::vector<double>& probabilities )
+{
+	double rand_number = UniformRandom(); 
 	
-	<user_parameters>
-		<tumor_radius type="double" units="micron">250.0</tumor_radius>
-		<oncoprotein_mean type="double" units="dimensionless">1.0</oncoprotein_mean>
-		<oncoprotein_sd type="double" units="dimensionless">0.25</oncoprotein_sd>
-		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
-		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
-		<random_seed type="int" units="dimensionless">0</random_seed>
-
-		<!--> Tumor phenotype model type input can be specified in string. (Options, 0,1,2,2a,3,3a,4)
-			- Each model depends on previous parameters. Therefore previous parameters should not be commented. -->
-		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
-		
-		<color type="bool" units="dimensionless">true</color>
-		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
-		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
-		<default_degradation_rateRFP type="double" units="1/week">6.8e-5</default_degradation_rateRFP>
-		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
-
-		
-<!--> Model 1
-		<motility_speed type="double" units="microns/minute">0.25</motility_speed>
-		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
-		
-	  Model 2,2a
-		<adhesion_distance type="double" units="microns">0</adhesion_distance>
-
-	  Model 3
-		<persistence_time type="double" units="minutes">true</persistence_time> 
-
-	  Model 4
-
--->
-	</user_parameters>
+	for( int i=0 ; i < probabilities.size() ; i++ )
+	{
+		if( rand_number <= probabilities[i] )
+		{ return i; }
+		else
+		{
+			rand_number -= probabilities[i]; 
+		}
+	}
 	
-</PhysiCell_settings>
+	return probabilities.size(); 
+}
+
+};
