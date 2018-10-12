@@ -134,16 +134,16 @@
 
 		
 <!--> Model 1-->
-		<motility_speed type="double" units="microns/minute">0.25</motility_speed>
+<!-- 	<motility_speed type="double" units="microns/minute">0.25</motility_speed>
 		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
-
+ -->
 <!--> Model 2,2a -->
-		<adhesion_distance type="double" units="microns">0</adhesion_distance>
+<!--    <adhesion_distance type="double" units="microns">0</adhesion_distance> 
+-->
 
 <!--> Model 3 -->
-		<persistence_time type="double" units="minutes">true</persistence_time> 
+<!-- 		<persistence_time type="double" units="minutes">true</persistence_time> 
+ -->
 
-<!--> Model 4 -->
-	</user_parameters>
-	
+ <!--> Model 4 -->
 </PhysiCell_settings>
