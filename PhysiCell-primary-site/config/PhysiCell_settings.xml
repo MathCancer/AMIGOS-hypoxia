@@ -72,7 +72,7 @@
 <user_details />
 -->
 
-<PhysiCell_settings version="devel-version">
+<PhysiCell_settings version="1.3.3">
 	<domain>
 		<x_min>-1000</x_min>
 		<x_max>1000</x_max>
@@ -103,7 +103,7 @@
 			<interval units="min">60</interval>
 			<enable>true</enable>
 		</full_data>
-		
+		 
 		<SVG>
 			<interval units="min">60</interval>
 			<enable>true</enable>
@@ -122,21 +122,17 @@
 		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
 		<random_seed type="int" units="dimensionless">0</random_seed>
 
-		<!--> Tumor phenotype model type input can be specified in string. (Options, 0,1,2,2a,3,3a,4)
-			- Each model depends on previous parameters. Therefore previous parameters should not be commented. -->
 		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
-		
 		<color type="bool" units="dimensionless">true</color>
 		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
 		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
 		<default_degradation_rateRFP type="double" units="1/week">6.8e-5</default_degradation_rateRFP>
 		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
 
-		
 <!--> Model 1-->
-<!-- 	<motility_speed type="double" units="microns/minute">0.25</motility_speed>
-		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
- -->
+<!-- 		<motility_speed type="double" units="microns/minute">0.5</motility_speed>
+		<migration_bias type="double" units="dimensionless">0.85</migration_bias> -->
+
 <!--> Model 2,2a -->
 <!--    <adhesion_distance type="double" units="microns">0</adhesion_distance> 
 -->
@@ -146,4 +142,7 @@
  -->
 
  <!--> Model 4 -->
+		
+	</user_parameters>
+	
 </PhysiCell_settings>
