@@ -122,7 +122,7 @@
 		<oncoprotein_max type="double" units="dimensionless">2</oncoprotein_max>
 		<random_seed type="int" units="dimensionless">0</random_seed>
 
-		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
+		<tumorphenotype type="string" units="dimensionless">model1</tumorphenotype>
 		<color type="bool" units="dimensionless">true</color>
 		<default_production_rateRFP type="double" units="1/week">4.8e-4</default_production_rateRFP>
 		<default_production_rateGFP type="double" units="1/week">4.8e-4</default_production_rateGFP>
@@ -130,8 +130,8 @@
 		<default_degradation_rateGFP type="double" units="1/week">6.8e-5</default_degradation_rateGFP>
 
 <!--> Model 1-->
-<!-- 		<motility_speed type="double" units="microns/minute">0.5</motility_speed>
-		<migration_bias type="double" units="dimensionless">0.85</migration_bias> -->
+		<motility_speed type="double" units="microns/minute">0.25</motility_speed>
+		<migration_bias type="double" units="dimensionless">0.85</migration_bias>
 
 <!--> Model 2,2a -->
 <!--    <adhesion_distance type="double" units="microns">0</adhesion_distance> 
