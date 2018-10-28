@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6600 64-bit) (preloaded format=pdflatex 2018.2.12)  2 AUG 2018 23:08
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6600 64-bit) (preloaded format=pdflatex 2018.2.12)  26 OCT 2018 23:11
 entering extended mode
 **C:/GitHub/AMIGOS-hypoxia/PhysiCell-primary-site/equations/equations.tex
 (C:/GitHub/AMIGOS-hypoxia/PhysiCell-primary-site/equations/equations.tex
@@ -264,46 +264,87 @@ Underfull \hbox (badness 10000) in paragraph at lines 52--56
 
  []
 
-! Missing { inserted.
-<to be read again> 
-                   ^
-l.87 \gamma_i P_^
-                 *,
+[1
+
+{C:/Users/Paul/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+! Incomplete \ifcase; all text was ignored after line 142.
+<inserted text> 
+                \fi 
+l.142 \eeqa
+           
 ? R
 OK, entering \nonstopmode...
-! Missing } inserted.
+! Extra alignment tab has been changed to \cr.
+<recently read> \endtemplate 
+                             
+l.142 \eeqa
+           
+You have given more \span or & marks than there were
+in the preamble to the \halign or \valign now in progress.
+So I'll assume that you meant to type \cr instead.
+
+! Extra \or.
+\@@eqncr ... {& & &}\or \def \reserved@a {& &}\or 
+                                                  \def \reserved@a {&}\else ...
+l.142 \eeqa
+           
+I'm ignoring this; it doesn't match any \if.
+
+! Extra \else.
+\@@eqncr ...@a {& &}\or \def \reserved@a {&}\else 
+                                                  \let \reserved@a \@empty \...
+l.142 \eeqa
+           
+I'm ignoring this; it doesn't match any \if.
+
+
+! LaTeX Error: Too many columns in eqnarray environment.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.142 \eeqa
+           
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+! Extra \fi.
+\@@eqncr ...mns in eqnarray environment}\@ehc \fi 
+                                                  \reserved@a \if@eqnsw \@eq...
+l.142 \eeqa
+           
+I'm ignoring this; it doesn't match any \if.
+
+! Missing { inserted.
 <inserted text> 
-                }
-l.88 \eeqa
-          
+                {
+l.142 \eeqa
+           
 I've put in what seems to be necessary to fix
 the current column of the current alignment.
 Try to go on, since this might almost work.
 
-[1
-
-{C:/Users/Paul/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2]
-(equations.aux) ) 
+[2] (equations.aux) ) 
 Here is how much of TeX's memory you used:
  2820 strings out of 493303
- 37813 string characters out of 3138859
+ 37815 string characters out of 3138859
  105169 words of memory out of 3000000
  6336 multiletter control sequences out of 15000+200000
  10424 words of font info for 39 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,11n,32p,334b,168s stack positions out of 5000i,500n,10000p,200000b,50000s
-<C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cm
-bx12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmex10.pfb
-><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Pro
-gram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Program File
-s/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX 
-2.9/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files/MiKTeX 2.9/fonts/
-type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/pu
-blic/amsfonts/cm/cmsy6.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsf
-onts/cm/cmsy8.pfb>
-Output written on equations.pdf (2 pages, 101425 bytes).
+<C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/c
+m/cmbx12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmex10
+.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:
+/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Program 
+Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Program Files/MiK
+TeX 2.9/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Program Files/MiKTeX 2.9/fo
+nts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type
+1/public/amsfonts/cm/cmsy8.pfb>
+Output written on equations.pdf (2 pages, 94795 bytes).
 PDF statistics:
- 45 PDF objects out of 1000 (max. 8388607)
+ 41 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
