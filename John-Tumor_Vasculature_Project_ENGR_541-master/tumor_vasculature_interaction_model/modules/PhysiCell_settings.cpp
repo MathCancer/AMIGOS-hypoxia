@@ -1,25 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1].    #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
 #     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
-# See VERSION.txt or call get_PhysiCell_version() to get the current version  #
-#     x.y.z. Call display_citations() to get detailed information on all cite-#
-#     able software used in your PhysiCell application.                       #
-#                                                                             #
 # Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
 #     as below:                                                               #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1],    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1],    #
 # with BioFVM [2] to solve the transport equations.                           #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
@@ -28,8 +22,8 @@
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
-#     llelized diffusive transport solver for 3-D biological simulations,     #
-#     Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #
+#    llelized diffusive transport solver for 3-D biological simulations,      #
+#    Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730   #
 #                                                                             #
 ###############################################################################
 #                                                                             #
@@ -66,62 +60,111 @@
 #                                                                             #
 ###############################################################################
 */
---> 
+ 
+#include "./PhysiCell_settings.h"
 
-<!--
-<user_details />
--->
+namespace PhysiCell{
+	
+PhysiCell_Settings PhysiCell_settings; 
 
-<PhysiCell_settings version="1.3.3">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+bool physicell_config_dom_initialized = false; 
+pugi::xml_document physicell_config_doc; 	
+pugi::xml_node physicell_config_root; 
 	
-	<overall>
-		<max_time units="min">64800</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
+bool load_PhysiCell_config_file( std::string filename )
+{
+	std::cout << "Using config file " << filename << " ... " << std::endl ; 
+	pugi::xml_parse_result result = physicell_config_doc.load_file( filename.c_str()  );
 	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
+	if( result.status != pugi::xml_parse_status::status_ok )
+	{
+		std::cout << "Error loading " << filename << "!" << std::endl; 
+		return false;
+	}
 	
-	<save>
-		<folder>.</folder> <!-- use . for root --> 
+	physicell_config_root = physicell_config_doc.child("PhysiCell_settings");
+	physicell_config_dom_initialized = true; 
+	
+	PhysiCell_settings.read_from_pugixml(); 
+	
+	return true; 	
+}
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		 
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
+PhysiCell_Settings::PhysiCell_Settings()
+{
+	// units 
+	time_units = "min"; 
+	space_units = "micron"; 
+	
+	// save options
+	folder = "."; 
+	max_time = 60*24*45;   
+
+	full_save_interval = 60;  
+	enable_full_saves = true; 
+	enable_legacy_saves = false; 
+	
+	SVG_save_interval = 60; 
+	enable_SVG_saves = true; 
+	
+	// parallel options 
+	
+	omp_num_threads = 4; 
+	 
+	return; 
+}
+ 	
+void PhysiCell_Settings::read_from_pugixml( void )
+{
+	pugi::xml_node node; 
+	
+	// overall options 
+	
+	node = xml_find_node( physicell_config_root , "overall" );
+
+	max_time = xml_get_double_value( node , "max_time" );
+	time_units = xml_get_string_value( node, "time_units" ) ;
+	space_units = xml_get_string_value( node, "space_units" ) ;
+
+	node = node.parent(); 
+	
+	// save options 
+	
+	node = xml_find_node( physicell_config_root , "save" ); 
+	
+	folder = xml_get_string_value( node, "folder" ) ;
+	
+	node = xml_find_node( node , "full_data" ); 
+	full_save_interval = xml_get_double_value( node , "interval" );
+	enable_full_saves = xml_get_bool_value( node , "enable" ); 
+	node = node.parent(); 
+	
+	node = xml_find_node( node , "SVG" ); 
+	SVG_save_interval = xml_get_double_value( node , "interval" );
+	enable_SVG_saves = xml_get_bool_value( node , "enable" ); 
+	node = node.parent(); 
+	
+	node = xml_find_node( node , "legacy_data" ); 
+	enable_legacy_saves = xml_get_bool_value( node , "enable" );
+	node = node.parent(); 
+
+	// parallel options 
+	
+	node = xml_find_node( physicell_config_root , "parallel" ); 		
+	omp_num_threads = xml_get_int_value( node, "omp_num_threads" ); 
+
+	// random seed options 
 		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
 	
-	<user_parameters>
-	<!-- exmaples --> 
-	<!--
-		<model type="int">3</model>
-		<necrotic_color type="string">rgb(64,64,64)</necrotic_color>
-		<birth_rate type="double" units="1/min">0.01</birth_rate>
-		<chemoresistant type="bool">false</chemoresistant> 
-	-->
-	</user_parameters>
-	
-</PhysiCell_settings>
+	return; 
+}
+
+
+PhysiCell_Globals PhysiCell_globals; 
+
+ 
+
+}; 
+ 
+
+ 

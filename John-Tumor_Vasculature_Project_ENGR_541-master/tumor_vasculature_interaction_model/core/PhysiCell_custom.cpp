@@ -1,25 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1].    #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
 #     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
-# See VERSION.txt or call get_PhysiCell_version() to get the current version  #
-#     x.y.z. Call display_citations() to get detailed information on all cite-#
-#     able software used in your PhysiCell application.                       #
-#                                                                             #
 # Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
 #     as below:                                                               #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1],    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1],    #
 # with BioFVM [2] to solve the transport equations.                           #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
@@ -28,8 +22,8 @@
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
-#     llelized diffusive transport solver for 3-D biological simulations,     #
-#     Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #
+#    llelized diffusive transport solver for 3-D biological simulations,      #
+#    Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730   #
 #                                                                             #
 ###############################################################################
 #                                                                             #
@@ -66,62 +60,165 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#include "./PhysiCell_custom.h" 
+#include <vector>
+#include <cstdio>
+#include <iostream>
 
-<PhysiCell_settings version="1.3.3">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+namespace PhysiCell
+{
 	
-	<overall>
-		<max_time units="min">64800</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
-	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
-	
-	<save>
-		<folder>.</folder> <!-- use . for root --> 
+Variable::Variable()
+{
+	name = "unnamed"; 
+	units = "dimensionless"; 
+	value = 0.0; 
+	return; 
+}
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		 
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+std::ostream& operator<<(std::ostream& os, const Variable& v)
+{
+	os << v.name << ": " << v.value << " " << v.units; 
+	return os; 
+}
+
+
+Vector_Variable::Vector_Variable()
+{
+	name = "unnamed"; 
+	units = "dimensionless"; 
+	value.resize(3, 0.0 );
+	return; 
+}
+
+std::ostream& operator<<(std::ostream& os, const Vector_Variable& v)
+{
+	os << v.name << ": [" << v.value[0] << "," << v.value[1] << "," << v.value[2] << "] " << v.units; 
+	return os; 
+}
+
 	
-	<user_parameters>
-	<!-- exmaples --> 
-	<!--
-		<model type="int">3</model>
-		<necrotic_color type="string">rgb(64,64,64)</necrotic_color>
-		<birth_rate type="double" units="1/min">0.01</birth_rate>
-		<chemoresistant type="bool">false</chemoresistant> 
-	-->
-	</user_parameters>
+Custom_Cell_Data::Custom_Cell_Data()
+{
+//	std::cout << __FUNCTION__ << "(default)" << std::endl; 
+	variables.resize(0); 
+	vector_variables.resize(0); 
 	
-</PhysiCell_settings>
+	name_to_index_map.clear(); 
+//	vector_name_to_index_map.clear();
+	
+	return;
+}
+
+Custom_Cell_Data::Custom_Cell_Data( const Custom_Cell_Data& ccd )
+{
+//	std::cout << __FUNCTION__ << "(copy)" << std::endl; 
+	variables = ccd.variables; 
+	vector_variables = ccd.vector_variables; 
+	
+	name_to_index_map= ccd.name_to_index_map; 
+	
+	return; 
+}
+
+int Custom_Cell_Data::add_variable( Variable& v )
+{
+	int n = variables.size(); 
+	variables.push_back( v ); 
+	name_to_index_map[ v.name ] = n; 
+	return n; 
+}
+
+int Custom_Cell_Data::add_variable( std::string name , std::string units , double value )
+{
+	int n = variables.size(); 
+	variables.resize( n+1 ); 
+	variables[n].name = name; 
+	variables[n].units = units; 
+	variables[n].value = value; 
+	name_to_index_map[ name ] = n; 
+	return n; 
+}
+
+int Custom_Cell_Data::add_variable( std::string name , double value )
+{
+	int n = variables.size(); 
+	variables.resize( n+1 ); 
+	variables[n].name = name; 
+	variables[n].units = "dimensionless"; 
+	variables[n].value = value; 
+	name_to_index_map[ name ] = n; 
+	return n; 
+}
+
+int Custom_Cell_Data::add_vector_variable( Vector_Variable& v )
+{
+	int n = vector_variables.size(); 
+	vector_variables.push_back( v ); 
+//	vector_name_to_index_map[ v.name ] = n; 
+	return n; 
+}
+
+int Custom_Cell_Data::add_vector_variable( std::string name , std::string units , std::vector<double>& value )
+{
+	int n = vector_variables.size(); 
+	vector_variables.resize( n+1 ); 
+	vector_variables[n].name = name; 
+	vector_variables[n].units = units; 
+	vector_variables[n].value = value; 
+//	vector_name_to_index_map[ name ] = n; 
+	return n; 
+}
+
+int Custom_Cell_Data::add_vector_variable( std::string name , std::vector<double>& value )
+{
+	int n = vector_variables.size(); 
+	vector_variables.resize( n+1 ); 
+	vector_variables[n].name = name; 
+	vector_variables[n].units = "dimensionless"; 
+	vector_variables[n].value = value; 
+//	vector_name_to_index_map[ name ] = n; 
+	return n; 
+}
+
+int Custom_Cell_Data::find_variable_index( std::string name )
+{
+	return name_to_index_map[ name ]; 
+}
+
+/*
+int Custom_Cell_Data::find_vector_variable_index( std::string name )
+{
+	return vector_name_to_index_map[ name ]; 
+}
+*/
+
+double& Custom_Cell_Data::operator[](int i)
+{
+	return variables[i].value; 
+}
+
+double& Custom_Cell_Data::operator[]( std::string name )
+{
+	return variables[ name_to_index_map[name] ].value; 
+}
+
+std::ostream& operator<<(std::ostream& os, const Custom_Cell_Data& ccd)
+{
+	os << "Custom data (scalar): " << std::endl; 
+	for( int i=0 ; i < ccd.variables.size() ; i++ )
+	{
+		os << i << ": " << ccd.variables[i] << std::endl; 
+	}
+
+	os << "Custom data (vector): " << std::endl; 
+	for( int i=0 ; i < ccd.vector_variables.size() ; i++ )
+	{
+		os << i << ": " << ccd.vector_variables[i] << std::endl; 
+	}
+	
+	return os;
+}
+
+};

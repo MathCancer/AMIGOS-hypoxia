@@ -1,25 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1].    #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
 #     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
-# See VERSION.txt or call get_PhysiCell_version() to get the current version  #
-#     x.y.z. Call display_citations() to get detailed information on all cite-#
-#     able software used in your PhysiCell application.                       #
-#                                                                             #
 # Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
 #     as below:                                                               #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1],    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1],    #
 # with BioFVM [2] to solve the transport equations.                           #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
@@ -28,8 +22,8 @@
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
-#     llelized diffusive transport solver for 3-D biological simulations,     #
-#     Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #
+#    llelized diffusive transport solver for 3-D biological simulations,      #
+#    Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730   #
 #                                                                             #
 ###############################################################################
 #                                                                             #
@@ -66,62 +60,75 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#ifndef __PhysiCell_settings_h__
+#define __PhysiCell_settings_h__
 
-<PhysiCell_settings version="1.3.3">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
-	
-	<overall>
-		<max_time units="min">64800</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
-	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
-	
-	<save>
-		<folder>.</folder> <!-- use . for root --> 
+#include <iostream>
+#include <ctime>
+#include <cmath>
+#include <string>
+#include <vector>
+#include <random>
+#include <chrono>
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		 
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+#include "./PhysiCell_pugixml.h"
+
+namespace PhysiCell{
+ 	
+extern pugi::xml_node physicell_config_root; 
+
+bool load_PhysiCell_config_file( std::string filename );
+
+class PhysiCell_Settings
+{
+ private:
+ public:
+	// overall 
+	double max_time = 60*24*45;   
+
+	// units
+	std::string time_units = "min"; 
+	std::string space_units = "micron"; 
+ 
+	// parallel options 
+	int omp_num_threads = 2; 
 	
-	<user_parameters>
-	<!-- exmaples --> 
-	<!--
-		<model type="int">3</model>
-		<necrotic_color type="string">rgb(64,64,64)</necrotic_color>
-		<birth_rate type="double" units="1/min">0.01</birth_rate>
-		<chemoresistant type="bool">false</chemoresistant> 
-	-->
-	</user_parameters>
+	// save options
+	std::string folder = "."; 
+
+	double full_save_interval = 60;  
+	bool enable_full_saves = true; 
+	bool enable_legacy_saves = false; 
 	
-</PhysiCell_settings>
+	double SVG_save_interval = 60; 
+	bool enable_SVG_saves = true; 
+	
+	
+	
+	
+	PhysiCell_Settings();
+	
+	void read_from_pugixml( void ); 
+};
+
+class PhysiCell_Globals
+{
+ private:
+ public:
+	double current_time = 0.0; 
+	double next_full_save_time = 0.0; 
+	double next_SVG_save_time = 0.0; 
+	int full_output_index = 0; 
+	int SVG_output_index = 0; 
+};
+
+extern PhysiCell_Globals PhysiCell_globals; 
+
+extern PhysiCell_Settings PhysiCell_settings; 
+
+
+} 
+
+#endif 
+

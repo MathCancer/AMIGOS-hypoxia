@@ -1,25 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1].    #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
 #     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
-# See VERSION.txt or call get_PhysiCell_version() to get the current version  #
-#     x.y.z. Call display_citations() to get detailed information on all cite-#
-#     able software used in your PhysiCell application.                       #
-#                                                                             #
 # Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
 #     as below:                                                               #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1],    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1],    #
 # with BioFVM [2] to solve the transport equations.                           #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
@@ -28,8 +22,8 @@
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
-#     llelized diffusive transport solver for 3-D biological simulations,     #
-#     Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #
+#    llelized diffusive transport solver for 3-D biological simulations,      #
+#    Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730   #
 #                                                                             #
 ###############################################################################
 #                                                                             #
@@ -66,62 +60,60 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#include <vector>
+#include <string>
 
-<PhysiCell_settings version="1.3.3">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
-	
-	<overall>
-		<max_time units="min">64800</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
-	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
-	
-	<save>
-		<folder>.</folder> <!-- use . for root --> 
+#ifndef __PhysiCell_pathology__
+#define __PhysiCell_pathology__
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		 
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+#include "../core/PhysiCell.h"
+
+#include "./PhysiCell_SVG.h"
+#include "../BioFVM/BioFVM_utilities.h"
+
+namespace PhysiCell{
 	
-	<user_parameters>
-	<!-- exmaples --> 
-	<!--
-		<model type="int">3</model>
-		<necrotic_color type="string">rgb(64,64,64)</necrotic_color>
-		<birth_rate type="double" units="1/min">0.01</birth_rate>
-		<chemoresistant type="bool">false</chemoresistant> 
-	-->
-	</user_parameters>
+struct PhysiCell_SVG_options_struct {
+	bool plot_nuclei = true; 
+
+	std::string simulation_time_units = "min";
+	std::string mu = "&#956;";
+	std::string simulation_space_units = "&#956;m";
 	
-</PhysiCell_settings>
+	std::string label_time_units = "days"; 
+	
+	double font_size = 200; 
+	std::string font_color = "black";
+	std::string font = "Arial";
+
+	double length_bar = 100; 
+}; 
+
+extern PhysiCell_SVG_options_struct PhysiCell_SVG_options;
+
+// done 
+std::vector<double> transmission( std::vector<double>& incoming_light, std::vector<double>& absorb_color, double thickness , double stain );
+
+// these give (in order) the cytoplasm color, cytoplasm outline color, nuclear color, nuclear outline color, 
+// each string is either rgb(R,G,B) or none 
+
+std::vector<std::string> simple_cell_coloring( Cell* pCell ); // done 
+std::vector<std::string> false_cell_coloring_Ki67( Cell* pCell ); // done 
+std::vector<std::string> false_cell_coloring_live_dead( Cell* pCell ); // done 
+
+std::vector<std::string> false_cell_coloring_cytometry( Cell* pCell ); 
+
+std::vector<std::string> hematoxylin_and_eosin_cell_coloring( Cell* pCell ); // done 
+std::vector<std::string> hematoxylin_and_eosin_stroma_coloring( double& ECM_fraction , double& blood_vessel_fraction); // planned 
+
+std::string formatted_minutes_to_DDHHMM( double minutes ); 
+
+void SVG_plot( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) ); // done
+
+void SVG_plot_with_stroma( std::string filename , Microenvironment& M, double z_slice , double time, std::vector<std::string> (*cell_coloring_function)(Cell*) , 
+	int ECM_index, std::vector<std::string> (*ECM_coloring_function)(double) ); // planned
+
+};
+
+#endif

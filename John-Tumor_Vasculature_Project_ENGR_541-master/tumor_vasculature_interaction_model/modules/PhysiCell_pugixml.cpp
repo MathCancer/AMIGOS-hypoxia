@@ -1,25 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1].    #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
 #     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
-# See VERSION.txt or call get_PhysiCell_version() to get the current version  #
-#     x.y.z. Call display_citations() to get detailed information on all cite-#
-#     able software used in your PhysiCell application.                       #
-#                                                                             #
 # Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
 #     as below:                                                               #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1],    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1],    #
 # with BioFVM [2] to solve the transport equations.                           #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
@@ -28,8 +22,8 @@
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
-#     llelized diffusive transport solver for 3-D biological simulations,     #
-#     Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #
+#    llelized diffusive transport solver for 3-D biological simulations,      #
+#    Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730   #
 #                                                                             #
 ###############################################################################
 #                                                                             #
@@ -66,62 +60,50 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#include "./PhysiCell_pugixml.h"
 
-<PhysiCell_settings version="1.3.3">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
+namespace PhysiCell{
 	
-	<overall>
-		<max_time units="min">64800</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
-	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
-	
-	<save>
-		<folder>.</folder> <!-- use . for root --> 
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		 
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+// find the first <find_me> child in <parent_node> 
+pugi::xml_node xml_find_node( pugi::xml_node& parent_node , std::string find_me )
+{
+	return parent_node.child( find_me.c_str() ); 
+}
+
+// get the std:string in <parent_node> <find_me>string_value</find_me> </parent_node> 
+std::string xml_get_string_value( pugi::xml_node& parent_node , std::string find_me )
+{
+	return parent_node.child( find_me.c_str() ).text().get(); 
+}
 	
-	<user_parameters>
-	<!-- exmaples --> 
-	<!--
-		<model type="int">3</model>
-		<necrotic_color type="string">rgb(64,64,64)</necrotic_color>
-		<birth_rate type="double" units="1/min">0.01</birth_rate>
-		<chemoresistant type="bool">false</chemoresistant> 
-	-->
-	</user_parameters>
 	
-</PhysiCell_settings>
+// get the double value stored in <parent_node> <find_me>double_value</find_me> </parent_node> 
+double xml_get_double_value( pugi::xml_node& parent_node , std::string find_me )
+{
+	// return strtod( parent_node.child( find_me.c_str() ).text().get() , NULL ); // classic 
+	
+	return parent_node.child( find_me.c_str() ).text().as_double(); // using pugixml conversion 
+}
+
+
+// get the integer value in <parent_node> <find_me>int_value</find_me> </parent_node> 
+int xml_get_int_value( pugi::xml_node& parent_node , std::string find_me )
+{
+	//	return atoi( parent_node.child( find_me.c_str() ).text().get() ); // classic 
+	
+	return parent_node.child( find_me.c_str() ).text().as_int(); // using pugixml conversion 
+}
+
+// get the Boolean value in <parent_node> <find_me>int_value</find_me> </parent_node> 
+bool xml_get_bool_value( pugi::xml_node& parent_node , std::string find_me )
+{
+	//	return (bool) atoi( parent_node.child( find_me.c_str() ).text().get() ); // classic (untested)
+	
+	return parent_node.child( find_me.c_str() ).text().as_bool(); // using pugixml conversion 
+}
+ 
+ 
+	
+};

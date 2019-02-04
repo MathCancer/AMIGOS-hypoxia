@@ -1,25 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1].    #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
 #     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
-# See VERSION.txt or call get_PhysiCell_version() to get the current version  #
-#     x.y.z. Call display_citations() to get detailed information on all cite-#
-#     able software used in your PhysiCell application.                       #
-#                                                                             #
 # Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
 #     as below:                                                               #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1],    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1],    #
 # with BioFVM [2] to solve the transport equations.                           #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
@@ -28,8 +22,8 @@
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
-#     llelized diffusive transport solver for 3-D biological simulations,     #
-#     Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #
+#    llelized diffusive transport solver for 3-D biological simulations,      #
+#    Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730   #
 #                                                                             #
 ###############################################################################
 #                                                                             #
@@ -66,62 +60,63 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#ifndef __PhysiCell_cell_container_h__
+#define __PhysiCell_cell_container_h__
 
-<PhysiCell_settings version="1.3.3">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
-	
-	<overall>
-		<max_time units="min">64800</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
-	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
-	
-	<save>
-		<folder>.</folder> <!-- use . for root --> 
+#include <vector>
+#include "PhysiCell_cell.h"
+#include "../BioFVM/BioFVM_agent_container.h"
+#include "../BioFVM/BioFVM_mesh.h"
+#include "../BioFVM/BioFVM_microenvironment.h"
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		 
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+namespace PhysiCell{
+
+class Cell; 
+
+class Cell_Container : public BioFVM::Agent_Container
+{
+ private:	
+	std::vector<Cell*> cells_ready_to_divide; // the index of agents ready to divide
+	std::vector<Cell*> cells_ready_to_die;
+	int boundary_condition_for_pushed_out_agents; 	// what to do with pushed out cells
+	bool initialzed = false;
 	
-	<user_parameters>
-	<!-- exmaples --> 
-	<!--
-		<model type="int">3</model>
-		<necrotic_color type="string">rgb(64,64,64)</necrotic_color>
-		<birth_rate type="double" units="1/min">0.01</birth_rate>
-		<chemoresistant type="bool">false</chemoresistant> 
-	-->
-	</user_parameters>
+ public:
+	BioFVM::Cartesian_Mesh underlying_mesh;
+	std::vector<double> max_cell_interactive_distance_in_voxel;
+	int num_divisions_in_current_step;
+	int num_deaths_in_current_step;
+
+	double last_diffusion_time  = 0.0; 
+	double last_cell_cycle_time = 0.0;
+	double last_mechanics_time  = 0.0;
+	Cell_Container();
+ 	void initialize(double x_start, double x_end, double y_start, double y_end, double z_start, double z_end , double voxel_size);
+	void initialize(double x_start, double x_end, double y_start, double y_end, double z_start, double z_end , double dx, double dy, double dz);
+	std::vector<std::vector<Cell*> > agent_grid;
+	std::vector<std::vector<Cell*> > agents_in_outer_voxels;
 	
-</PhysiCell_settings>
+	void update_all_cells(double t);
+	void update_all_cells(double t, double dt);
+	void update_all_cells(double t, double phenotype_dt, double mechanics_dt);
+	void update_all_cells(double t, double phenotype_dt, double mechanics_dt, double diffusion_dt ); 
+
+	void register_agent( Cell* agent );
+	void add_agent_to_outer_voxel(Cell* agent);
+	void remove_agent(Cell* agent );
+	void remove_agent_from_voxel(Cell* agent, int voxel_index);
+	void add_agent_to_voxel(Cell* agent, int voxel_index);
+	
+	void flag_cell_for_division( Cell* pCell ); 
+	void flag_cell_for_removal( Cell* pCell ); 
+	bool contain_any_cell(int voxel_index);
+};
+
+int find_escaping_face_index(Cell* agent);
+extern std::vector<Cell*> *all_cells; 
+
+Cell_Container* create_cell_container_for_microenvironment( BioFVM::Microenvironment& m , double mechanics_voxel_size );
+	
+};
+#endif

@@ -1,25 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
 /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1].    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1].    #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
 #     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #
 #     lar Systems, PLoS Comput. Biol. 14(2): e1005991, 2018                   #
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
-# See VERSION.txt or call get_PhysiCell_version() to get the current version  #
-#     x.y.z. Call display_citations() to get detailed information on all cite-#
-#     able software used in your PhysiCell application.                       #
-#                                                                             #
 # Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #
 #     as below:                                                               #
 #                                                                             #
-# We implemented and solved the model using PhysiCell (Version x.y.z) [1],    #
+# We implemented and solved the model using PhysiCell (Version 1.3.0) [1],    #
 # with BioFVM [2] to solve the transport equations.                           #
 #                                                                             #
 # [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #
@@ -28,8 +22,8 @@
 #     DOI: 10.1371/journal.pcbi.1005991                                       #
 #                                                                             #
 # [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #
-#     llelized diffusive transport solver for 3-D biological simulations,     #
-#     Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #
+#    llelized diffusive transport solver for 3-D biological simulations,      #
+#    Bioinformatics 32(8): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730   #
 #                                                                             #
 ###############################################################################
 #                                                                             #
@@ -66,62 +60,80 @@
 #                                                                             #
 ###############################################################################
 */
---> 
 
-<!--
-<user_details />
--->
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <vector>
 
-<PhysiCell_settings version="1.3.3">
-	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
-		<z_min>-10</z_min>
-		<z_max>10</z_max>
-		<dx>20</dx>
-		<dy>20</dy>
-		<dz>20</dz>
-		<use_2D>true</use_2D>
-	</domain>
-	
-	<overall>
-		<max_time units="min">64800</max_time> <!-- 5 days * 24 h * 60 min -->
-		<time_units>min</time_units>
-		<space_units>micron</space_units>
-	</overall>
-	
-	<parallel>
-		<omp_num_threads>4</omp_num_threads>
-	</parallel> 
-	
-	<save>
-		<folder>.</folder> <!-- use . for root --> 
+#ifndef _PhysiCell_POV_h_
+#define _PhysiCell_POV_h_
 
-		<full_data>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</full_data>
-		 
-		<SVG>
-			<interval units="min">60</interval>
-			<enable>true</enable>
-		</SVG>
-		
-		<legacy_data>
-			<enable>false</enable>
-		</legacy_data>
-	</save>
+#include "../BioFVM/BioFVM_vector.h" 
+
+class Clipping_Plane
+{
+ private:
+ public:
+	std::vector<double> normal; 
+	std::vector<double> point_on_plane; 
 	
-	<user_parameters>
-	<!-- exmaples --> 
-	<!--
-		<model type="int">3</model>
-		<necrotic_color type="string">rgb(64,64,64)</necrotic_color>
-		<birth_rate type="double" units="1/min">0.01</birth_rate>
-		<chemoresistant type="bool">false</chemoresistant> 
-	-->
-	</user_parameters>
+	// store [a,b,c,d], where 
+	// [a,b,c].*x + d = 0 on the plane
+	std::vector<double> coefficients; 
 	
-</PhysiCell_settings>
+	double signed_distance_to_plane( std::vector<double>& test_point ); // done 
+	bool is_or_behind_plane( std::vector<double>& test_point );  // done 
+	bool is_in_front_of_plane( std::vector<double>& test_point ); // done 
+	
+	Clipping_Plane(); // done
+	void normal_point_to_coefficients( void ); // done 
+	void coefficients_to_normal_point( void );  // done 
+};
+
+class POV_Options
+{
+ private:
+ public:
+	POV_Options(); // done 
+
+	std::vector<double> domain_center;
+	std::vector<double> domain_size; 
+	
+	std::vector<double> background; 
+ 
+	std::vector<double> camera_position; 
+	std::vector<double> camera_look_at; 
+	std::vector<double> camera_right; 
+	std::vector<double> camera_up; 
+	std::vector<double> camera_sky; 
+	
+	int max_trace_level;
+	double assumed_gamma;
+	
+	std::vector<double> light_position; 
+	double light_rgb; // a scalar, so it's a shade of white 
+	double light_fade_distance; 
+	int light_fade_power; 
+	
+	bool no_shadow;
+	bool no_reflection; 
+	
+	std::vector<Clipping_Plane> clipping_planes; 
+	
+	// distance from center of domain, angle from x-axis, angle from z-axis 
+	void set_camera_from_spherical_location( double distance, double theta, double phi ); // done 
+};
+
+extern POV_Options default_POV_options; 
+
+void Write_POV_start( POV_Options& options , std::ostream& os ); 
+void Write_POV_start( std::ostream& os ); 
+
+// pigment: [r,g,b,f], where they vary from 0 to 1. I suggest f = 0. 
+// finish: [ambient,diffuse,specular]
+void Write_POV_sphere( std::ostream& os, std::vector<double>& center, double radius, std::vector<double>& pigment, std::vector<double>& finish );
+					
+#endif
