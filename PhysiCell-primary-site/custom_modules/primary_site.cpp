@@ -62,6 +62,7 @@
 */
 
 #include "./primary_site.h"
+#include "./vasculature.h"
 
 
 
@@ -84,7 +85,7 @@ void create_cell_types( void )
 	// turn the default cycle model to live, 
 	// so it's easier to turn off proliferation
 	
-	cell_defaults.phenotype.cycle.sync_to_cycle_model( live ); 
+	cell_defaults.phenotype.cycle.sync_to_cycle_model( Ki67_advanced ); 
 	
 	// Make sure we're ready for 2D
 	
@@ -94,34 +95,44 @@ void create_cell_types( void )
 	
 	// use default proliferation and death 
 	
-	int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	int Ki67_negative_index = Ki67_advanced.find_phase_index( PhysiCell_constants::Ki67_negative ); 
+	int Ki67_positive_premitotic_index = Ki67_advanced.find_phase_index( PhysiCell_constants::Ki67_positive_premitotic );
+	int Ki67_positive_postmitotic_index = Ki67_advanced.find_phase_index( PhysiCell_constants::Ki67_positive_postmitotic );
 	
-	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
+	cell_defaults.phenotype.cycle.data.transition_rate( Ki67_negative_index ,Ki67_positive_premitotic_index ) = parameters.doubles("rQ");  //0.004605;
+	cell_defaults.phenotype.cycle.data.transition_rate( Ki67_positive_premitotic_index ,Ki67_positive_postmitotic_index ) = parameters.doubles("r1");  //0.001282;
+	cell_defaults.phenotype.cycle.data.transition_rate( Ki67_positive_postmitotic_index, Ki67_negative_index ) = parameters.doubles("r2");  //0.0066667;
 	
-	cell_defaults.parameters.o2_proliferation_saturation =  38.0;  
+	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model );
+	
+	cell_defaults.phenotype.death.rates[apoptosis_index] = parameters.doubles( "rA" ); //0.0000387
+	
+	
+	
+	cell_defaults.parameters.o2_proliferation_saturation =  parameters.doubles( "O2_proliferation_saturation" ); 
 	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
 	
 	// set default motiltiy
-	cell_defaults.phenotype.motility.is_motile = false; 
+	cell_defaults.phenotype.motility.is_motile = parameters.bools( "is_motile" );
 	cell_defaults.functions.update_migration_bias = oxygen_taxis_motility; 
-	cell_defaults.phenotype.motility.persistence_time = 15.0; 
-	cell_defaults.phenotype.motility.migration_bias = 0.5; 
-	cell_defaults.phenotype.motility.migration_speed = 0.05; // 0.5 
+	cell_defaults.phenotype.motility.persistence_time = parameters.doubles( "persistence_time" ); 
+	cell_defaults.phenotype.motility.migration_bias = parameters.doubles( "migration_bias" ); 
+	cell_defaults.phenotype.motility.migration_speed = parameters.doubles( "migration_speeed" ); // 0.5 
 	
 	// set default uptake and secretion 
 	// oxygen 
-	cell_defaults.phenotype.secretion.secretion_rates[oxygen_i] = 0; 
-	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = 10; 
-	cell_defaults.phenotype.secretion.saturation_densities[oxygen_i] = 38; 
+	cell_defaults.phenotype.secretion.secretion_rates[oxygen_i] = parameters.doubles( "O2_secretion_rate_constant" ); 
+	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = parameters.doubles( "O2_uptake_rate_constant" ); 
+	cell_defaults.phenotype.secretion.saturation_densities[oxygen_i] = parameters.doubles( "O2_saturation_density" ); 
 	
 	// VEGF 
-	cell_defaults.phenotype.secretion.secretion_rates[VEGF_i] = 0; 
-	cell_defaults.phenotype.secretion.uptake_rates[VEGF_i] = 0; 
-	cell_defaults.phenotype.secretion.saturation_densities[VEGF_i] = 1.0; 
+	cell_defaults.phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_normoxia" ); 
+	cell_defaults.phenotype.secretion.uptake_rates[VEGF_i] = parameters.doubles("VEGF_uptake_rate_constant"); 
+	cell_defaults.phenotype.secretion.saturation_densities[VEGF_i] = parameters.doubles("VEGF_saturation_density"); 
 
-	// set the default cell type to no phenotype updates 
-	
+	// VEGF_Secretion and Vascular Death Function as Cell Rule 
+	// cell_defaults.functions.custom_cell_rule = VEGF_secretion_and_vascular_death_function;
+
 	
 	std::string tumorphenotype = parameters.strings("tumorphenotype");
 	
@@ -219,7 +230,7 @@ void setup_microenvironment( void )
 	// set Dirichlet conditions 
 	
 	default_microenvironment_options.outer_Dirichlet_conditions = true;
-	default_microenvironment_options.Dirichlet_condition_vector[0] = 90; 
+	default_microenvironment_options.Dirichlet_condition_vector[0] = parameters.doubles("O2_Dirichlet_Condition");
 		
 	// add ECM 
 	
@@ -243,9 +254,16 @@ void setup_microenvironment( void )
 	default_microenvironment_options.Dirichlet_activation_vector[2] = false; 
 */	
 	
-	coarse_vasculature_setup(); // ANGIO 
 		
-	initialize_microenvironment(); 	
+	initialize_microenvironment(); 
+	
+	coarse_vasculature_setup(); // ANGIO 
+	
+	// vascularization display
+    for(int i = 0; i<coarse_vasculature.vascular_densities.size();i++)
+    {
+       // std::cout<<coarse_vasculature.vascular_densities[i].functional<<std::endl;
+    }	
 
 	return; 
 }	
@@ -263,9 +281,11 @@ void setup_tissue( void )
 	// place a cluster of tumor cells at the center 
 	
 	double cell_radius = cell_defaults.phenotype.geometry.radius; 
-	double cell_spacing = 0.95 * 2.0 * cell_radius; 
+	double tumor_confluence = parameters.doubles("tumor_confluence");
+
+	double cell_spacing = tumor_confluence * 2.0 * cell_radius;
 	
-	double tumor_radius = 250.0; 
+	double tumor_radius = parameters.doubles("tumor_radius"); 
 		
 	Cell* pCell = NULL; 
 	
@@ -273,8 +293,8 @@ void setup_tissue( void )
 	double x_outer = tumor_radius; 
 	double y = 0.0; 
 	
-	double leader_fraction = 0.10; // model 4
-	leader_fraction = 0.025; // model 4a  0.01 is a bit too small for this small starting group 
+	double leader_fraction = parameters.doubles("leader_fraction"); // model 4
+	// leader_fraction = 0.025; // model 4a  0.01 is a bit too small for this small starting group 
 	double follower_fraction = 1.0 - leader_fraction; 
 	
 	int n = 0; 
@@ -378,7 +398,8 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
 	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
 	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
 	
-	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt); // call standard O2-based birth and death
+	VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascularization
 	
 	// if cell is dead, don't bother with future phenotype changes. 
 	if( phenotype.death.dead == true )
@@ -389,8 +410,8 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// multiply proliferation rate by the oncoprotein 
 	
-	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
 	
 //	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
 
@@ -398,8 +419,8 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double FP_hypoxic_switch = 10.0; // 
-	static double phenotype_hypoxic_switch = 10.0;  // 
+	static double FP_hypoxic_switch = parameters.doubles("FP_hypoxic_switch");  
+	static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");  // 
 	
 	// permanent gene switch 
 	if( pO2 < FP_hypoxic_switch )
@@ -410,11 +431,11 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	if( pO2 < phenotype_hypoxic_switch )
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_hypoxia" ); 
 	}
 	else
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_normoxia" ); 
 	}
 
 	// update the proteins
@@ -457,6 +478,7 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
 	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
 	
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff 
 	
 	// if cell is dead, don't bother with future phenotype changes. 
 	if( phenotype.death.dead == true )
@@ -467,8 +489,8 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// multiply proliferation rate by the oncoprotein 
 	
-	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	// int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
 	
 //	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
 
@@ -476,8 +498,8 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double FP_hypoxic_switch = 10.0; // 
-	static double phenotype_hypoxic_switch = 10.0;  // 
+	static double FP_hypoxic_switch = parameters.doubles("FP_hypoxic_switch");  
+	static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");  // 
 	
 	// permanent gene switch 
 	if( pO2 < FP_hypoxic_switch )
@@ -488,11 +510,11 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	if( pO2 < phenotype_hypoxic_switch )
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_hypoxia" ); 
 	}
 	else
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_normoxia" ); 
 	}
 
 	// update the proteins
@@ -551,6 +573,7 @@ void tumor_cell_phenotype2( Cell* pCell, Phenotype& phenotype, double dt )
 	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
 	
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff 
 	
 	// if cell is dead, don't bother with future phenotype changes. 
 	if( phenotype.death.dead == true )
@@ -561,8 +584,8 @@ void tumor_cell_phenotype2( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// multiply proliferation rate by the oncoprotein 
 	
-	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
 	
 //	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
 
@@ -570,8 +593,8 @@ void tumor_cell_phenotype2( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double FP_hypoxic_switch = 10.0; // 
-	static double phenotype_hypoxic_switch = 10.0;  // 
+	static double FP_hypoxic_switch = parameters.doubles("FP_hypoxic_switch");  
+	static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");  // 
 	
 	// permanent gene switch 
 	if( pO2 < FP_hypoxic_switch )
@@ -582,11 +605,11 @@ void tumor_cell_phenotype2( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	if( pO2 < phenotype_hypoxic_switch )
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_hypoxia" ); 
 	}
 	else
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_normoxia" ); 
 	}
 
 	// update the proteins
@@ -643,6 +666,7 @@ void tumor_cell_phenotype2a( Cell* pCell, Phenotype& phenotype, double dt )
 	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
 	
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff 
 	
 	// if cell is dead, don't bother with future phenotype changes. 
 	if( phenotype.death.dead == true )
@@ -653,8 +677,8 @@ void tumor_cell_phenotype2a( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// multiply proliferation rate by the oncoprotein 
 	
-	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
 	
 //	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
 
@@ -662,8 +686,8 @@ void tumor_cell_phenotype2a( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double FP_hypoxic_switch = 10.0; // 
-	static double phenotype_hypoxic_switch = 10.0;  // 
+	static double FP_hypoxic_switch = parameters.doubles("FP_hypoxic_switch");  
+	static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");  // 
 	
 	// permanent gene switch 
 	if( pO2 < FP_hypoxic_switch )
@@ -674,11 +698,11 @@ void tumor_cell_phenotype2a( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	if( pO2 < phenotype_hypoxic_switch )
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_hypoxia" ); 
 	}
 	else
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_normoxia" ); 
 	}
 
 	// update the proteins
@@ -735,6 +759,7 @@ void tumor_cell_phenotype3( Cell* pCell, Phenotype& phenotype, double dt )
 	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
 	
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff 
 	
 	// if cell is dead, don't bother with future phenotype changes. 
 	if( phenotype.death.dead == true )
@@ -745,8 +770,8 @@ void tumor_cell_phenotype3( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// multiply proliferation rate by the oncoprotein 
 	
-	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
 	
 //	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
 
@@ -754,8 +779,8 @@ void tumor_cell_phenotype3( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double FP_hypoxic_switch = 10.0; // 
-	static double phenotype_hypoxic_switch = 10.0;  // 
+	static double FP_hypoxic_switch = parameters.doubles("FP_hypoxic_switch");  
+	static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");  // 
 	
 	// permanent gene switch 
 	if( pO2 < FP_hypoxic_switch )
@@ -766,11 +791,11 @@ void tumor_cell_phenotype3( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	if( pO2 < phenotype_hypoxic_switch )
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_hypoxia" ); 
 	}
 	else
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_normoxia" ); 
 	}
 
 	// update the proteins
@@ -846,6 +871,7 @@ void tumor_cell_phenotype3a( Cell* pCell, Phenotype& phenotype, double dt )
 	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
 	
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff 
 	
 	// if cell is dead, don't bother with future phenotype changes. 
 	if( phenotype.death.dead == true )
@@ -856,8 +882,8 @@ void tumor_cell_phenotype3a( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// multiply proliferation rate by the oncoprotein 
 	
-	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
 	
 //	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
 
@@ -865,8 +891,8 @@ void tumor_cell_phenotype3a( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double FP_hypoxic_switch = 10.0; // 
-	static double phenotype_hypoxic_switch = 10.0;  // 
+	static double FP_hypoxic_switch = parameters.doubles("FP_hypoxic_switch");  
+	static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");  // 
 	
 	// permanent gene switch 
 	if( pO2 < FP_hypoxic_switch )
@@ -877,11 +903,11 @@ void tumor_cell_phenotype3a( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	if( pO2 < phenotype_hypoxic_switch )
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_hypoxia" ); 
 	}
 	else
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_normoxia" ); 
 	}
 
 	// update the proteins
@@ -960,6 +986,7 @@ void tumor_cell_phenotype4( Cell* pCell, Phenotype& phenotype, double dt )
 	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
 	
 	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff 
 	
 	// if cell is dead, don't bother with future phenotype changes. 
 	if( phenotype.death.dead == true )
@@ -970,8 +997,8 @@ void tumor_cell_phenotype4( Cell* pCell, Phenotype& phenotype, double dt )
 
 	// multiply proliferation rate by the oncoprotein 
 	
-	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	//static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
 	
 //	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
 
@@ -979,8 +1006,8 @@ void tumor_cell_phenotype4( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double FP_hypoxic_switch = 10.0; // 
-	static double phenotype_hypoxic_switch = 10.0;  // 
+	static double FP_hypoxic_switch = parameters.doubles("FP_hypoxic_switch");  
+	static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");  // 
 	
 	// permanent gene switch 
 	if( pO2 < FP_hypoxic_switch )
@@ -991,11 +1018,11 @@ void tumor_cell_phenotype4( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	if( pO2 < phenotype_hypoxic_switch )
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 10.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_hypoxia" ); 
 	}
 	else
 	{
-		phenotype.secretion.secretion_rates[VEGF_i] = 0.0; 
+		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_normoxia" ); 
 	}
 
 	// update the proteins
@@ -1147,4 +1174,53 @@ void oxygen_taxis_motility( Cell* pCell, Phenotype& phenotype, double dt )
 	normalize( &(phenotype.motility.migration_bias_direction) ) ; 
 	
 	return; 
+}
+
+
+void VEGF_secretion_and_vascular_death_function(Cell* pCell, Phenotype& phenotype, double dt )
+{
+    
+    // VEGF SECRETION CODE
+    
+/*     static int oxygen_index = pCell->get_microenvironment()->find_density_index( "oxygen" );
+    static int VEGF_substrate_index = pCell->get_microenvironment()->find_density_index("VEGF");
+    
+//    std::vector<double> substrates = pCell->nearest_density_vector();
+//    double O2 = substrates[O2_i];
+    double oxygen = (pCell->nearest_density_vector())[oxygen_index]; // does same thing as above two lines I think ...
+    
+    double r_base_VEGF = 10.0; // min-1
+    double hypoxic_o2_threshold = 20.0; // pO2 mmHg --> how do I get this into a cell? Do I need to? See above in cell decks.
+    double critical_o2_threshold = 5.0; // pO2 mmHg
+    
+    if( oxygen > hypoxic_o2_threshold )
+    {
+        pCell->phenotype.secretion.secretion_rates[VEGF_substrate_index] = 0.0;
+    }
+    
+    else if ( oxygen < critical_o2_threshold)
+    {
+        pCell->phenotype.secretion.secretion_rates[VEGF_substrate_index] = r_base_VEGF;
+    }
+    
+    else
+    {
+        pCell->phenotype.secretion.secretion_rates[VEGF_substrate_index] = r_base_VEGF*((hypoxic_o2_threshold - oxygen)/(hypoxic_o2_threshold - critical_o2_threshold));
+    }
+ */
+    // END VEGF SECRETION CODE
+    
+    // VASCULAR DEATH CODE
+    
+    double vascular_degradation_rate_per_cell = 1e-6;
+    
+    coarse_vasculature( pCell ).functional = coarse_vasculature( pCell ).functional/(1+dt*vascular_degradation_rate_per_cell);
+    
+    // END VASCULAR DEATH CODE
+    
+//    V - (V-1) = -dt*lambda*V
+//    V(1+dt*lambda) = (V-1)
+//    V=(V-1)/(1+dt*lambda)
+    
+    
 }

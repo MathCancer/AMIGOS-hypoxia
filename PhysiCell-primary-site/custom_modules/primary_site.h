@@ -64,7 +64,7 @@
 #include "../core/PhysiCell.h"
 #include "../modules/PhysiCell_standard_modules.h" 
 
-#include "./vascularization.h" 
+#include "./vasculature.h"
 
 using namespace BioFVM; 
 using namespace PhysiCell;
@@ -89,4 +89,4 @@ void setup_tissue();
 void setup_microenvironment( void );  // done 
 
 std::vector<std::string> AMIGOS_coloring_function( Cell* );
-
+void VEGF_secretion_and_vascular_death_function(Cell* pCell, Phenotype& phenotype, double dt );

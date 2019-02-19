@@ -201,14 +201,17 @@ int main( int argc, char* argv[] )
 			}
 
 			// update the microenvironment
-			microenvironment.simulate_diffusion_decay( diffusion_dt );
+			// microenvironment.simulate_diffusion_decay( diffusion_dt );
+			std::cout << __LINE__ << std::endl; 
 			
 			// run PhysiCell 
 			((Cell_Container *)microenvironment.agent_container)->update_all_cells( PhysiCell_globals.current_time );
+			std::cout << __LINE__ << std::endl; 
 			
 			// add angiogenesis here??
 			
 			update_coarse_vasculature( diffusion_dt);  // ANGIO 
+			std::cout << __LINE__ << std::endl; 
 			
 			PhysiCell_globals.current_time += diffusion_dt;
 		}

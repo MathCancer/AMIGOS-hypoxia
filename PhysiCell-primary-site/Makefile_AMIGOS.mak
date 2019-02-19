@@ -45,8 +45,8 @@ PhysiCell_pugixml.o PhysiCell_settings.o
 
 # put your custom objects here (they should be in the custom_modules directory)
 
-PhysiCell_custom_module_OBJECTS := primary_site.o vascularization.o
-PhysiCell_custom_module_OBJECTS_3D := primary_site3D.o vascularization.o
+PhysiCell_custom_module_OBJECTS := primary_site.o vasculature.o
+PhysiCell_custom_module_OBJECTS_3D := primary_site3D.o vasculature.o
 
 pugixml_OBJECTS := pugixml.o
 
@@ -178,8 +178,8 @@ primary_site.o: ./custom_modules/primary_site.cpp
 primary_site3D.o: ./custom_modules/primary_site3D.cpp 
 	$(COMPILE_COMMAND) -c ./custom_modules/primary_site3D.cpp
 	
-vascularization.o: ./custom_modules/vascularization.cpp 
-	$(COMPILE_COMMAND) -c ./custom_modules/vascularization.cpp	
+vasculature.o: ./custom_modules/vasculature.cpp 
+	$(COMPILE_COMMAND) -c ./custom_modules/vasculature.cpp	
 
 coarse_vascularization.o: ./custom_modules/coarse_vascularization.cpp
 	$(COMPILE_COMMAND) -c ./custom_modules/coarse_vascularization.cpp
