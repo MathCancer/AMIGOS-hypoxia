@@ -1,4 +1,4 @@
-/*
+ /*
 ###############################################################################
 # If you use PhysiCell in your project, please cite PhysiCell and the version #
 # number, such as below:                                                      #
@@ -423,7 +423,7 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
 	static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");  // 
 	
 	// permanent gene switch 
-	if( pO2 < FP_hypoxic_switch )
+	/*if( pO2 < FP_hypoxic_switch )
 	{
 		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
 		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
@@ -437,7 +437,7 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_normoxia" ); 
 	}
-
+*/
 	// update the proteins
 	
 	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].value.size(); i++ )
@@ -1182,7 +1182,7 @@ void VEGF_secretion_and_vascular_death_function(Cell* pCell, Phenotype& phenotyp
     
     // VEGF SECRETION CODE
     
-/*     static int oxygen_index = pCell->get_microenvironment()->find_density_index( "oxygen" );
+   static int oxygen_index = pCell->get_microenvironment()->find_density_index( "oxygen" );
     static int VEGF_substrate_index = pCell->get_microenvironment()->find_density_index("VEGF");
     
 //    std::vector<double> substrates = pCell->nearest_density_vector();
@@ -1207,7 +1207,7 @@ void VEGF_secretion_and_vascular_death_function(Cell* pCell, Phenotype& phenotyp
     {
         pCell->phenotype.secretion.secretion_rates[VEGF_substrate_index] = r_base_VEGF*((hypoxic_o2_threshold - oxygen)/(hypoxic_o2_threshold - critical_o2_threshold));
     }
- */
+ 
     // END VEGF SECRETION CODE
     
     // VASCULAR DEATH CODE

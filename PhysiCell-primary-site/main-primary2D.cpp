@@ -107,7 +107,7 @@ int main( int argc, char* argv[] )
 	
 	setup_microenvironment(); // modify this in the custom code 
 	
-	// coarse_vasculature_setup();  // ANGIO setup here! 
+	coarse_vasculature_setup();  // ANGIO setup here!
 
 	/* PhysiCell setup */ 
  	
@@ -180,7 +180,10 @@ int main( int argc, char* argv[] )
 				{	
 					sprintf( filename , "%s/output%08u" , PhysiCell_settings.folder.c_str(),  PhysiCell_globals.full_output_index ); 
 					
-					save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
+					save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time );
+                    sprintf( filename , "output%08u_vasculature.mat" ,  PhysiCell_globals.full_output_index );
+                    
+                    write_vasculature_data_matlab( filename );
 				}
 				
 				PhysiCell_globals.full_output_index++; 
@@ -202,16 +205,16 @@ int main( int argc, char* argv[] )
 
 			// update the microenvironment
 			// microenvironment.simulate_diffusion_decay( diffusion_dt );
-			std::cout << __LINE__ << std::endl; 
+			//std::cout << __LINE__ << std::endl;
 			
 			// run PhysiCell 
 			((Cell_Container *)microenvironment.agent_container)->update_all_cells( PhysiCell_globals.current_time );
-			std::cout << __LINE__ << std::endl; 
+			//std::cout << __LINE__ << std::endl;
 			
 			// add angiogenesis here??
 			
 			update_coarse_vasculature( diffusion_dt);  // ANGIO 
-			std::cout << __LINE__ << std::endl; 
+			//std::cout << __LINE__ << std::endl; 
 			
 			PhysiCell_globals.current_time += diffusion_dt;
 		}
