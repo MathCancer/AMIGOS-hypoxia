@@ -230,7 +230,9 @@ void setup_microenvironment( void )
 	// set Dirichlet conditions 
 	
 	default_microenvironment_options.outer_Dirichlet_conditions = true;
+	// default_microenvironment_options.Dirichlet_activation_vector[2] = false;
 	default_microenvironment_options.Dirichlet_condition_vector[0] = parameters.doubles("O2_Dirichlet_Condition");
+	// default_microenvironment_options.Dirichlet_condition_vector[2] = 0.0;
 		
 	// add ECM 
 	
@@ -296,85 +298,88 @@ void setup_tissue( void )
 	double leader_fraction = parameters.doubles("leader_fraction"); // model 4
 	// leader_fraction = 0.025; // model 4a  0.01 is a bit too small for this small starting group 
 	double follower_fraction = 1.0 - leader_fraction; 
+
+	pCell = create_cell(); // tumor cell 
+	pCell->assign_position( 0.0 , 0.0 , 0.0 );
 	
 	int n = 0; 
-	while( y < tumor_radius )
-	{
-		x = 0.0; 
-		if( n % 2 == 1 )
-		{ x = 0.5*cell_spacing; }
-		x_outer = sqrt( tumor_radius*tumor_radius - y*y ); 
+// 	while( y < tumor_radius )
+// 	{
+// 		x = 0.0; 
+// 		if( n % 2 == 1 )
+// 		{ x = 0.5*cell_spacing; }
+// 		x_outer = sqrt( tumor_radius*tumor_radius - y*y ); 
 		
-		while( x < x_outer )
-		{
-			pCell = create_cell(); // tumor cell 
-			pCell->assign_position( x , y , 0.0 );
+// 		while( x < x_outer )
+// 		{
+// 			pCell = create_cell(); // tumor cell 
+// 			pCell->assign_position( x , y , 0.0 );
 			
 			
-			if( UniformRandom() <= follower_fraction)
-			{ pCell->type = 1; pCell->type_name = "Follower"; }
-/*			
-			pCell->custom_data[0] = NormalRandom( 1.0, 0.33 );
-			if( pCell->custom_data[0] < 0.0 )
-			{ pCell->custom_data[0] = 0.0; }
-			if( pCell->custom_data[0] > 2.0 )
-			{ pCell->custom_data[0] = .0; }
-*/		
+// 			if( UniformRandom() <= follower_fraction)
+// 			{ pCell->type = 1; pCell->type_name = "Follower"; }
+// /*			
+// 			pCell->custom_data[0] = NormalRandom( 1.0, 0.33 );
+// 			if( pCell->custom_data[0] < 0.0 )
+// 			{ pCell->custom_data[0] = 0.0; }
+// 			if( pCell->custom_data[0] > 2.0 )
+// 			{ pCell->custom_data[0] = .0; }
+// */		
 			
-			if( fabs( y ) > 0.01 )
-			{
-				pCell = create_cell(); // tumor cell 
-				pCell->assign_position( x , -y , 0.0 );
+// 			if( fabs( y ) > 0.01 )
+// 			{
+// 				pCell = create_cell(); // tumor cell 
+// 				pCell->assign_position( x , -y , 0.0 );
 
-			if( UniformRandom() <= follower_fraction)
-			{ pCell->type = 1; pCell->type_name = "Follower"; }				
-				/*				
-				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-				if( pCell->custom_data[0] < 0.0 )
-				{ pCell->custom_data[0] = 0.0; }
-				if( pCell->custom_data[0] > 2.0 )
-				{ pCell->custom_data[0] = .0; }
-*/			
-			}
+// 			if( UniformRandom() <= follower_fraction)
+// 			{ pCell->type = 1; pCell->type_name = "Follower"; }				
+// 				/*				
+// 				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
+// 				if( pCell->custom_data[0] < 0.0 )
+// 				{ pCell->custom_data[0] = 0.0; }
+// 				if( pCell->custom_data[0] > 2.0 )
+// 				{ pCell->custom_data[0] = .0; }
+// */			
+// 			}
 			
-			if( fabs( x ) > 0.01 )
-			{ 
-				pCell = create_cell(); // tumor cell 
-				pCell->assign_position( -x , y , 0.0 );
+// 			if( fabs( x ) > 0.01 )
+// 			{ 
+// 				pCell = create_cell(); // tumor cell 
+// 				pCell->assign_position( -x , y , 0.0 );
 				
-			if( UniformRandom() <= follower_fraction)
-			{ pCell->type = 1; pCell->type_name = "Follower"; }				
-/*				
-				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-				if( pCell->custom_data[0] < 0.0 )
-				{ pCell->custom_data[0] = 0.0; }
-				if( pCell->custom_data[0] > 2.0 )
-				{ pCell->custom_data[0] = .0; }
-*/				
-				if( fabs( y ) > 0.01 )
-				{
-					pCell = create_cell(); // tumor cell 
-					pCell->assign_position( -x , -y , 0.0 );
+// 			if( UniformRandom() <= follower_fraction)
+// 			{ pCell->type = 1; pCell->type_name = "Follower"; }				
+// /*				
+// 				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
+// 				if( pCell->custom_data[0] < 0.0 )
+// 				{ pCell->custom_data[0] = 0.0; }
+// 				if( pCell->custom_data[0] > 2.0 )
+// 				{ pCell->custom_data[0] = .0; }
+// */				
+// 				if( fabs( y ) > 0.01 )
+// 				{
+// 					pCell = create_cell(); // tumor cell 
+// 					pCell->assign_position( -x , -y , 0.0 );
 					
-			if( UniformRandom() <= follower_fraction)
-			{ pCell->type = 1; pCell->type_name = "Follower"; }					
+// 			if( UniformRandom() <= follower_fraction)
+// 			{ pCell->type = 1; pCell->type_name = "Follower"; }					
 					
-/*					
-					pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-					if( pCell->custom_data[0] < 0.0 )
-					{ pCell->custom_data[0] = 0.0; }
-					if( pCell->custom_data[0] > 2.0 )
-					{ pCell->custom_data[0] = .0; }
-*/				
-				}
-			}
-			x += cell_spacing; 
+// /*					
+// 					pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
+// 					if( pCell->custom_data[0] < 0.0 )
+// 					{ pCell->custom_data[0] = 0.0; }
+// 					if( pCell->custom_data[0] > 2.0 )
+// 					{ pCell->custom_data[0] = .0; }
+// */				
+// 				}
+// 			}
+// 			x += cell_spacing; 
 			
-		}
+// 		}
 		
-		y += cell_spacing * sqrt(3.0)/2.0; 
-		n++; 
-	}
+// 		y += cell_spacing * sqrt(3.0)/2.0; 
+// 		n++; 
+// 	}
 	
 	return; 
 }

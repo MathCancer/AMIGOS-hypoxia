@@ -176,8 +176,8 @@ void Coarse_Vasculature::sync_to_BioFVM( void )
         pMicroenvironment->add_density( "VEGF", "dimensionless" , 3.5e3 , 0.09 );
         VEGF_i = pMicroenvironment->find_density_index( "VEGF" );
         
-//        default_microenvironment_options.Dirichlet_condition_vector[VEGF_i] = 0.0;
-//        default_microenvironment_options.Dirichlet_activation_vector[VEGF_i] = false;
+       default_microenvironment_options.Dirichlet_condition_vector[VEGF_i] = 0.0;
+       default_microenvironment_options.Dirichlet_activation_vector[VEGF_i] = false;
     }
     
     // next, resize the vascular mesh
