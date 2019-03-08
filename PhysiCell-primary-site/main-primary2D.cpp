@@ -204,7 +204,8 @@ int main( int argc, char* argv[] )
 			}
 
 			// update the microenvironment
-			// microenvironment.simulate_diffusion_decay( diffusion_dt );
+			microenvironment.simulate_bulk_sources_and_sinks( diffusion_dt );
+			microenvironment.simulate_diffusion_decay( diffusion_dt );
 			//std::cout << __LINE__ << std::endl;
 			
 			// run PhysiCell 
