@@ -64,7 +64,7 @@ EXAMPLES := ./examples/PhysiCell_test_mechanics_1.cpp ./examples/PhysiCell_test_
 all: main-primary2D.cpp main-primary3D.cpp $(ALL_OBJECTS) $(ALL_OBJECTS_3D)
 # all: main-primary3D.cpp $(ALL_OBJECTS_3D)
 	$(COMPILE_COMMAND) -o $(PROGRAM_NAME)_2D $(ALL_OBJECTS) main-primary2D.cpp 
-	$(COMPILE_COMMAND) -o $(PROGRAM_NAME)_3D $(ALL_OBJECTS_3D) main-primary3D.cpp 
+#	$(COMPILE_COMMAND) -o $(PROGRAM_NAME) $(ALL_OBJECTS_3D) main-primary3D.cpp 
 
 
 # early examples for convergence testing 

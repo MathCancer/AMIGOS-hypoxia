@@ -248,7 +248,26 @@ void setup_microenvironment( void )
 		default_microenvironment_options.Dirichlet_activation_vector[ECM_i] = false;
 	}
 	
+    int VEGF_i = pME->find_density_index( "VEGF" );
+    if( VEGF_i < 0 )
+    {
+        // 5.8 × 10−11 m2 s−1. // https://www.nature.com/articles/nprot.2012.051
+        
+        // decay 72h half-life : http://walter.deback.net/old/media/KohnLuque_etal_PhysBiol_2013.pdf
+        // ECM binding: 1.5e-3 s-1 ~ 0.09 min-1
+        
+        std::cout << "Adding VEGF to the microenvironment ... " << std::endl;
+        
+        pME->add_density( "VEGF", "dimensionless" , 3.5e3 , 0.09 );
+        VEGF_i = pME->find_density_index( "VEGF" );
+        
+       default_microenvironment_options.Dirichlet_condition_vector[VEGF_i] = 0.0;
+       default_microenvironment_options.Dirichlet_activation_vector[VEGF_i] = false;
+    }
+	
 /*	
+
+
 	// add "repressor" signal 
 	
 	pME->add_density( "Repressor" , 6.4e4 , .1 ); // 80 micron length scale 
@@ -288,7 +307,7 @@ void setup_tissue( void )
 	double cell_spacing = tumor_confluence * 2.0 * cell_radius;
 	
 	double tumor_radius = parameters.doubles("tumor_radius"); 
-		
+
 	Cell* pCell = NULL; 
 	
 	double x = 0.0; 
@@ -299,87 +318,87 @@ void setup_tissue( void )
 	// leader_fraction = 0.025; // model 4a  0.01 is a bit too small for this small starting group 
 	double follower_fraction = 1.0 - leader_fraction; 
 
-	pCell = create_cell(); // tumor cell 
-	pCell->assign_position( 0.0 , 0.0 , 0.0 );
+	/* pCell = create_cell(); // tumor cell 
+	pCell->assign_position( 0.0 , 0.0 , 0.0 ); */
 	
 	int n = 0; 
-// 	while( y < tumor_radius )
-// 	{
-// 		x = 0.0; 
-// 		if( n % 2 == 1 )
-// 		{ x = 0.5*cell_spacing; }
-// 		x_outer = sqrt( tumor_radius*tumor_radius - y*y ); 
+ 	while( y < tumor_radius )
+ 	{
+ 		x = 0.0; 
+ 		if( n % 2 == 1 )
+ 		{ x = 0.5*cell_spacing; }
+ 		x_outer = sqrt( tumor_radius*tumor_radius - y*y ); 
 		
-// 		while( x < x_outer )
-// 		{
-// 			pCell = create_cell(); // tumor cell 
-// 			pCell->assign_position( x , y , 0.0 );
+ 		while( x < x_outer )
+ 		{
+ 			pCell = create_cell(); // tumor cell 
+ 			pCell->assign_position( x , y , 0.0 );
 			
 			
-// 			if( UniformRandom() <= follower_fraction)
-// 			{ pCell->type = 1; pCell->type_name = "Follower"; }
-// /*			
-// 			pCell->custom_data[0] = NormalRandom( 1.0, 0.33 );
-// 			if( pCell->custom_data[0] < 0.0 )
-// 			{ pCell->custom_data[0] = 0.0; }
-// 			if( pCell->custom_data[0] > 2.0 )
-// 			{ pCell->custom_data[0] = .0; }
-// */		
+ 			if( UniformRandom() <= follower_fraction)
+ 			{ pCell->type = 1; pCell->type_name = "Follower"; }
+ 			
+ 			pCell->custom_data[0] = NormalRandom( 1.0, 0.33 );
+ 			if( pCell->custom_data[0] < 0.0 )
+ 			{ pCell->custom_data[0] = 0.0; }
+ 			if( pCell->custom_data[0] > 2.0 )
+ 			{ pCell->custom_data[0] = .0; }
+		
 			
-// 			if( fabs( y ) > 0.01 )
-// 			{
-// 				pCell = create_cell(); // tumor cell 
-// 				pCell->assign_position( x , -y , 0.0 );
+ 			if( fabs( y ) > 0.01 )
+ 			{
+ 				pCell = create_cell();  //tumor cell 
+ 				pCell->assign_position( x , -y , 0.0 );
 
-// 			if( UniformRandom() <= follower_fraction)
-// 			{ pCell->type = 1; pCell->type_name = "Follower"; }				
-// 				/*				
-// 				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-// 				if( pCell->custom_data[0] < 0.0 )
-// 				{ pCell->custom_data[0] = 0.0; }
-// 				if( pCell->custom_data[0] > 2.0 )
-// 				{ pCell->custom_data[0] = .0; }
-// */			
-// 			}
+ 			if( UniformRandom() <= follower_fraction)
+ 			{ pCell->type = 1; pCell->type_name = "Follower"; }				
+ 								
+ 				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
+ 				if( pCell->custom_data[0] < 0.0 )
+ 				{ pCell->custom_data[0] = 0.0; }
+ 				if( pCell->custom_data[0] > 2.0 )
+ 				{ pCell->custom_data[0] = .0; }
 			
-// 			if( fabs( x ) > 0.01 )
-// 			{ 
-// 				pCell = create_cell(); // tumor cell 
-// 				pCell->assign_position( -x , y , 0.0 );
+ 			}
+			
+ 			if( fabs( x ) > 0.01 )
+ 			{ 
+ 				pCell = create_cell(); // tumor cell 
+ 				pCell->assign_position( -x , y , 0.0 );
 				
-// 			if( UniformRandom() <= follower_fraction)
-// 			{ pCell->type = 1; pCell->type_name = "Follower"; }				
-// /*				
-// 				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-// 				if( pCell->custom_data[0] < 0.0 )
-// 				{ pCell->custom_data[0] = 0.0; }
-// 				if( pCell->custom_data[0] > 2.0 )
-// 				{ pCell->custom_data[0] = .0; }
-// */				
-// 				if( fabs( y ) > 0.01 )
-// 				{
-// 					pCell = create_cell(); // tumor cell 
-// 					pCell->assign_position( -x , -y , 0.0 );
+ 			if( UniformRandom() <= follower_fraction)
+ 			{ pCell->type = 1; pCell->type_name = "Follower"; }				
+ 				
+ 				pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
+ 				if( pCell->custom_data[0] < 0.0 )
+ 				{ pCell->custom_data[0] = 0.0; }
+ 				if( pCell->custom_data[0] > 2.0 )
+ 				{ pCell->custom_data[0] = .0; }
+				
+ 				if( fabs( y ) > 0.01 )
+ 				{
+ 					pCell = create_cell(); // tumor cell 
+ 					pCell->assign_position( -x , -y , 0.0 );
 					
-// 			if( UniformRandom() <= follower_fraction)
-// 			{ pCell->type = 1; pCell->type_name = "Follower"; }					
+ 			if( UniformRandom() <= follower_fraction)
+ 			{ pCell->type = 1; pCell->type_name = "Follower"; }					
 					
-// /*					
-// 					pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
-// 					if( pCell->custom_data[0] < 0.0 )
-// 					{ pCell->custom_data[0] = 0.0; }
-// 					if( pCell->custom_data[0] > 2.0 )
-// 					{ pCell->custom_data[0] = .0; }
-// */				
-// 				}
-// 			}
-// 			x += cell_spacing; 
+ /*					
+ 					pCell->custom_data[0] = NormalRandom( 1.0, 0.25 );
+ 					if( pCell->custom_data[0] < 0.0 )
+ 					{ pCell->custom_data[0] = 0.0; }
+ 					if( pCell->custom_data[0] > 2.0 )
+ 					{ pCell->custom_data[0] = .0; }
+ */				
+ 				}
+ 			}
+ 			x += cell_spacing; 
 			
-// 		}
+ 		}
 		
-// 		y += cell_spacing * sqrt(3.0)/2.0; 
-// 		n++; 
-// 	}
+ 		y += cell_spacing * sqrt(3.0)/2.0; 
+ 		n++; 
+ 	}
 	
 	return; 
 }
@@ -428,7 +447,7 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
 	static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");  // 
 	
 	// permanent gene switch 
-	/*if( pO2 < FP_hypoxic_switch )
+	if( pO2 < FP_hypoxic_switch )
 	{
 		pCell->custom_data.vector_variables[genes_i].value[red_i] = 0.0; 
 		pCell->custom_data.vector_variables[genes_i].value[green_i] = 1.0; 
@@ -442,7 +461,7 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		phenotype.secretion.secretion_rates[VEGF_i] = parameters.doubles( "VEGF_secretion_rate_constant_normoxia" ); 
 	}
-*/
+
 	// update the proteins
 	
 	for( int i=0; i < pCell->custom_data.vector_variables[genes_i].value.size(); i++ )
@@ -1186,7 +1205,7 @@ void VEGF_secretion_and_vascular_death_function(Cell* pCell, Phenotype& phenotyp
 {
     
     // VEGF SECRETION CODE
-    
+/*     
    static int oxygen_index = pCell->get_microenvironment()->find_density_index( "oxygen" );
     static int VEGF_substrate_index = pCell->get_microenvironment()->find_density_index("VEGF");
     
@@ -1213,7 +1232,7 @@ void VEGF_secretion_and_vascular_death_function(Cell* pCell, Phenotype& phenotyp
         pCell->phenotype.secretion.secretion_rates[VEGF_substrate_index] = r_base_VEGF*((hypoxic_o2_threshold - oxygen)/(hypoxic_o2_threshold - critical_o2_threshold));
     }
  
-    // END VEGF SECRETION CODE
+    // END VEGF SECRETION CODE */
     
     // VASCULAR DEATH CODE
     
