@@ -1170,13 +1170,13 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 		
 	}
 	
-	// Necrotic - Brown
+	// Necrotic - Purple
 	if( pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic_swelling || 
 		pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic_lysed || 
 		pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic )
 	{
-		output[0] = "rgb(250,138,38)";
-		output[2] = "rgb(139,69,19)";
+		output[0] = "rgb(138,43,226)";
+		output[2] = "rgb(148,0,211)";
 		
 		pCell->custom_data.vector_variables[cyto_color_i].value[0] = 250; 
 		pCell->custom_data.vector_variables[cyto_color_i].value[1] = 138; 
