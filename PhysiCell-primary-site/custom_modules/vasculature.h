@@ -58,7 +58,10 @@ public:
     double vascular_extension_rate;
     double secretion_rate;
     double target_O2;
-    
+    double target_ECM;
+	double target_VEGF;
+	std::vector<double> target_vector;
+	
     Vascular_Densities(); // done
 };
 

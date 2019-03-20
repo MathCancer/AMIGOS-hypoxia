@@ -9,6 +9,9 @@
 #include "../core/PhysiCell.h"
 #include "../modules/PhysiCell_standard_modules.h"
 
+
+
+
 using namespace BioFVM;
 using namespace PhysiCell;
 
@@ -22,7 +25,7 @@ Coarse_Vasculature coarse_vasculature;
 
 Vascular_Options::Vascular_Options()
 {
-    vascular_mesh_multiplier = 1;
+    vascular_mesh_multiplier = parameters.doubles("vascular_mesh_multiplier");
     base_vascular_extension_rate = 0.0035/60.0;
     vascular_birth_rate = 1.0/18.0/60;
     max_vascular_density = 1.0;
@@ -64,7 +67,10 @@ Vascular_Densities::Vascular_Densities()
     functional = 0.5;
     total = 1.0;
     secretion_rate = 10.0; // could be too high
-    target_O2 = 38.0;
+	target_O2 = 38.0;
+	target_ECM = 0;
+	target_VEGF = 0;
+	target_vector = { target_O2,target_ECM,target_VEGF };
     vascular_extension_rate = 1.0;
 //    vascular_birth_rate = 1.0/18.0;
     
@@ -221,10 +227,6 @@ void Coarse_Vasculature::compute_coarse_VEGF( void )
     // if we're not synced to a microenvironment, then exit out
     if( pMicroenvironment == NULL )
     { return; }
-    
-    
-    
-    
     return;
 }
 
@@ -527,10 +529,16 @@ void vascular_target_function( Microenvironment* microenvironment, int voxel_ind
     //
     extern Coarse_Vasculature coarse_vasculature;
     extern Vascular_Options default_vascular_options;
+/* 
+	
+	double target_O2 = 38.0;
+	double target_ECM = 0;
+	double target_VEGF = 0;
+	std::vector<double> target_vector = { target_O2,target_ECM,target_VEGF }; */
 
-    for( int i=0 ; i < 1 ; i++ )
-    { (*write_here)[i] = coarse_vasculature( microenvironment->mesh.voxels[voxel_index].center ).target_O2 ; }
 
+    for( int i=0 ; i < write_here->size() ; i++ )
+    { (*write_here)[i] = coarse_vasculature( microenvironment->mesh.voxels[voxel_index].center ).target_vector[i] ; }
     return;
 }
     
