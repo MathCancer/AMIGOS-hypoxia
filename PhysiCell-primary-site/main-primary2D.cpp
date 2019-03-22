@@ -106,8 +106,6 @@ int main( int argc, char* argv[] )
 	/* Microenvironment setup */ 
 	
 	setup_microenvironment(); // modify this in the custom code 
-	
-	coarse_vasculature_setup();  // ANGIO setup here!
 
 	/* PhysiCell setup */ 
  	

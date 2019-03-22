@@ -167,8 +167,9 @@
 		<FP_hypoxic_switch type="double" units="mmHg">10.0</FP_hypoxic_switch>
 		<phenotype_hypoxic_switch type="double" units="mmHg">10.0</phenotype_hypoxic_switch>
 		<VEGF_secretion_rate_constant_hypoxia type="double" units="1/min">10.0</VEGF_secretion_rate_constant_hypoxia>
-		<vascular_mesh_multiplier type="double" units="1/min">1.0</vascular_mesh_multiplier>
+		<max_vascular_density type="double" units="mmHg">1.0</max_vascular_density>
 
+		
 		<!-- Transition Rate Constants -->
 		<rQ type="double" units="1/min">0.004605</rQ>
 		<r1 type="double" units="1/min">0.001282</r1>

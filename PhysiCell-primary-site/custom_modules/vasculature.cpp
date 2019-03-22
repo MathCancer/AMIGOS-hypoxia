@@ -25,16 +25,17 @@ Coarse_Vasculature coarse_vasculature;
 
 Vascular_Options::Vascular_Options()
 {
-    vascular_mesh_multiplier = parameters.doubles("vascular_mesh_multiplier");
+    vascular_mesh_multiplier = 1; //1;
     base_vascular_extension_rate = 0.0035/60.0;
     vascular_birth_rate = 1.0/18.0/60;
-    max_vascular_density = 1.0;
+    max_vascular_density = 1.0; 
     vascular_death_rate = 1.0/18/60;  // 0
     vascular_proliferation_threshold = 0.001;  // 1
     vascular_proliferation_saturation= 0.5;   // 2
     vascular_chemotaxis_threshold = 0.001;   // 3
     vascular_chemotaxis_saturation = 0.5;   // 4
     effective_vascular_cutoff_threshold = 1.0E-8;  // 5
+	
     
     angiogenesis_dt = 60.0;
     
