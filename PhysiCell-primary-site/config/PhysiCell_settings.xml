@@ -87,13 +87,13 @@
 	</domain>
 	
 	<overall>
-		<max_time units="min">14400</max_time> <!-- 5 days * 24 h * 60 min -->
+		<max_time units="min">14400</max_time> <!-- 5 days * 24 h * 60 min = 14400 --> 
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 	</overall>
 	
 	<parallel>
-		<omp_num_threads>4</omp_num_threads>
+		<omp_num_threads>10</omp_num_threads>
 	</parallel> 
 	
 	<save>
@@ -124,7 +124,7 @@
 
 		<!--> Tumor phenotype model type input can be specified in string. (Options, 0,1,2,2a,3,3a,4)
 			- Each model depends on previous parameters. Therefore previous parameters should not be commented. -->
-		<tumorphenotype type="string" units="dimensionless">model0</tumorphenotype>
+		<tumorphenotype type="string" units="dimensionless">model1</tumorphenotype>
 		
 		<color type="bool" units="dimensionless">true</color>
 		<default_production_rateRFP type="double" units="1/min">206.54375</default_production_rateRFP>
@@ -150,7 +150,7 @@
 
 		<!-- Model Parameters -->
 		<O2_proliferation_saturation type="double" units="mmHg">38.0</O2_proliferation_saturation>
-		<is_motile type="bool" units="dimensionless">false</is_motile>
+		<is_motile type="bool" units="dimensionless">true</is_motile>
 		<persistence_time type="double" units="min">15.0</persistence_time>
 		<migration_bias type="double" units="dimensionless">0.5</migration_bias>
 		<migration_speed type="double" units="micron/min">0.05</migration_speed>

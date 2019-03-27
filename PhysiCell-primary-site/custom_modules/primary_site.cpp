@@ -232,11 +232,18 @@ void setup_microenvironment( void )
 	default_microenvironment_options.outer_Dirichlet_conditions = true;
 	// default_microenvironment_options.Dirichlet_activation_vector[2] = false;
 	default_microenvironment_options.Dirichlet_condition_vector[0] = parameters.doubles("O2_Dirichlet_Condition");
+	default_microenvironment_options.Dirichlet_activation_vector[0] = false;
 	// default_microenvironment_options.Dirichlet_condition_vector[2] = 0.0;
-		
+
+	
 	// add ECM 
 	
 	Microenvironment* pME = get_default_microenvironment(); 
+	
+/* 	microenvironment.diffusion_coefficients[0]=10000000000000000;
+	microenvironment.decay_rates[0]=10; */
+	
+	
 	int ECM_i = pME->find_density_index( "ECM" ); 
 	if( ECM_i < 0 )
 	{
@@ -265,9 +272,8 @@ void setup_microenvironment( void )
        default_microenvironment_options.Dirichlet_activation_vector[VEGF_i] = false;
     }
 	
+
 /*	
-
-
 	// add "repressor" signal 
 	
 	pME->add_density( "Repressor" , 6.4e4 , .1 ); // 80 micron length scale 
@@ -275,16 +281,35 @@ void setup_microenvironment( void )
 	default_microenvironment_options.Dirichlet_activation_vector[2] = false; 
 */	
 	
-		
+	
+	
 	initialize_microenvironment(); 
 	
 	coarse_vasculature_setup(); // ANGIO 
 	
-	// vascularization display
+
+	// vascularization far initialization
     for(int i = 0; i<coarse_vasculature.vascular_densities.size();i++)
     {
-       // std::cout<<coarse_vasculature.vascular_densities[i].functional<<std::endl;
-    }	
+    //   std::cout<<coarse_vasculature.vascular_densities[i].functional<<std::endl; 22500
+		
+		double XPos=coarse_vasculature.mesh.voxels[i].center[0];
+		double YPos=coarse_vasculature.mesh.voxels[i].center[1];
+		double Center = 0;
+		double Distance = XPos*XPos + YPos*YPos - Center;
+		
+		bool& A = pME->is_dirichlet_node(i);
+		if (A == true)
+		{
+			pME->remove_dirichlet_node(i);
+		}
+		
+		//std::cout<<A<<std::endl;
+		if ( Distance < 360000)
+		{	
+			coarse_vasculature.vascular_densities[i].functional = 0;
+		}
+	}	
 
 	return; 
 }	

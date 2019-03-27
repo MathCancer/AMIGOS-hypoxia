@@ -106,7 +106,8 @@ int main( int argc, char* argv[] )
 	/* Microenvironment setup */ 
 	
 	setup_microenvironment(); // modify this in the custom code 
-
+/* 	microenvironment.diffusion_coefficients[0]=10000000000000000;
+	microenvironment.decay_rates[0]=0; */
 	/* PhysiCell setup */ 
  	
 	// set mechanics voxel size, and match the data structure to BioFVM
@@ -203,15 +204,29 @@ int main( int argc, char* argv[] )
 			}
 
 			// update the microenvironment
-			microenvironment.simulate_bulk_sources_and_sinks( diffusion_dt );
 			microenvironment.simulate_diffusion_decay( diffusion_dt );
+			microenvironment.simulate_bulk_sources_and_sinks( diffusion_dt );
+			
+/* 			std::cout<<default_microenvironment_options.Dirichlet_activation_vector[0]<<std::endl;
+			std::cout<<default_microenvironment_options.Dirichlet_activation_vector[1]<<std::endl;
+			std::cout<<default_microenvironment_options.Dirichlet_activation_vector[2]<<std::endl; */			
+			
+			
+	/* 		std::cout<<microenvironment.diffusion_coefficients[0]<<std::endl;
+			std::cout<<microenvironment.diffusion_coefficients[1]<<std::endl;
+			std::cout<<microenvironment.diffusion_coefficients[2]<<std::endl;
+			
+			std::cout<<microenvironment.decay_rates[0]<<std::endl;
+			std::cout<<microenvironment.decay_rates[1]<<std::endl;
+			std::cout<<microenvironment.decay_rates[2]<<std::endl;		 */	
+	
 					
 			// run PhysiCell 
 			((Cell_Container *)microenvironment.agent_container)->update_all_cells( PhysiCell_globals.current_time );
 			
 			// add angiogenesis here??
 			
-			update_coarse_vasculature( diffusion_dt);  // ANGIO 
+			//update_coarse_vasculature( diffusion_dt);  // ANGIO 
 			
 			PhysiCell_globals.current_time += diffusion_dt;
 		}

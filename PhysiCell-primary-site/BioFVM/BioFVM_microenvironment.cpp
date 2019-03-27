@@ -757,6 +757,7 @@ void Microenvironment::simulate_bulk_sources_and_sinks( double dt )
 		
 		bulk_source_sink_solver_setup_done = true; 
 	}
+	//std::cout<<__LINE__<<std::endl;
 	
 	#pragma omp parallel for
 	for( int i=0; i < mesh.voxels.size() ; i++ )

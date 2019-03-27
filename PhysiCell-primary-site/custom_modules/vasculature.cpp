@@ -153,7 +153,7 @@ void Coarse_Vasculature::sync_to_BioFVM( void )
     
     // next, make sure the microenvironment has oxygen
     
-    int oxygen_i = pMicroenvironment->find_density_index( "oxygen" );
+/*     int oxygen_i = pMicroenvironment->find_density_index( "oxygen" );
     if( oxygen_i < 0 )
     {
         std::cout << "Adding oxygen to the microenvironment ... " << std::endl;
@@ -166,7 +166,7 @@ void Coarse_Vasculature::sync_to_BioFVM( void )
         
 //        default_microenvironment_options.Dirichlet_condition_vector[oxygen_i] = default_vascular_options.tissue_far_field_oxygen_tension;
 //        default_microenvironment_options.Dirichlet_activation_vector[oxygen_i] = true;
-    }
+    } */
     
     // next, make sure the microenvironment has VEGF
 /*     
