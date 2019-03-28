@@ -229,7 +229,7 @@ void setup_microenvironment( void )
 	
 	// set Dirichlet conditions 
 	
-	default_microenvironment_options.outer_Dirichlet_conditions = true;
+	default_microenvironment_options.outer_Dirichlet_conditions = false;
 	// default_microenvironment_options.Dirichlet_activation_vector[2] = false;
 	default_microenvironment_options.Dirichlet_condition_vector[0] = parameters.doubles("O2_Dirichlet_Condition");
 	default_microenvironment_options.Dirichlet_activation_vector[0] = false;
@@ -292,7 +292,7 @@ void setup_microenvironment( void )
     for(int i = 0; i<coarse_vasculature.vascular_densities.size();i++)
     {
     //   std::cout<<coarse_vasculature.vascular_densities[i].functional<<std::endl; 22500
-		
+		double tumor_radius = parameters.doubles("tumor_radius"); 
 		double XPos=coarse_vasculature.mesh.voxels[i].center[0];
 		double YPos=coarse_vasculature.mesh.voxels[i].center[1];
 		double Center = 0;
@@ -305,7 +305,7 @@ void setup_microenvironment( void )
 		}
 		
 		//std::cout<<A<<std::endl;
-		if ( Distance < 360000)
+		if ( Distance < tumor_radius*tumor_radius)
 		{	
 			coarse_vasculature.vascular_densities[i].functional = 0;
 		}
