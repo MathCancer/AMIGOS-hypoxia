@@ -309,9 +309,10 @@ void setup_microenvironment( void )
 		{	
 			coarse_vasculature.vascular_densities[i].functional = 0;
 		}
-	}	
+	}
+	
 
-	return; 
+	return;
 }	
 
 void setup_tissue( void )
@@ -1261,7 +1262,7 @@ void VEGF_secretion_and_vascular_death_function(Cell* pCell, Phenotype& phenotyp
     
     // VASCULAR DEATH CODE
     
-    double vascular_degradation_rate_per_cell = 1e-4;
+    double vascular_degradation_rate_per_cell = parameters.doubles( "vascular_degradation_rate_per_cell" );  /// try 0.0011
     
     coarse_vasculature( pCell ).functional = coarse_vasculature( pCell ).functional/(1+dt*vascular_degradation_rate_per_cell);
     
