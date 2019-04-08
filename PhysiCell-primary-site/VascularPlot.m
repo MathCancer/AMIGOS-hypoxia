@@ -4,11 +4,11 @@ clc
 
 
 
-% cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site
-% cd output\
+cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site
+cd output\
 
-
-cd C:\Users\Furkan\Desktop\output_100_um_tumor_1e-6_degradation
+% 
+% cd C:\Users\Furkan\Desktop\output_100_um_tumor_1e-6_degradation
 
 %%
 % Obtaining names of mat files
@@ -75,8 +75,8 @@ for i = 1:length(VasMatFiles)
     title('VEGF');
     axis image;
     
-    BigTitle = num2str(i);
-    suptitle(['Time = ',BigTitle,' steps']);
+    BigTitle = num2str(i*3/24);
+    suptitle(['Time = ',BigTitle,' days']);
     pause(0.005);
 end
 
