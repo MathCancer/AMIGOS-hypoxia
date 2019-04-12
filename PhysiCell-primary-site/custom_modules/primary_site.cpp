@@ -309,9 +309,10 @@ void setup_microenvironment( void )
 		{	
 			coarse_vasculature.vascular_densities[i].functional = 0;
 		}
-	}	
+	}
+	
 
-	return; 
+	return;
 }	
 
 void setup_tissue( void )

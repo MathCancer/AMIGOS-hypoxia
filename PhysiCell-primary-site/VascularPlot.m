@@ -1,8 +1,15 @@
 close all
 clear
 clc
+
+
+
 cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site
 cd output\
+
+% 
+% cd C:\Users\Furkan\Desktop\output_100_um_tumor_1e-6_degradation
+
 %%
 % Obtaining names of mat files
 s = what;
@@ -55,7 +62,7 @@ for i = 1:length(VasMatFiles)
     
     ax2 = subplot(2,2,3);
     contourf(XPos,YPos,O2,'linecolor','none');
-    caxis(ax2,[0 100]);
+    caxis(ax2,[0 50]);
     title('Oxygen');
     colorbar('eastoutside');
     axis image;
@@ -68,11 +75,11 @@ for i = 1:length(VasMatFiles)
     title('VEGF');
     axis image;
     
-    BigTitle = num2str(i);
-    suptitle(['Time = ',BigTitle,' steps']);
-    pause(0.05);
+    BigTitle = num2str(i*3/24);
+    suptitle(['Time = ',BigTitle,' days']);
+    pause(0.005);
 end
 
 
 
-cd ..
+cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site
