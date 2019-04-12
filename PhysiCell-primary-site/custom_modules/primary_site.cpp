@@ -1261,7 +1261,7 @@ void VEGF_secretion_and_vascular_death_function(Cell* pCell, Phenotype& phenotyp
     
     // VASCULAR DEATH CODE
     
-    double vascular_degradation_rate_per_cell = 1e-6;
+    double vascular_degradation_rate_per_cell = parameters.doubles( "vascular_degradation_rate_per_cell" );
     
     coarse_vasculature( pCell ).functional = coarse_vasculature( pCell ).functional/(1+dt*vascular_degradation_rate_per_cell);
     

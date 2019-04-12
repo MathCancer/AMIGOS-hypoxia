@@ -146,6 +146,13 @@ int main( int argc, char* argv[] )
 	sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() ); 
 	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
 	
+	// metadata.txt report
+	//Steps
+	//1. Create file 
+	//2. Open it
+	//3. Open and parse xml file
+	//4. Write parameter.doubles (variable)
+	//5. save and close file
 	// set the performance timers 
 
 	BioFVM::RUNTIME_TIC();

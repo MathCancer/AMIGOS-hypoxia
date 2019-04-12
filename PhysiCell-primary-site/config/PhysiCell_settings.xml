@@ -115,7 +115,7 @@
 	</save>
 	
 	<user_parameters>
-		<tumor_radius type="double" units="micron">50.0</tumor_radius>
+		<tumor_radius type="double" units="micron">100.0</tumor_radius>
 		<oncoprotein_mean type="double" units="dimensionless">1.0</oncoprotein_mean>
 		<oncoprotein_sd type="double" units="dimensionless">0.25</oncoprotein_sd>
 		<oncoprotein_min type="double" units="dimensionless">0.0</oncoprotein_min>
@@ -168,6 +168,7 @@
 		<phenotype_hypoxic_switch type="double" units="mmHg">10.0</phenotype_hypoxic_switch>
 		<VEGF_secretion_rate_constant_hypoxia type="double" units="1/min">10.0</VEGF_secretion_rate_constant_hypoxia>
 		<max_vascular_density type="double" units="mmHg">1.0</max_vascular_density>
+        <vascular_degradation_rate_per_cell type="double" units="1/min">1e-3</vascular_degradation_rate_per_cell>
 
 		
 		<!-- Transition Rate Constants -->
