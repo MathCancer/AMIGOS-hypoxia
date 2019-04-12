@@ -4,8 +4,8 @@ clc
 
 
 
-cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site
-cd output\
+%cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site
+cd output
 
 % 
 % cd C:\Users\Furkan\Desktop\output_100_um_tumor_1e-6_degradation
