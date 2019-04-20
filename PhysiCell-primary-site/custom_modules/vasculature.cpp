@@ -26,8 +26,8 @@ Coarse_Vasculature coarse_vasculature;
 Vascular_Options::Vascular_Options()
 {
     vascular_mesh_multiplier = 1; //1;
-    base_vascular_extension_rate = 0.0035/60.0;
-    vascular_birth_rate = 1.0/18.0/6;
+    base_vascular_extension_rate = 0.0035/6000.0;
+    vascular_birth_rate = 1.0/18/60; //9e-4
     max_vascular_density = 1.0; 
     vascular_death_rate = 1.0/18/60;  // 0
     vascular_proliferation_threshold = 0.001;  // 1
@@ -72,7 +72,7 @@ Vascular_Densities::Vascular_Densities()
 	target_ECM = 0;
 	target_VEGF = 0;
 	target_vector = { target_O2,target_ECM,target_VEGF };
-    vascular_extension_rate = 1.0;
+    vascular_extension_rate = 1000;
 //    vascular_birth_rate = 1.0/18.0;
     
     // How can I use the options more?

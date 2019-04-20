@@ -514,7 +514,7 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
     // model 1
     // if pO2 < value, then motile, less proliferation (instantaneous)
     // if pO2 > value, then not motile, normal proliferation
-    if( PhysiCell_globals.current_time < 7200 )
+    if( PhysiCell_globals.current_time < 720000 )
     {
         static int genes_i = 0;
         static int proteins_i =1;
@@ -626,13 +626,13 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
         int Ki67_positive_premitotic_index = Ki67_advanced.find_phase_index( PhysiCell_constants::Ki67_positive_premitotic );
         int Ki67_positive_postmitotic_index = Ki67_advanced.find_phase_index( PhysiCell_constants::Ki67_positive_postmitotic );
         
-        cell_defaults.phenotype.cycle.data.transition_rate( Ki67_negative_index ,Ki67_positive_premitotic_index ) = 0;  //0.004605;
-        cell_defaults.phenotype.cycle.data.transition_rate( Ki67_positive_premitotic_index ,Ki67_positive_postmitotic_index ) = 0;  //0.001282;
-        cell_defaults.phenotype.cycle.data.transition_rate( Ki67_positive_postmitotic_index, Ki67_negative_index ) = 0;  //0.0066667;
+        phenotype.cycle.data.transition_rate( Ki67_negative_index ,Ki67_positive_premitotic_index ) = 0;  //0.004605;
+        phenotype.cycle.data.transition_rate( Ki67_positive_premitotic_index ,Ki67_positive_postmitotic_index ) = 0;  //0.001282;
+        phenotype.cycle.data.transition_rate( Ki67_positive_postmitotic_index, Ki67_negative_index ) = 0;  //0.0066667;
         
         int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model );
         
-        cell_defaults.phenotype.death.rates[apoptosis_index] = 0; //0.0000387
+        phenotype.death.rates[apoptosis_index] = 0; //0.0000387
         
         // if cell is dead, don't bother with future phenotype changes.
         if( phenotype.death.dead == true )

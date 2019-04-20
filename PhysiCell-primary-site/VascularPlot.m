@@ -3,8 +3,7 @@ clear
 clc
 
 
-
-%cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site
+cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site
 cd output
 
 % 
@@ -37,7 +36,7 @@ end
 
 
 %%
-for i = 1:length(VasMatFiles)
+for i = 73:73
     load(VasMatFiles{i});
     FunVas = Vascular_Data(5,:);
     XPos = Vascular_Data(1,:);

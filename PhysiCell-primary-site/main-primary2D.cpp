@@ -233,7 +233,7 @@ int main( int argc, char* argv[] )
 			
 			// add angiogenesis here??
 			
-			//update_coarse_vasculature( diffusion_dt);  // ANGIO 
+			update_coarse_vasculature( diffusion_dt);  // ANGIO 
 			
 			PhysiCell_globals.current_time += diffusion_dt;
 		}

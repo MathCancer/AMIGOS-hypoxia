@@ -87,7 +87,7 @@
 	</domain>
 	
 	<overall>
-		<max_time units="min">28800</max_time> <!-- 5 days * 24 h * 60 min = 14400 --> 
+		<max_time units="min">14400</max_time> <!-- 5 days * 24 h * 60 min = 14400 --> 
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 	</overall>
@@ -175,6 +175,7 @@
 		<rQ type="double" units="1/min">0.004605</rQ>
 		<r1 type="double" units="1/min">0.001282</r1>
 		<r2 type="double" units="1/min">0.0066667</r2>
+		
 		<rA type="double" units="1/min">0.0000387</rA>
     
 	</user_parameters>
