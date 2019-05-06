@@ -36,7 +36,7 @@ end
 
 
 %%
-for i = 73:73
+for i = 1:length(VasMatFiles)
     load(VasMatFiles{i});
     FunVas = Vascular_Data(5,:);
     XPos = Vascular_Data(1,:);

@@ -74,10 +74,10 @@
 
 <PhysiCell_settings version="devel-version">
 	<domain>
-		<x_min>-1000</x_min>
-		<x_max>1000</x_max>
-		<y_min>-1000</y_min>
-		<y_max>1000</y_max>
+		<x_min>-1500</x_min>
+		<x_max>1500</x_max>
+		<y_min>-1500</y_min>
+		<y_max>1500</y_max>
 		<z_min>-10</z_min>
 		<z_max>10</z_max>
 		<dx>20</dx>
@@ -100,12 +100,12 @@
 		<folder>output</folder> <!-- use . for root --> 
 
 		<full_data>
-			<interval units="min">180</interval>
+			<interval units="min">1440</interval>
 			<enable>true</enable>
 		</full_data>
 		
 		<SVG>
-			<interval units="min">180</interval>
+			<interval units="min">1440</interval>
 			<enable>true</enable>
 		</SVG>
 		
@@ -169,7 +169,7 @@
 		<phenotype_hypoxic_switch type="double" units="mmHg">10.0</phenotype_hypoxic_switch>
 		<VEGF_secretion_rate_constant_hypoxia type="double" units="1/min">10.0</VEGF_secretion_rate_constant_hypoxia>
 		<max_vascular_density type="double" units="mmHg">1.0</max_vascular_density>
-		<vascular_degradation_rate_per_cell type="double" units="1/min">0.001</vascular_degradation_rate_per_cell>
+		<vascular_degradation_rate_per_cell type="double" units="1/min">1e-3</vascular_degradation_rate_per_cell>
 		
 		<!-- Transition Rate Constants -->
 		<rQ type="double" units="1/min">0.004605</rQ>
