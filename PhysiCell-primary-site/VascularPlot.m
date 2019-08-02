@@ -2,12 +2,11 @@ close all
 clear
 clc
 
-
-cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site
-cd output
-
 % 
-% cd C:\Users\Furkan\Desktop\output_100_um_tumor_1e-6_degradation
+% cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site
+% cd output
+
+cd C:\Users\Furkan\Desktop\Vascular_Outputs\Q)output_61_12_no_freeze_pres_1000_small_expa_1e+12_deg
 
 %%
 % Obtaining names of mat files
@@ -33,7 +32,8 @@ for i = 1:length(VasMatFiles)
 end
 
 
-
+h = figure('Renderer', 'painters', 'Position', [10 10 900 600]);
+filename = 'testAnimated.gif';
 
 %%
 for i = 1:length(VasMatFiles)
@@ -46,7 +46,7 @@ for i = 1:length(VasMatFiles)
     XPos = reshape(XPos, [150 150]);
     YPos = reshape(YPos, [150 150]);
     
-    ax1 = subplot(2,2,1.5);
+    ax1 = subplot(2,2,1);
     contourf(XPos,YPos,FunVas,'linecolor','none');
     caxis(ax1,[VasMinValue VasMaxValue]);
     colorbar('eastoutside');
@@ -58,6 +58,17 @@ for i = 1:length(VasMatFiles)
     VEGF = multiscale_microenvironment(7,:);
     O2 = reshape(O2, [150 150]);
     VEGF = reshape(VEGF, [150 150]);
+    HP = multiscale_microenvironment(8,:);
+    HP = reshape(HP, [150 150]);
+    
+    
+    ax4 = subplot(2,2,2);
+    contourf(XPos,YPos,HP,'linecolor','none');
+    title('Pressure');
+    colorbar('eastoutside');
+    axis image;
+    
+    
     
     ax2 = subplot(2,2,3);
     contourf(XPos,YPos,O2,'linecolor','none');
@@ -74,11 +85,20 @@ for i = 1:length(VasMatFiles)
     title('VEGF');
     axis image;
     
-    BigTitle = num2str(i*3/24);
+    BigTitle = num2str(i/24*3);
     suptitle(['Time = ',BigTitle,' days']);
-    pause(0.005);
+    
+    frame = getframe(h); 
+      im = frame2im(frame); 
+      [imind,cm] = rgb2ind(im,256); 
+      % Write to the GIF File 
+      if i == 1 
+          imwrite(imind,cm,filename,'gif', 'Loopcount',inf); 
+      else 
+          imwrite(imind,cm,filename,'gif','WriteMode','append'); 
+      end 
 end
-
+%%
 
 
 cd C:\Users\Furkan\Documents\GitHub\AMIGOS-hypoxia-Forked-\PhysiCell-primary-site

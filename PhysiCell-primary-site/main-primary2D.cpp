@@ -85,7 +85,7 @@ int omp_num_threads = 8; // set this to # of CPU cores x 2 (for hyperthreading)
 int main( int argc, char* argv[] )
 {
 	// load and parse settings file(s)
-	
+	std::cout<<__LINE__<<std::endl;
 	bool XML_status = false; 
 	if( argc > 1 )
 	{ XML_status = load_PhysiCell_config_file( argv[1] ); }
@@ -104,12 +104,12 @@ int main( int argc, char* argv[] )
 	std::string time_units = "min"; 
 
 	/* Microenvironment setup */ 
-	
+	std::cout<<__LINE__<<std::endl;
 	setup_microenvironment(); // modify this in the custom code 
 /* 	microenvironment.diffusion_coefficients[0]=10000000000000000;
 	microenvironment.decay_rates[0]=0; */
 	/* PhysiCell setup */ 
- 	
+ 	std::cout<<__LINE__<<std::endl;
 	// set mechanics voxel size, and match the data structure to BioFVM
 	double mechanics_voxel_size = 30; 
 	Cell_Container* cell_container = create_cell_container_for_microenvironment( microenvironment, mechanics_voxel_size );
@@ -227,14 +227,13 @@ int main( int argc, char* argv[] )
 			std::cout<<microenvironment.decay_rates[1]<<std::endl;
 			std::cout<<microenvironment.decay_rates[2]<<std::endl;		 */	
 	
-					
+
 			// run PhysiCell 
 			((Cell_Container *)microenvironment.agent_container)->update_all_cells( PhysiCell_globals.current_time );
 			
 			// add angiogenesis here??
 			
 			update_coarse_vasculature( diffusion_dt);  // ANGIO 
-			
 			PhysiCell_globals.current_time += diffusion_dt;
 		}
 		

@@ -271,8 +271,17 @@ void setup_microenvironment( void )
         default_microenvironment_options.Dirichlet_condition_vector[VEGF_i] = 0.0;
         default_microenvironment_options.Dirichlet_activation_vector[VEGF_i] = false;
     }
-    
-    
+
+
+    int HP_i = pME->find_density_index( "HP" ); //High Pressure
+    if( HP_i < 0 )
+    {
+      
+        pME->add_density( "HP", "dimensionless" , 0.0 , 0.0 );
+        HP_i = pME->find_density_index( "HP" );
+        default_microenvironment_options.Dirichlet_condition_vector[HP_i] = 0.0;
+        default_microenvironment_options.Dirichlet_activation_vector[HP_i] = false;
+    }
     /*
      // add "repressor" signal
      
@@ -288,7 +297,7 @@ void setup_microenvironment( void )
     coarse_vasculature_setup(); // ANGIO
     
     
-    // vascularization far initialization
+    // Edge vascularization initialization
     for(int i = 0; i<coarse_vasculature.vascular_densities.size();i++)
     {
         //   std::cout<<coarse_vasculature.vascular_densities[i].functional<<std::endl; 22500
@@ -449,7 +458,7 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
     static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" );
     
     update_cell_and_death_parameters_O2_based(pCell,phenotype,dt); // call standard O2-based birth and death
-    VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascularization
+    // VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascularization
     
     // if cell is dead, don't bother with future phenotype changes.
     if( phenotype.death.dead == true )
@@ -464,13 +473,15 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
     //static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live );
     
     //    phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ;
+
     
     // set genes
     
     double pO2 = (pCell->nearest_density_vector())[oxygen_i];
     
     static double FP_hypoxic_switch = parameters.doubles("FP_hypoxic_switch");
-    static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");  //
+    static double phenotype_hypoxic_switch = parameters.doubles("phenotype_hypoxic_switch");
+
     
     // permanent gene switch
     if( pO2 < FP_hypoxic_switch )
@@ -509,12 +520,16 @@ void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt )
 }
 
 
+
+
+
+
 void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
-{
+{	
     // model 1
     // if pO2 < value, then motile, less proliferation (instantaneous)
     // if pO2 > value, then not motile, normal proliferation
-    if( PhysiCell_globals.current_time < 720000 )
+    if( PhysiCell_globals.current_time < 70000000 )
     {
         static int genes_i = 0;
         static int proteins_i =1;
@@ -530,7 +545,7 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
         static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" );
     
         update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
-        VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
+        // VEGF_secretion_and_vascular_death_function(); // do vascular stuff
     
         // if cell is dead, don't bother with future phenotype changes.
         if( phenotype.death.dead == true )
@@ -545,6 +560,28 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
         // int cycle_end_index = live.find_phase_index( PhysiCell_constants::live );
         
         //    phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ;
+		
+		Microenvironment* pME = get_default_microenvironment();
+		int HP_i = pME->find_density_index( "HP" );
+		
+		
+		// calculating pressure
+		
+		static double pressure_threshold = 0.5;
+		pCell->state.simple_pressure;
+
+		int current_voxel_ind = pCell->get_current_voxel_index();
+		
+		
+		if (pCell->state.simple_pressure > pressure_threshold && PhysiCell_globals.current_time > 0.1)
+		{
+			// std::cout<<"High Pressure"<<std::endl;
+			//std::cout<<pCell->nearest_density_vector()[HP_i]<<std::endl;
+			microenvironment(current_voxel_ind)[HP_i] = 1;
+			//std::cout<<pCell->nearest_density_vector()[HP_i]<<std::endl;
+			
+		}
+
         
         // set genes
     
@@ -604,6 +641,9 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
         
         return;
     }
+	
+	
+	// -------------------- Freezing ----------------------- //
     else
     {
         static int genes_i = 0;
@@ -620,7 +660,7 @@ void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt )
         static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" );
         
         update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
-        VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
+        //VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
         
         int Ki67_negative_index = Ki67_advanced.find_phase_index( PhysiCell_constants::Ki67_negative );
         int Ki67_positive_premitotic_index = Ki67_advanced.find_phase_index( PhysiCell_constants::Ki67_positive_premitotic );
@@ -728,7 +768,7 @@ void tumor_cell_phenotype2( Cell* pCell, Phenotype& phenotype, double dt )
     static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" );
     
     update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
-    VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
+    // VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
     
     // if cell is dead, don't bother with future phenotype changes.
     if( phenotype.death.dead == true )
@@ -821,7 +861,7 @@ void tumor_cell_phenotype2a( Cell* pCell, Phenotype& phenotype, double dt )
     static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" );
     
     update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
-    VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
+    // VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
     
     // if cell is dead, don't bother with future phenotype changes.
     if( phenotype.death.dead == true )
@@ -914,7 +954,7 @@ void tumor_cell_phenotype3( Cell* pCell, Phenotype& phenotype, double dt )
     static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" );
     
     update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
-    VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
+   // VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
     
     // if cell is dead, don't bother with future phenotype changes.
     if( phenotype.death.dead == true )
@@ -1026,7 +1066,7 @@ void tumor_cell_phenotype3a( Cell* pCell, Phenotype& phenotype, double dt )
     static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" );
     
     update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
-    VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
+   // VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
     
     // if cell is dead, don't bother with future phenotype changes.
     if( phenotype.death.dead == true )
@@ -1141,7 +1181,7 @@ void tumor_cell_phenotype4( Cell* pCell, Phenotype& phenotype, double dt )
     static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" );
     
     update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
-    VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
+   // VEGF_secretion_and_vascular_death_function(pCell,phenotype,dt); // do vascular stuff
     
     // if cell is dead, don't bother with future phenotype changes.
     if( phenotype.death.dead == true )
@@ -1332,7 +1372,7 @@ void oxygen_taxis_motility( Cell* pCell, Phenotype& phenotype, double dt )
 }
 
 
-void VEGF_secretion_and_vascular_death_function(Cell* pCell, Phenotype& phenotype, double dt )
+void VEGF_secretion_and_vascular_death_function(void)
 {
     
     // VEGF SECRETION CODE
@@ -1365,11 +1405,46 @@ void VEGF_secretion_and_vascular_death_function(Cell* pCell, Phenotype& phenotyp
      
      // END VEGF SECRETION CODE */
     
-    // VASCULAR DEATH CODE
+	
+
+	
+	// High Pressure Vascular Death
+	
+	
+	Microenvironment* pME = get_default_microenvironment();
+	int HP_i = pME->find_density_index( "HP" );
+	double vascular_degradation_rate_per_cell = parameters.doubles( "vascular_degradation_rate_per_cell" );
+	
+	for(int i = 0; i<coarse_vasculature.vascular_densities.size();i++)
+	{	
+		double HP = pME->density_vector(i)[HP_i];
+
+		if (HP > 0)
+		{
+			std::cout<<coarse_vasculature.vascular_densities[i].functional<<std::endl
+			coarse_vasculature.vascular_densities[i].functional = coarse_vasculature.vascular_densities[i].functional/(1+0.01*vascular_degradation_rate_per_cell);
+			std::cout<<coarse_vasculature.vascular_densities[i].functional<<std::endl;
+		}
+		
+	}
+	
+	// High Pressure Vascular Death
+	
+	
+	
+	// VASCULAR DEATH 
+	
+
+	
+	
+	// END OF VASCULAR DEATH
+	
+	
+    // VASCULAR DEATH with number of cells
     
-    double vascular_degradation_rate_per_cell = parameters.doubles( "vascular_degradation_rate_per_cell" );
+    // double vascular_degradation_rate_per_cell = parameters.doubles( "vascular_degradation_rate_per_cell" );
     
-    coarse_vasculature( pCell ).functional = coarse_vasculature( pCell ).functional/(1+dt*vascular_degradation_rate_per_cell);
+    // coarse_vasculature( pCell ).functional = coarse_vasculature( pCell ).functional/(1+dt*vascular_degradation_rate_per_cell);
     
     // END VASCULAR DEATH CODE
     

@@ -87,7 +87,7 @@
 	</domain>
 	
 	<overall>
-		<max_time units="min">14400</max_time> <!-- 5 days * 24 h * 60 min = 14400 --> 
+		<max_time units="min">14400</max_time> <!-- 10 days * 24 h * 60 min = 14400 --> 
 		<time_units>min</time_units>
 		<space_units>micron</space_units>
 	</overall>
@@ -100,12 +100,12 @@
 		<folder>output</folder> <!-- use . for root --> 
 
 		<full_data>
-			<interval units="min">1440</interval>
+			<interval units="min">180</interval>
 			<enable>true</enable>
 		</full_data>
 		
 		<SVG>
-			<interval units="min">1440</interval>
+			<interval units="min">180</interval>
 			<enable>true</enable>
 		</SVG>
 		
@@ -169,7 +169,7 @@
 		<phenotype_hypoxic_switch type="double" units="mmHg">10.0</phenotype_hypoxic_switch>
 		<VEGF_secretion_rate_constant_hypoxia type="double" units="1/min">10.0</VEGF_secretion_rate_constant_hypoxia>
 		<max_vascular_density type="double" units="mmHg">1.0</max_vascular_density>
-		<vascular_degradation_rate_per_cell type="double" units="1/min">1e-3</vascular_degradation_rate_per_cell>
+		<vascular_degradation_rate_per_cell type="double" units="1/min">100000000000</vascular_degradation_rate_per_cell>
 		
 		<!-- Transition Rate Constants -->
 		<rQ type="double" units="1/min">0.004605</rQ>

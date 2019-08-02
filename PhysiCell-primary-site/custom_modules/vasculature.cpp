@@ -26,7 +26,7 @@ Coarse_Vasculature coarse_vasculature;
 Vascular_Options::Vascular_Options()
 {
     vascular_mesh_multiplier = 1;
-    base_vascular_extension_rate = (0.0035*1000.0*1000.0)/60.0;
+    base_vascular_extension_rate = (0.0035)/60.0/1000;
     vascular_birth_rate = 1.0/18.0/60;
     max_vascular_density = 1.0;
     vascular_death_rate = 1.0/18/60;  // 0
@@ -272,7 +272,11 @@ void update_vascular_population ( Microenvironment* pMicroenvironment, double dt
     static int VEGF_i = pMicroenvironment->find_density_index( "VEGF" );
     extern Vascular_Options default_vascular_options;
     extern Coarse_Vasculature coarse_vasculature;
-    
+	
+	
+	// Vascular Death Added Here //
+	static int HP_i = pMicroenvironment->find_density_index( "HP" );
+    double vascular_degrade_pressure = 1e-3;
     
     
     for(int i = 0; i<coarse_vasculature.vascular_densities.size(); i++) // i ends up being the voxel index
@@ -282,9 +286,16 @@ void update_vascular_population ( Microenvironment* pMicroenvironment, double dt
             * fmax(0, ( 1 - coarse_vasculature.vascular_densities[i].functional / default_vascular_options.max_vascular_density ))
             * fmin(1 , fmax( 0, (pMicroenvironment->density_vector(i)[VEGF_i] - default_vascular_options.vascular_proliferation_threshold)/
             (default_vascular_options.vascular_proliferation_saturation - default_vascular_options.vascular_proliferation_threshold)));
-    
-        d = 0; //default_vascular_options.other_properties[0]*(PUT in SOMETHING RELATED TO CELLS HERE)/phenotypes_vector[0].max_cells;
-    
+		
+		double HP = pMicroenvironment->density_vector(i)[HP_i];
+		if (HP > 0.002420)
+		{
+        d = vascular_degrade_pressure; //default_vascular_options.other_properties[0]*(PUT in SOMETHING RELATED TO CELLS HERE)/phenotypes_vector[0].max_cells;
+		}
+		else
+		{
+		d = 0;
+		}
         coarse_vasculature.vascular_densities[i].functional = coarse_vasculature.vascular_densities[i].functional / (1 - (b-d)*dt);
     
         if( coarse_vasculature.vascular_densities[i].functional < default_vascular_options.effective_vascular_cutoff_threshold)
@@ -536,7 +547,6 @@ void vascular_target_function( Microenvironment* microenvironment, int voxel_ind
 	double target_ECM = 0;
 	double target_VEGF = 0;
 	std::vector<double> target_vector = { target_O2,target_ECM,target_VEGF }; */
-
 
     for( int i=0 ; i < write_here->size() ; i++ )
     { (*write_here)[i] = coarse_vasculature( microenvironment->mesh.voxels[voxel_index].center ).target_vector[i] ; }
