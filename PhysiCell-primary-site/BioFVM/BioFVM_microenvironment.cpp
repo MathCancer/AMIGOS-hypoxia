@@ -757,6 +757,7 @@ void Microenvironment::simulate_bulk_sources_and_sinks( double dt )
 		
 		bulk_source_sink_solver_setup_done = true; 
 	}
+	//std::cout<<__LINE__<<std::endl;
 	
 	#pragma omp parallel for
 	for( int i=0; i < mesh.voxels.size() ; i++ )
@@ -951,8 +952,8 @@ void Microenvironment::compute_gradient_vector( int n )
 	static double two_dx = mesh.dx; 
 	static double two_dy = mesh.dy; 
 	static double two_dz = mesh.dz; 
-	bool gradient_constants_defined = false; 
-	static std::vector<int> indices(3,0);
+	static bool gradient_constants_defined = false; 
+	std::vector<int> indices(3,0);
 	
 	if( gradient_constants_defined == false )
 	{

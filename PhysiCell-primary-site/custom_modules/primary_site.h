@@ -64,13 +64,18 @@
 #include "../core/PhysiCell.h"
 #include "../modules/PhysiCell_standard_modules.h" 
 
-#include "./vascularization.h" 
+#include "./vasculature.h"
 
 using namespace BioFVM; 
 using namespace PhysiCell;
 
 // custom cell phenotype function to scale immunostimulatory factor with hypoxia 
-void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt ); 
+void tumor_cell_phenotype0( Cell* pCell, Phenotype& phenotype, double dt ); 
+void tumor_cell_phenotype1( Cell* pCell, Phenotype& phenotype, double dt ); 
+void tumor_cell_phenotype2( Cell* pCell, Phenotype& phenotype, double dt ); 
+void tumor_cell_phenotype2a( Cell* pCell, Phenotype& phenotype, double dt ); 
+void tumor_cell_phenotype3( Cell* pCell, Phenotype& phenotype, double dt ); 
+void tumor_cell_phenotype4( Cell* pCell, Phenotype& phenotype, double dt ); 
 
 void oxygen_taxis_motility( Cell* pCell, Phenotype& phenotype, double dt ); 
 
@@ -84,4 +89,4 @@ void setup_tissue();
 void setup_microenvironment( void );  // done 
 
 std::vector<std::string> AMIGOS_coloring_function( Cell* );
-
+void VEGF_secretion_and_vascular_death_function(void);
