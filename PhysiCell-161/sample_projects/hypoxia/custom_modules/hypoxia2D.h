@@ -69,6 +69,7 @@ using namespace BioFVM;
 using namespace PhysiCell;
 
 extern Cell_Definition stalk_cell;
+extern Cell_Definition blood_cell;
 
 // custom cell phenotype function to scale immunostimulatory factor with hypoxia 
 void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt ); 
@@ -81,6 +82,7 @@ void oxygen_taxis_motility( Cell* pCell, Phenotype& phenotype, double dt );
 // to set up the tumor cells 
 void create_cell_types( void );
 void create_stalk_cell_types( void );
+void create_blood_cell_types( void );
 
 void setup_tissue(); 
 void introduce_stalk_cells( void );
@@ -89,4 +91,7 @@ void introduce_stalk_cells( void );
 void setup_microenvironment( void );  // done 
 
 std::vector<std::string> AMIGOS_coloring_function( Cell* );
+
+void add_elastic_velocity( Cell* pActingOn, Cell* pAttachedTo , double elastic_constant );
+void extra_elastic_attachment_mechanics( Cell* pCell, Phenotype& phenotype, double dt );
 

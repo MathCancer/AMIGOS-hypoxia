@@ -117,7 +117,7 @@
 				<decay_rate units="1/min">0.1</decay_rate>  
 			</physical_parameter_set>
 			<initial_condition units="mmHg">90.0</initial_condition>
-			<Dirichlet_boundary_condition units="mmHg" enabled="false">90.0</Dirichlet_boundary_condition>
+			<Dirichlet_boundary_condition units="mmHg" enabled="true">90.0</Dirichlet_boundary_condition>
 		</variable>
                 <variable name="VEGF" units="mmHg" ID="1">
 			<physical_parameter_set>
@@ -142,5 +142,8 @@
 		</options>
 	</microenvironment_setup>
 	
-
+	<user_parameters>
+		<elastic_coefficient type="double" units="1/min">0.05</elastic_coefficient>		
+		<max_elastic_displacement type="double" units="micron">50.0</max_elastic_displacement>
+	</user_parameters>
 </PhysiCell_settings>

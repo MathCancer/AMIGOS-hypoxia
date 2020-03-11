@@ -64,6 +64,7 @@
 #include "./hypoxia2D.h"
 
 Cell_Definition stalk_cell;
+Cell_Definition blood_cell;
 
 void create_stalk_cell_types( void )
 {
@@ -107,12 +108,71 @@ void create_stalk_cell_types( void )
         stalk_cell.functions.volume_update_function = NULL;
 	//stalk_cell.functions.custom_cell_rule = stalk_cell_rule; 
 	stalk_cell.functions.custom_cell_rule = NULL; 
-	stalk_cell.functions.update_migration_bias = NULL;	
+	stalk_cell.functions.update_migration_bias = NULL;
+	stalk_cell.functions.update_velocity = NULL;	
 	
         //set mechanics aspects
 	stalk_cell.phenotype.motility.is_motile = false; 
 	stalk_cell.phenotype.mechanics.cell_cell_adhesion_strength *= 0.0;
-	stalk_cell.phenotype.mechanics.cell_cell_repulsion_strength *= 0.0;
+	stalk_cell.phenotype.mechanics.cell_cell_repulsion_strength *= 100.0;
+
+	//stalk_cell.functions.custom_cell_rule = extra_elastic_attachment_mechanics; 
+
+	// tip cells ID
+	//stalk_cell.custom_data.add_variable( "tip_cell ID" , 0.0); 
+	
+	return; 
+}
+
+void create_blood_cell_types( void )
+{
+	blood_cell = cell_defaults; 
+	
+	blood_cell.name = "blood cell";
+	blood_cell.type = 2;
+        blood_cell.phenotype.geometry.radius = cell_defaults.phenotype.geometry.radius;
+        blood_cell.phenotype.volume.total = pow(stalk_cell.phenotype.geometry.radius,3)*4.188790204786391;
+
+	// turn off proliferation; 
+	
+	int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 	
+
+	blood_cell.phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) = 0.0; 	
+	
+	//int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index(0); 
+	
+	// set default uptake and secretion 
+	static int oxygen_ID = microenvironment.find_density_index( "oxygen" ); // 0
+        static int VEGF_ID = microenvironment.find_density_index( "VEGF" ); // 1
+	
+	// oxygen 
+	blood_cell.phenotype.secretion.secretion_rates[oxygen_ID] = 90.0; 
+	blood_cell.phenotype.secretion.uptake_rates[oxygen_ID] = 0.0; 	
+        blood_cell.phenotype.secretion.saturation_densities[oxygen_ID] = 90.0;
+        // VEGF 
+	blood_cell.phenotype.secretion.secretion_rates[VEGF_ID] = 0.0; 
+	blood_cell.phenotype.secretion.uptake_rates[VEGF_ID] = 0.0;	
+        blood_cell.phenotype.secretion.saturation_densities[VEGF_ID] = 0.0;
+	
+        // turn off apoptosis
+        int apoptosis_index = blood_cell.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
+	blood_cell.phenotype.death.rates[apoptosis_index] = 0;
+                
+	
+	// set functions 
+	
+	blood_cell.functions.update_phenotype = NULL; 
+        blood_cell.functions.volume_update_function = NULL;
+	blood_cell.functions.custom_cell_rule = NULL; 
+	blood_cell.functions.update_migration_bias = NULL;	
+	
+        //set mechanics aspects
+	blood_cell.phenotype.motility.is_motile = false; 
+	blood_cell.phenotype.mechanics.cell_cell_adhesion_strength *= 1.0;
+	blood_cell.phenotype.mechanics.cell_cell_repulsion_strength *= 1.0;
+
+	blood_cell.functions.custom_cell_rule = NULL; 
 
 	// tip cells ID
 	//stalk_cell.custom_data.add_variable( "tip_cell ID" , 0.0); 
@@ -206,6 +266,8 @@ void create_cell_types( void )
 	cell_defaults.custom_data.add_vector_variable( "proteins" , "dimensionless", proteins ); 
 	cell_defaults.custom_data.add_vector_variable( "creation_rates" , "1/min" , creation_rates ); 
 	cell_defaults.custom_data.add_vector_variable( "degradation_rates" , "1/min" , degradation_rates ); 
+
+	cell_defaults.custom_data.add_variable( "persistence time" , "dimensionless" , 0.0 ); 
 	
 	cell_defaults.custom_data.add_variable( "hypoxic memory" , "min" , 0.0 ); 
 	
@@ -214,8 +276,16 @@ void create_cell_types( void )
 	cell_defaults.custom_data.add_vector_variable( "nuclear_color" , "dimensionless", color ); 
 	cell_defaults.custom_data.add_vector_variable( "cytoplasmic_color" , "dimensionless", color ); 
 
+	//Mechanics
+	Parameter<double> paramD; 
+	
+	// for cargo-worker 
+	paramD = parameters.doubles["elastic_coefficient"]; 
+	cell_defaults.custom_data.add_variable( "elastic coefficient" , paramD.units, paramD.value ); 
+
 	// create the endothelial cell type 
         create_stalk_cell_types();
+	create_blood_cell_types();
 	
 	return; 
 }
@@ -267,7 +337,72 @@ void introduce_stalk_cells( void )
 		pCell->assign_position( 1495.0, pos, 0 ); 
                 pos = pos - dx;
 	}*/
+	
+	//Neighboors
+	for(int i=0;i<all_cells->size();i++)
+	{
+	  for(int j=i;j<all_cells->size();j++)
+	  {
+	    if ((*all_cells)[i]->type == 0 || (*all_cells)[j]->type == 0 || i == j) continue;
+	    if (dist((*all_cells)[i]->position,(*all_cells)[j]->position) < (*all_cells)[i]->phenotype.geometry.radius)
+	    {
+	      (*all_cells)[i]->state.neighbors.push_back((*all_cells)[j]);
+	      (*all_cells)[j]->state.neighbors.push_back((*all_cells)[i]);
+	      printf("ID: %d - Neighbors: %d -- tipID of the first neighbor: %d\n",i,(*all_cells)[i]->state.neighbors.size(),j);
+	    }	
+	  }
+  	}
 
+	double cell_radius = blood_cell.phenotype.geometry.radius; 
+	double cell_spacing = 0.95 * 2.0 * cell_radius; 
+	
+	double vessel_radius = radius-10; 
+		
+	Cell* pCell = NULL; 
+	
+	double x = 0.0; 
+	double x_outer = vessel_radius; 
+	double y = 0.0; 
+	
+	int n = 0; 
+	while( y < vessel_radius )
+	{
+		x = 0.0; 
+		if( n % 2 == 1 )
+		{ x = 0.5*cell_spacing; }
+		x_outer = sqrt( vessel_radius*vessel_radius - y*y ); 
+		
+		while( x < x_outer )
+		{
+			pCell = create_cell(blood_cell); // tumor cell 
+			pCell->assign_position( 750.0+x , 750.0+y , 0.0 );
+					
+			
+			if( fabs( y ) > 0.01 )
+			{
+				pCell = create_cell(blood_cell); // tumor cell 
+				pCell->assign_position( 750.0+x , 750.0-y , 0.0 );
+			}
+			
+			if( fabs( x ) > 0.01 )
+			{ 
+				pCell = create_cell(blood_cell); // tumor cell 
+				pCell->assign_position( 750.0-x , 750.0+y , 0.0 );
+								
+				if( fabs( y ) > 0.01 )
+				{
+					pCell = create_cell(blood_cell); // tumor cell 
+					pCell->assign_position( 750.0-x , 750.0-y , 0.0 );
+					
+				}
+			}
+			x += cell_spacing; 
+			
+		}
+		
+		y += cell_spacing * sqrt(3.0)/2.0; 
+		n++; 
+	}
 	return; 
 }
 
@@ -334,7 +469,7 @@ void setup_tissue( void )
 		n++; 
 	}
 	//To old models comment this
-	introduce_stalk_cells();
+	//introduce_stalk_cells();
 		
 	return; 
 }
@@ -352,6 +487,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	static int green_i = 1; 	
 
 	static int hypoxic_memory_i = pCell->custom_data.find_variable_index( "hypoxic memory" ); 
+	static int persistence_time_i = pCell->custom_data.find_variable_index( "persistence time" );
 	
 	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
 	static int VEGF_i = get_default_microenvironment()->find_density_index( "VEGF" ); 
@@ -431,7 +567,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// No change
 
 	// Model 3 -- Phenotypic persistence
-	else
+	/*else
 	{
 		static double persistence_time = 1440; // // 5760; // 4 days // 3600; // 60 hours // 360.0; // 6 hours // too short! 
 		static double probability = dt/persistence_time; 
@@ -449,8 +585,18 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 			}
 			
 		}
+	}*/
+	// Determinist version
+	else
+	{
+		static double persistence_time = 1;
+		pCell->custom_data[persistence_time_i]+= dt;	
+		if (pCell->custom_data[persistence_time_i] < persistence_time)
+		{
+			phenotype.motility.is_motile = false;
+			pCell->custom_data[persistence_time_i] = 0.0;
+		} 	
 	}
-	
 	return; 
 }
 
@@ -563,4 +709,35 @@ void stalk_cell_rule( Cell* pCell, Phenotype& phenotype, double dt )
         NewCell->assign_position( pCell->position[0]+2*pCell->phenotype.geometry.radius, pCell->position[1], 0 );
     }*/
     
+}
+
+void add_elastic_velocity( Cell* pActingOn, Cell* pAttachedTo , double elastic_constant )
+{
+	std::vector<double> displacement = pAttachedTo->position - pActingOn->position; 
+	
+	// dettach cells if too far apart 
+	static double max_elastic_displacement = parameters.doubles("max_elastic_displacement");
+	static double max_displacement_squared = max_elastic_displacement*max_elastic_displacement; 
+	
+	/*if( norm_squared( displacement ) > max_displacement_squared )
+	{
+		dettach_cells( pActingOn , pAttachedTo );
+		std::cout << "\t\tDETACH!!!!!" << std::endl; 
+		return; 
+	}*/
+	
+	axpy( &(pActingOn->velocity) , elastic_constant , displacement ); 
+	
+	return; 
+}
+
+void extra_elastic_attachment_mechanics( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	//if (pCell->state.neighbors.size() != 0) printf("Neighbors: %d",pCell->state.neighbors.size());
+	for( int i=0; i < pCell->state.neighbors.size() ; i++ )
+	{
+		add_elastic_velocity( pCell, pCell->state.neighbors[i], pCell->custom_data["elastic coefficient"] ); 
+	}
+
+	return; 
 }
