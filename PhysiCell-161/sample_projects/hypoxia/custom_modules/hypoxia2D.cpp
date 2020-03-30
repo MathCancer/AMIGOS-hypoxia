@@ -550,8 +550,9 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 
 	
-	if( pO2 < phenotype_hypoxic_switch && pCell->type != 1 )
+	if( pO2 < phenotype_hypoxic_switch)
 	{
+		if (phenotype.motility.is_motile == false) pCell->custom_data[persistence_time_i] = 0.0;
 		phenotype.motility.is_motile = true; 
 		phenotype.motility.migration_speed = 0.25; //   migration_bias = 0.85; 
 		// phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) *= 0.1; 
@@ -589,13 +590,16 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	// Determinist version
 	else
 	{
-		static double persistence_time = 1;
-		pCell->custom_data[persistence_time_i]+= dt;	
-		if (pCell->custom_data[persistence_time_i] < persistence_time)
+		if (phenotype.motility.is_motile == true)
 		{
-			phenotype.motility.is_motile = false;
-			pCell->custom_data[persistence_time_i] = 0.0;
-		} 	
+			static double persistence_time = 7200;
+			pCell->custom_data[persistence_time_i]+= dt;
+			//printf("Time_perst: %lf\n",pCell->custom_data[persistence_time_i]);
+			if (pCell->custom_data[persistence_time_i] > persistence_time)
+			{
+				phenotype.motility.is_motile = false;
+			}
+		}
 	}
 	return; 
 }
