@@ -91,7 +91,7 @@ int main( int argc, char* argv[] )
 	}
 	
 	// load and parse settings file(s)
-	bool XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" );
+	bool XML_status = load_PhysiCell_config_file( "./config/OxyPhysiCell_settings.xml" );
 	
 	//Reading input	
 	microenvironment.decay_rates[0] = strtod( argv[2] , NULL );
@@ -136,23 +136,23 @@ int main( int argc, char* argv[] )
 	set_save_biofvm_cell_data( true ); 
 	set_save_biofvm_cell_data_as_custom_matlab( true );
 	
-	// save a simulation snapshot 
-	
-	char filename[1024];
-	sprintf( filename , "%s/initial" , PhysiCell_settings.folder.c_str() ); 
-	save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
-	
-	// save a quick SVG cross section through z = 0, after setting its 
-	// length bar to 200 microns 
-
-	PhysiCell_SVG_options.length_bar = 200; 
-
 	// for simplicity, set a pathology coloring function 
-	
 	std::vector<std::string> (*cell_coloring_function)(Cell*) = AMIGOS_coloring_function;
 	
-	sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() ); 
-	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	// save a simulation snapshot 
+	char filename[1024];
+	if( PhysiCell_settings.enable_SVG_saves == true ){
+		sprintf( filename , "%s/initial" , PhysiCell_settings.folder.c_str() ); 
+		save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
+		
+		// save a quick SVG cross section through z = 0, after setting its 
+		// length bar to 200 microns 
+
+		PhysiCell_SVG_options.length_bar = 200; 
+		
+		sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() ); 
+		SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	}
 	
 	display_citations(); 
 	
@@ -238,17 +238,17 @@ int main( int argc, char* argv[] )
 	double O2_1, O2_2, O2_3, O2_4, O2_5;
 	
 	QOI(O2_1, O2_2, O2_3, O2_4, O2_5);
-	OutFile << O2_1 <<"\n"<< O2_2 <<"\n"<< O2_3 <<"\n"<< O2_4 <<"\n"<< O2_5;
+	OutFile << 0.0 <<"\t"<< O2_1 <<"\n"<< 0.5 <<"\t"<< O2_2 <<"\n"<< 1.0 <<"\t"<< O2_3 <<"\n"<< 1.5 <<"\t"<< O2_4 <<"\n"<< 2.0 <<"\t"<< O2_5;
 	OutFile.close();
 	
 	// save a final simulation snapshot 
-	
-	sprintf( filename , "%s/final" , PhysiCell_settings.folder.c_str() ); 
-	save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
-	
-	sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() ); 
-	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-	
+	if( PhysiCell_settings.enable_SVG_saves == true ){
+		sprintf( filename , "%s/final" , PhysiCell_settings.folder.c_str() ); 
+		save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
+		
+		sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() ); 
+		SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	}
 	// timer 
 
 	std::cout << std::endl << "Total simulation runtime: " << std::endl; 

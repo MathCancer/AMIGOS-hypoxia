@@ -109,7 +109,7 @@ void create_cell_types( void )
 
 	// set the default cell type to no phenotype updates 
 	
-	cell_defaults.functions.update_phenotype = NULL;
+	cell_defaults.functions.update_phenotype = tumor_cell_phenotype;
 	
 	
 	cell_defaults.phenotype.mechanics.cell_cell_adhesion_strength = 0.0;

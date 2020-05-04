@@ -1,5 +1,5 @@
 VERSION := $(shell grep . VERSION.txt | cut -f1 -d:)
-PROGRAM_NAME := oxygen2D
+PROGRAM_NAME := hypoxia2D
 
 CC := g++
 # CC := g++-mp-7 # typical macports compiler name
@@ -44,7 +44,7 @@ PhysiCell_pugixml.o PhysiCell_settings.o
 
 # put your custom objects here (they should be in the custom_modules directory)
 
-PhysiCell_custom_module_OBJECTS := oxygen2D.o
+PhysiCell_custom_module_OBJECTS := hypoxia2D.o
 
 pugixml_OBJECTS := pugixml.o
 
@@ -53,8 +53,8 @@ ALL_OBJECTS := $(PhysiCell_OBJECTS) $(PhysiCell_custom_module_OBJECTS)
 
 # compile the project  
 
-all: main_oxygen.cpp $(ALL_OBJECTS)
-	$(COMPILE_COMMAND) -o $(PROGRAM_NAME) $(ALL_OBJECTS) main_oxygen.cpp 
+all: main.cpp $(ALL_OBJECTS)
+	$(COMPILE_COMMAND) -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp 
 
 # PhysiCell core components	
 
@@ -136,8 +136,8 @@ PhysiCell_settings.o: ./modules/PhysiCell_settings.cpp
 	
 # user-defined PhysiCell modules
 
-oxygen2D.o: ./custom_modules/oxygen2D.cpp 
-	$(COMPILE_COMMAND) -c ./custom_modules/oxygen2D.cpp
+hypoxia2D.o: ./custom_modules/hypoxia2D.cpp 
+	$(COMPILE_COMMAND) -c ./custom_modules/hypoxia2D.cpp
 
 # cleanup
 

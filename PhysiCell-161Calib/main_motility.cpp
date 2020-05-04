@@ -91,7 +91,7 @@ int main( int argc, char* argv[] )
 	}
 	
 	// load and parse settings file(s)
-	bool XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" );
+	bool XML_status = load_PhysiCell_config_file( "./config/MotPhysiCell_settings.xml" );
 	
 	//Reading input	
 	parameters.doubles["pers_timeMotNor"].value = strtod( argv[2] , NULL );
@@ -136,31 +136,30 @@ int main( int argc, char* argv[] )
 	set_save_biofvm_cell_data( true ); 
 	set_save_biofvm_cell_data_as_custom_matlab( true );
 	
-	// save a simulation snapshot 
-	
-	char filename[1024];
-	sprintf( filename , "%s/initial" , PhysiCell_settings.folder.c_str() ); 
-	save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
-	
-	// save a quick SVG cross section through z = 0, after setting its 
-	// length bar to 200 microns 
-
-	PhysiCell_SVG_options.length_bar = 200; 
-
 	// for simplicity, set a pathology coloring function 
-	
 	std::vector<std::string> (*cell_coloring_function)(Cell*) = AMIGOS_coloring_function;
 	
-	sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() ); 
-	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-	
+	// save a simulation snapshot 
+	char filename[1024];
+	if( PhysiCell_settings.enable_SVG_saves == true ){
+		sprintf( filename , "%s/initial" , PhysiCell_settings.folder.c_str() ); 
+		save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
+		
+		// save a quick SVG cross section through z = 0, after setting its 
+		// length bar to 200 microns 
+
+		PhysiCell_SVG_options.length_bar = 200; 
+		
+		sprintf( filename , "%s/initial.svg" , PhysiCell_settings.folder.c_str() ); 
+		SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	}
 	display_citations(); 
 	
 	char OutputFile[1024];
 	int FileIndex = strtol( argv[1] , NULL,0);
 	sprintf(OutputFile , "output%04d" , FileIndex );
 	std::ofstream OutFile (OutputFile);
-	double Speed, Speed_STD;
+	double Displacement, Displacement_STD;
 	
 	// set the performance timers 
 	BioFVM::RUNTIME_TIC();
@@ -202,8 +201,8 @@ int main( int argc, char* argv[] )
 				
 				PhysiCell_globals.full_output_index++; 
 				PhysiCell_globals.next_full_save_time += PhysiCell_settings.full_save_interval;
-				QOI(Speed,Speed_STD);
-				OutFile << PhysiCell_globals.current_time <<"\t"<< Speed <<"\t"<< Speed_STD << std::endl;
+				QOI(Displacement,Displacement_STD);
+				OutFile << PhysiCell_globals.current_time <<"\t"<< Displacement <<"\t"<< Displacement_STD << std::endl;
 			}
 			
 			// save SVG plot if it's time
@@ -242,13 +241,13 @@ int main( int argc, char* argv[] )
 	OutFile.close();
 	
 	// save a final simulation snapshot 
+	if( PhysiCell_settings.enable_SVG_saves == true ){
+		sprintf( filename , "%s/final" , PhysiCell_settings.folder.c_str() ); 
+		save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
 	
-	sprintf( filename , "%s/final" , PhysiCell_settings.folder.c_str() ); 
-	save_PhysiCell_to_MultiCellDS_xml_pugi( filename , microenvironment , PhysiCell_globals.current_time ); 
-	
-	sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() ); 
-	SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
-	
+		sprintf( filename , "%s/final.svg" , PhysiCell_settings.folder.c_str() ); 
+		SVG_plot( filename , microenvironment, 0.0 , PhysiCell_globals.current_time, cell_coloring_function );
+	}
 	// timer 
 
 	std::cout << std::endl << "Total simulation runtime: " << std::endl; 

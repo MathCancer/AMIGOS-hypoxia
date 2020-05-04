@@ -114,7 +114,7 @@ void create_cell_types( void )
 
 	// set the default cell type to no phenotype updates 
 	
-	cell_defaults.functions.update_phenotype = NULL;
+	cell_defaults.functions.update_phenotype = tumor_cell_phenotype;
 	
 	
 	cell_defaults.phenotype.mechanics.cell_cell_adhesion_strength = 0.0;
@@ -173,8 +173,8 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 
 std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 {
-	int red   = 0.0; 
-	int green = 255.0; 
+	int red   = 255.0; 
+	int green = 0.0; 
 	std::vector< std::string > output( 4, "black" ); 
 	char szTempString [128];
 	sprintf( szTempString , "rgb(%u,%u,0)", red, green );
@@ -197,7 +197,7 @@ void oxygen_taxis_motility( Cell* pCell, Phenotype& phenotype, double dt )
 	return; 
 }
 
-void QOI(double& speed, double& speed_std)
+void QOI_old(double& speed, double& speed_std)
 {
 	speed = 0.0;
 	speed_std = 0.0;
@@ -219,5 +219,26 @@ void QOI(double& speed, double& speed_std)
 		speed_std += pow(CellsSpeed[i]-speed,2);
   	}
 	speed_std = sqrt(speed_std/(all_cells->size()-1));
+	return; 
+}
+
+void QOI(double& displacement, double& displacement_std)
+{
+	displacement = 0.0;
+	displacement_std = 0.0;
+	
+	std::vector<double> CellsDisp (all_cells->size());
+	
+	for(int i=0;i<all_cells->size();i++)
+	{
+		CellsDisp[i] = sqrt(pow((*all_cells)[i]->position[0],2) + pow((*all_cells)[i]->position[1],2));
+		displacement += CellsDisp[i];
+  	}
+	displacement = displacement/all_cells->size();
+	for(int i=0;i<all_cells->size();i++)
+	{
+		displacement_std += pow(CellsDisp[i]-displacement,2);
+  	}
+	displacement_std = sqrt(displacement_std/(all_cells->size()-1));
 	return; 
 }

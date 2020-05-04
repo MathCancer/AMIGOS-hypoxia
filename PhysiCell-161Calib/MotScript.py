@@ -45,7 +45,7 @@ def ABC_MCMC(Npar,data,std, LowLimit, UpperLimit, FILE='MotGreCalibMCMC.dat', to
   file.close()
 
 #Data
-with open('DataMot.dat', 'r') as f:
+with open('Data_disp.dat', 'r') as f:
   t = []
   DsRedSpeed = []
   DsRedSpeedSTD = []
@@ -65,10 +65,10 @@ DsRedSpeedSTD = np.array(DsRedSpeedSTD)
 GFPSpeed = np.array(GFPSpeed)
 GFPSpeedSTD = np.array(GFPSpeedSTD)
 
-UpperLimit = np.array([15.0,1.0,1.0])
-LowLimit = np.array([0.0,0.0,0.0])
-qoi = GFPSpeed
-std = GFPSpeedSTD
+UpperLimit = np.array([20.35,1.0,0.2769])
+LowLimit = np.array([20.35,0.0,0.2769])
+qoi = DsRedSpeed
+std = DsRedSpeedSTD
 
 ABC_MCMC(UpperLimit.shape[0],qoi, std, LowLimit, UpperLimit)
 input('Press ENTER to exit')

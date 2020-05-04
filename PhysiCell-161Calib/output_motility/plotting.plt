@@ -7,17 +7,23 @@ set style fill transparent solid 0.2
 set colorsequence classic
 
 set xlabel 'Time (minutes)'
-set ylabel 'Speed'
+set ylabel 'Displacement ({/Symbol m}m)'
+
+set yrange[0:]
+
+set key left
 
 plot "RedoutputMAP" using 1:($2 + $3):($2 - $3) with filledcu fill lc rgb '#e56b5d' notitle,\
-"RedoutputMAP" using 1:($2) with lines lc rgb '#e56b5d' lw 2 t "Calibration",\
-"DataMot.dat" using ($1*15):($2):($3) with yerrorbars lc rgb '#000000' lt 7 t "Data"
+"RedoutputMAP" using 1:($2) with lines lc rgb '#e56b5d' lw 2 t "MAP",\
+"RedoutputMIN" using 1:($2) with lines lc rgb '#808080' lw 2 t "Min",\
+"Data_disp.dat" using ($1*15):($2):($3) with yerrorbars lc rgb '#000000' lt 7 t "Data"
 
 set output 'GreenCalib.png'
 plot "GreenoutputMAP" using 1:($2 + $3):($2 - $3) with filledcu fill lc rgb '#27ad81' notitle,\
-	 "GreenoutputMAP" using 1:($2) with lines lc rgb '#27ad81' lw 2 t "Calibration",\
-	 "DataMot.dat" using ($1*15):($4):($5) with yerrorbars lc rgb '#000000' lt 7 t "Data"
+	 "GreenoutputMAP" using 1:($2) with lines lc rgb '#27ad81' lw 2 t "MAP",\
+	 "GreenoutputMIN" using 1:($2) with lines lc rgb '#808080' lw 2 t "Min",\
+	 "Data_disp.dat" using ($1*15):($4):($5) with yerrorbars lc rgb '#000000' lt 7 t "Data"
 	 
 set output 'Data.png'
-plot "DataMot.dat" using ($1*15):($2):($3) with yerrorbars lc rgb '#e56b5d' lt 7 t "DsRed",\
-"DataMot.dat" using ($1*15):($4):($5) with yerrorbars lc rgb '#27ad81' lt 7 t "GFP"
+plot "Data_disp.dat" using ($1*15):($2):($3) with yerrorbars lc rgb '#e56b5d' lt 7 t "DsRed",\
+"Data_disp.dat" using ($1*15):($4):($5) with yerrorbars lc rgb '#27ad81' lt 7 t "GFP"

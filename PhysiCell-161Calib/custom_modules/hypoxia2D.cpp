@@ -97,21 +97,21 @@ void create_cell_types( void )
 	
 	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
 	
-	cell_defaults.parameters.o2_proliferation_saturation =  38.0;  
-	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
+	cell_defaults.parameters.o2_proliferation_saturation = 156.9895;   
+	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation;
+	cell_defaults.parameters.o2_proliferation_threshold = 0.4808;	
 	
 	// set default motiltiy
 	cell_defaults.phenotype.motility.is_motile = false; 
 	cell_defaults.functions.update_migration_bias = oxygen_taxis_motility; 
-	cell_defaults.phenotype.motility.persistence_time = parameters.doubles["pers_timeMotNor"].value; 
-	cell_defaults.phenotype.motility.migration_bias = parameters.doubles["motility_bias"].value; 
-	cell_defaults.phenotype.motility.migration_speed = parameters.doubles["speed_normoxic"].value; 
+	cell_defaults.phenotype.motility.persistence_time = 20.35; 
+	cell_defaults.phenotype.motility.migration_bias = 0.1645; 
+	cell_defaults.phenotype.motility.migration_speed = 0.2769; 
 	
 	// set default uptake and secretion 
 	// oxygen 
 	cell_defaults.phenotype.secretion.secretion_rates[oxygen_i] = 0; 
-	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = parameters.doubles["uptake_rate"].value; 
-	cell_defaults.phenotype.secretion.saturation_densities[oxygen_i] = 38; 
+	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = 0.4663; 
 
 	// set the default cell type to no phenotype updates 
 	
@@ -185,7 +185,7 @@ void setup_tissue( void )
 	double cell_radius = cell_defaults.phenotype.geometry.radius; 
 	double cell_spacing = 0.95 * 2.0 * cell_radius; 
 	
-	double tumor_radius = 250.0; 
+	double tumor_radius = 1500.0; 
 		
 	Cell* pCell = NULL; 
 	
@@ -272,8 +272,8 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i]; 
 	
-	static double FP_hypoxic_switch = parameters.doubles["hypoxic_threshold"].value;
-	static double phenotype_hypoxic_switch = parameters.doubles["hypoxic_threshold"].value;  // 
+	static double FP_hypoxic_switch = 10.0;
+	static double phenotype_hypoxic_switch = 10.0;  // 
 	
 	// permanent gene switch 
 	if( pO2 < FP_hypoxic_switch )
@@ -302,8 +302,9 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	{
 		if (phenotype.motility.is_motile == false) pCell->custom_data[persistence_time_i] = 0.0;
 		phenotype.motility.is_motile = true; 
-		phenotype.motility.migration_speed = parameters.doubles["speed_hypoxic"].value;
-		phenotype.motility.persistence_time = parameters.doubles["pers_timeMotHyp"].value;
+		phenotype.motility.migration_speed = 0.3760;
+		phenotype.motility.persistence_time = 40.86;
+		phenotype.motility.migration_bias = 0.1956; 
 	}
 	else
 	{
@@ -421,7 +422,7 @@ void QOI(double& RedVolume, double& GreenVolume, double& DoubleVolume)
 	GreenVolume = 0;
 	DoubleVolume = 0;
 	static int proteins_i =1;
-	static double delta = 0.4;
+	static double delta = 0.2;
 	
 	for(int i=0;i<all_cells->size();i++)
 	{

@@ -11,12 +11,12 @@ def Model(Par):
   if p.wait() != 0:
     print("There was an error")
 
-  output = np.loadtxt("./output0001", dtype='f', delimiter='\t')
-  oxygen = np.array(output)
+  output = np.loadtxt("./output0001", dtype='f', delimiter='\t') 
+  oxygen = np.array(output[:,1])
   return oxygen
   
 
-def ABC_MCMC(Npar,data,std, LowLimit, UpperLimit, FILE='CalibMCMC.dat', tol = 13.0, max_iterations=10**10, NumAccept = 200):
+def ABC_MCMC(Npar,data,std, LowLimit, UpperLimit, FILE='CalibMCMC.dat', tol = 1.0, max_iterations=10**10, NumAccept = 200):
   file = open(FILE,"w") 
   count = 0
   theta_star = np.zeros( (1,Npar) )
@@ -56,8 +56,8 @@ with open('DataOxy.dat', 'r') as f:
 Oxygen = np.array(Oxygen)
 OxygenStd = np.array(OxygenStd)
 
-UpperLimit = np.array([5.0,120000.0,20.0])
-LowLimit = np.array([0.0,10000.0,0.0])
+UpperLimit = np.array([0.1,100000.0,2.0])
+LowLimit = np.array([0.1,100000.0,0.0])
 qoi = Oxygen
 std = OxygenStd
 

@@ -42,8 +42,8 @@ for n in range( initial_index,last_index+1 ):
   plt.colorbar()
   #plt.scatter( cx[live],cy[live],c=rgb_var,s=Lcell_size);
   plt.axis('image')
-  plt.xlim(-2500, 2500)
-  plt.ylim(-2500, 2500)
+  plt.xlim(-1500, 1500)
+  plt.ylim(-1500, 1500)
   plt.title( '#LC:'+str("%04i"%(live_count[n]))+'  #DC:'+str("%04i"%(dead_count[n]))+'  #EC:'+str("%04i"%endo_count[n])+ '  Time:' +str("%8.2f"%(n/24)) + ' days', size=10)
   #plt.scatter( cx[dead],cy[dead],c='moccasin',s=Dcell_size );
   #plt.scatter( cx[endo],cy[endo],c='r',s=Ecell_size );

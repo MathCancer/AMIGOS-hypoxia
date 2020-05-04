@@ -84,4 +84,5 @@ void setup_tissue();
 void setup_microenvironment( void );  // done 
 
 std::vector<std::string> AMIGOS_coloring_function( Cell* );
-void QOI(double& speed, double& speed_std);
+void QOI_old(double& speed, double& speed_std);
+void QOI(double& displacement, double& displacement_std);

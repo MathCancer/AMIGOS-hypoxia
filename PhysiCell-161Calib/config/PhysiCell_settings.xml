@@ -70,10 +70,10 @@
 
 <PhysiCell_settings version="devel-version">
 	<domain>
-		<x_min>-2500</x_min>
-		<x_max>2500</x_max>
-		<y_min>-2500</y_min>
-		<y_max>2500</y_max>
+		<x_min>-3000</x_min>
+		<x_max>3000</x_max>
+		<y_min>-3000</y_min>
+		<y_max>3000</y_max>
 		<z_min>-10</z_min>
 		<z_max>10</z_max>
 		<dx>20</dx>
@@ -83,7 +83,7 @@
 	</domain>
 	
 	<overall>
-		<max_time units="min">60</max_time> <!-- 5 days * 24 h * 60 min 20160-->
+		<max_time units="min">20160</max_time> <!-- 5 days * 24 h * 60 min 20160-->
 		<time_units>min</time_units>
 		<space_units>micron</space_units>	
 	</overall>
@@ -114,7 +114,7 @@
 		<variable name="oxygen" units="mmHg" ID="0">
 			<physical_parameter_set>
 				<diffusion_coefficient units="micron^2/min">100000.00</diffusion_coefficient>
-				<decay_rate units="1/min">0.5</decay_rate>  
+				<decay_rate units="1/min">0.1</decay_rate>  
 			</physical_parameter_set>
 			<initial_condition units="mmHg">45.94</initial_condition>
 			<Dirichlet_boundary_condition units="mmHg" enabled="true">45.94</Dirichlet_boundary_condition>
@@ -135,13 +135,6 @@
 	</microenvironment_setup>
 	
 	<user_parameters>
-		<uptake_rate type="double" units="1/min">10.0</uptake_rate>
-		<hypoxic_threshold type="double" units="mmHg">10.0</hypoxic_threshold>
-		<persitence_timeHip type="double" units="min">720.0</persitence_timeHip>
-		<pers_timeMotNor type="double" units="min">15.0</pers_timeMotNor>
-		<pers_timeMotHyp type="double" units="min">15.0</pers_timeMotHyp>
-		<motility_bias type="double" units="dimensionless">0.5</motility_bias>
-		<speed_normoxic type="double" units="micron/min">0.05</speed_normoxic>
-		<speed_hypoxic type="double" units="micron/min">0.25</speed_hypoxic>
+		<persitence_timeHip type="double" units="min">0.0</persitence_timeHip>
 	</user_parameters>
 </PhysiCell_settings>
