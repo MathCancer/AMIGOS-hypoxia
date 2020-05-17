@@ -82,6 +82,7 @@ void create_cell_types( void )
 	// turn the default cycle model to live, 
 	// so it's easier to turn off proliferation
 	
+	cell_defaults.phenotype.cycle.sync_to_cycle_model( Ki67_basic ); 
 	
 	// Make sure we're ready for 2D
 	
@@ -90,17 +91,18 @@ void create_cell_types( void )
 	cell_defaults.phenotype.motility.restrict_to_2D = true; 
 	
 	/// turn off proliferation and apoptosis; 
-	int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
-	cell_defaults.phenotype.cycle.data.transition_rate(cycle_start_index,cycle_end_index) = 0.0; 
+	//int cycle_start_index = Ki67_basic.find_phase_index( PhysiCell_constants::Ki67_basic ); 
+	//int cycle_end_index = Ki67_basic.find_phase_index( PhysiCell_constants::Ki67_basic ); 
+
 	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model );
-	cell_defaults.phenotype.death.rates[apoptosis_index] = 0;
 	
-	cell_defaults.parameters.o2_proliferation_saturation =  38.0;  
+	/* cell_defaults.parameters.o2_proliferation_saturation =  156.9895;  
 	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
+	cell_defaults.parameters.o2_proliferation_threshold = 0.4808; */
 	
 	// set default motiltiy
-	cell_defaults.phenotype.motility.is_motile = false;  
+	cell_defaults.phenotype.motility.is_motile = false; 
+	cell_defaults.functions.update_migration_bias = oxygen_taxis_motility;
 	
 	// set default uptake and secretion 
 	// oxygen 
@@ -114,12 +116,6 @@ void create_cell_types( void )
 	// set the default cell type to no phenotype updates 
 	
 	cell_defaults.functions.update_phenotype = tumor_cell_phenotype;
-	
-	
-	cell_defaults.phenotype.mechanics.cell_cell_adhesion_strength = 0.0;
-	cell_defaults.phenotype.mechanics.cell_BM_adhesion_strength = 0.0;
-	cell_defaults.phenotype.mechanics.cell_cell_repulsion_strength = 0.0;
-	cell_defaults.phenotype.mechanics.cell_BM_repulsion_strength = 0.0;
 	
 	cell_defaults.name = "cancer cell"; 
 	cell_defaults.type = 0;
@@ -152,7 +148,7 @@ void setup_tissue( void )
 	double cell_radius = cell_defaults.phenotype.geometry.radius; 
 	double cell_spacing = 0.95 * 2.0 * cell_radius; 
 	
-	double tumor_radius = 4300.0; 
+	double tumor_radius = 1000.0; 
 		
 	Cell* pCell = NULL; 
 	
@@ -206,38 +202,61 @@ void setup_tissue( void )
 // custom cell phenotype function to scale immunostimulatory factor with hypoxia 
 void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
+	double pO2 = (pCell->nearest_density_vector())[0]; 
+	if (pO2 <= parameters.doubles["ThresholdViability"].value){
+		pCell->parameters.o2_proliferation_saturation =  parameters.doubles["SigmaSnV"].value;  
+		pCell->parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
+		pCell->parameters.o2_proliferation_threshold = parameters.doubles["SigmaTnV"].value;
+	}
+	else{
+		pCell->parameters.o2_proliferation_saturation =  parameters.doubles["SigmaSV"].value; 
+		pCell->parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
+		pCell->parameters.o2_proliferation_threshold = parameters.doubles["SigmaTV"].value;
+	}
+	
+	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	
+	// if cell is dead, don't bother with future phenotype changes. 
+	if( phenotype.death.dead == true )
+	{
+		pCell->functions.update_phenotype = NULL; 		
+		return; 
+	}
+	
 	//Update dirichlet nodes
 	microenvironment.remove_dirichlet_node(microenvironment.nearest_voxel_index( pCell->position));
-	
-	/* double pO2 = (pCell->nearest_density_vector())[0]; 
-	double multiplier = 1.0;
-     if( pO2 < pCell->parameters.o2_proliferation_saturation )
-     {
-         multiplier = ( pO2 - pCell->parameters.o2_proliferation_threshold ) 
-             / ( pCell->parameters.o2_proliferation_saturation - pCell->parameters.o2_proliferation_threshold );
-     }
-     if( pO2 < pCell->parameters.o2_proliferation_threshold )
-     { 
-         multiplier = 0.0; 
-     }
-     
-	pCell->custom_data[0] = multiplier; */
 	
 	return; 
 }
 
 std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 {
-	int red   = 255.0; 
-	int green = 0; 
 	std::vector< std::string > output( 4, "black" ); 
-	char szTempString [128];
-	sprintf( szTempString , "rgb(%u,%u,0)", red, green );
-	output[0].assign( szTempString );
-	output[1].assign( szTempString );
+	// live cells are a combination of red and green 
+	if( pCell->phenotype.death.dead == false )
+	{
+		int red   = 255.0; 
+		int green = 0; 
+		
+		char szTempString [128];
+		sprintf( szTempString , "rgb(%u,%u,0)", red, green );
+		output[0].assign( szTempString );
+		output[1].assign( szTempString );
 
-	sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/2.0) , (int)round(output[0][1]/2.0) , (int)round(output[0][2]/2.0) );
-	output[2].assign( szTempString );
+		sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/2.0) , (int)round(output[0][1]/2.0) , (int)round(output[0][2]/2.0) );
+		output[2].assign( szTempString );
+		
+		return output; 
+	}
+	
+	// Necrotic - Brown
+	if( pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic_swelling || 
+		pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic_lysed || 
+		pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic )
+	{
+		output[0] = "rgb(250,138,38)";
+		output[2] = "rgb(139,69,19)";
+	}	
 		
 	return output;
 }
@@ -255,28 +274,33 @@ void oxygen_taxis_motility( Cell* pCell, Phenotype& phenotype, double dt )
 void QOI(const char* FILE)
 {
 	std::ofstream OutFile (FILE);
-	std::vector<double> KI67(43);
+	std::vector<double> KI67pos(30);
+	std::vector<double> KI67neg(30);
 	
 	std::vector< double > position = {0.0,0.0,0.0};
-	/* std::vector< double > TempDistance(KI67.size(),100);
-	std::vector< int > index(KI67.size(),0);
 	
 	for(int i=0;i<all_cells->size();i++){
-		position[1] = 100;
-		for(int j=0;j < KI67.size();j++){
-			double distance = dist(position,(*all_cells)[i]->position);
-			if(distance < TempDistance[j]){
-				TempDistance[j] = distance;
-				index[j] = i;
-			}
-			position[1] += 100;
+		double distance = dist(position,(*all_cells)[i]->position);
+		int index = distance/50;
+		//std::cout << "Phase: " << (*all_cells)[i]->phenotype.cycle.data.current_phase_index << std::endl;
+		//std::cout << " Rates: "<< (*all_cells)[i]->phenotype.cycle.data.transition_rate(1,0) << " " << (*all_cells)[i]->phenotype.cycle.data.transition_rate(0,1) << std::endl;
+		if((*all_cells)[i]->phenotype.cycle.data.current_phase_index == 1){
+			KI67pos[index] += 1; 
 		}
-	} 
-	for(int j=0;j < KI67.size();j++)
-		OutFile <<  (j+1)*100 << "\t" << (*all_cells)[index[j]]->custom_data[0] <<std::endl;
-	OutFile.close();*/
+		if((*all_cells)[i]->phenotype.cycle.data.current_phase_index == 0){
+			KI67neg[index] += 1;
+		}
+	}
+	double temp;
+	for(int j=0;j < KI67pos.size();j++){
+		temp = KI67pos[j];
+		KI67pos[j] = temp/(temp+KI67neg[j]);
+		KI67neg[j] = KI67neg[j]/(temp+KI67neg[j]);
+		OutFile <<  j*0.05 + 0.025 << "\t" << KI67pos[j] << "\t" << KI67neg[j] <<std::endl;
+	}
+	OutFile.close(); 
 
-	for(int j=0;j < KI67.size();j++){
+/* 	for(int j=0;j < KI67.size();j++){
 		position[1] += 100;
 		std::vector< double > Value = microenvironment.nearest_density_vector( position );
 		double pO2 = Value[0]; 
@@ -292,6 +316,6 @@ void QOI(const char* FILE)
 		}
 		 
 		OutFile <<  (j+1)*0.1 << "\t" << multiplier <<  "\t" << pO2 << std::endl;
-	}
+	} */
 	return; 
 }

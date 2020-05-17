@@ -86,7 +86,7 @@ using namespace PhysiCell;
 int main( int argc, char* argv[] )
 {
 	if( argc < 4 ){
-		std::cout << "Set at least 3 parameters." << std::endl;
+		std::cout << "Set at least 4 parameters." << std::endl;
 		return -1;
 	}
 	
@@ -99,9 +99,9 @@ int main( int argc, char* argv[] )
 	parameters.doubles["uptake_rate"].value = strtod( argv[4] , NULL );
 	
 
-	/* std::cout << parameters.doubles["pers_timeMotNor"].value << std::endl;
+	std::cout << parameters.doubles["pers_timeMotNor"].value << std::endl;
 	std::cout << parameters.doubles["motility_bias"].value << std::endl;
-	std::cout << parameters.doubles["speed_normoxic"].value << std::endl; */
+	std::cout << parameters.doubles["speed_normoxic"].value << std::endl;
 	
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);
@@ -234,12 +234,9 @@ int main( int argc, char* argv[] )
 	char OutputFile[1024];
 	int FileIndex = strtol( argv[1] , NULL,0);
 	sprintf(OutputFile , "output%04d" , FileIndex );
-	std::ofstream OutFile (OutputFile);
-	double O2_1, O2_2, O2_3, O2_4, O2_5;
 	
-	QOI(O2_1, O2_2, O2_3, O2_4, O2_5);
-	OutFile << 0.0 <<"\t"<< O2_1 <<"\n"<< 0.5 <<"\t"<< O2_2 <<"\n"<< 1.0 <<"\t"<< O2_3 <<"\n"<< 1.5 <<"\t"<< O2_4 <<"\n"<< 2.0 <<"\t"<< O2_5;
-	OutFile.close();
+	QOI(OutputFile);
+	
 	
 	// save a final simulation snapshot 
 	if( PhysiCell_settings.enable_SVG_saves == true ){

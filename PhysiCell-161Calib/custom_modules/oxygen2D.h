@@ -84,4 +84,4 @@ void setup_tissue();
 void setup_microenvironment( void );  // done 
 
 std::vector<std::string> AMIGOS_coloring_function( Cell* );
-void QOI(double& O2_1, double& O2_2, double& O2_3, double& O2_4, double& O2_5);
+void QOI(const char* FILE);

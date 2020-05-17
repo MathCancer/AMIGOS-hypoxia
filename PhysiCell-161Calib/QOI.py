@@ -34,10 +34,6 @@ for n in range( initial_index,last_index+1 ):
   proteinsY = mcds.data['discrete_cells']['proteins_y']
   volume = mcds.data['discrete_cells']['total_volume']
   
-  # Reds = np.argwhere( (cycle < 100) & (cell_type==0) & (proteinsX >= ConcentDefR)).flatten()
-  # Green = np.argwhere( (cycle < 100) & (cell_type==0) & (proteinsY >= ConcentDefG)).flatten()
-  # Doub = np.argwhere( (cycle < 100) & (cell_type==0) & (proteinsX < ConcentDefR) & (proteinsY < ConcentDefG)).flatten()
-  
   Reds = np.argwhere( (cycle < 100) & (cell_type==0) & (proteinsX-proteinsY >= Delta)).flatten()
   Green = np.argwhere( (cycle < 100) & (cell_type==0) & (proteinsY-proteinsX >= Delta)).flatten()
   Doub = np.argwhere( (cycle < 100) & (cell_type==0) & (abs(proteinsX-proteinsY) < Delta)).flatten()

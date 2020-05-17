@@ -54,7 +54,16 @@ ALL_OBJECTS := $(PhysiCell_OBJECTS) $(PhysiCell_custom_module_OBJECTS)
 # compile the project  
 
 all: main.cpp $(ALL_OBJECTS)
-	$(COMPILE_COMMAND) -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp 
+	$(COMPILE_COMMAND) -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp  
+
+oxygen2d: main_oxygen.cpp $(PhysiCell_OBJECTS) oxygen2D.o
+	$(COMPILE_COMMAND) -o oxygen2D $(PhysiCell_OBJECTS) oxygen2D.o main_oxygen.cpp
+
+motility2d: main_motility.cpp $(PhysiCell_OBJECTS) motility2D.o
+	$(COMPILE_COMMAND) -o motility2D $(PhysiCell_OBJECTS) motility2D.o main_motility.cpp 
+	
+proliferation2d: main_proliferation.cpp $(PhysiCell_OBJECTS) proliferation2D.o
+	$(COMPILE_COMMAND) -o proliferation2D $(PhysiCell_OBJECTS) proliferation2D.o main_proliferation.cpp
 
 # PhysiCell core components	
 
@@ -139,6 +148,15 @@ PhysiCell_settings.o: ./modules/PhysiCell_settings.cpp
 hypoxia2D.o: ./custom_modules/hypoxia2D.cpp 
 	$(COMPILE_COMMAND) -c ./custom_modules/hypoxia2D.cpp
 
+oxygen2D.o: ./custom_modules/oxygen2D.cpp 
+	$(COMPILE_COMMAND) -c ./custom_modules/oxygen2D.cpp
+	
+motility2D.o: ./custom_modules/motility2D.cpp 
+	$(COMPILE_COMMAND) -c ./custom_modules/motility2D.cpp
+
+proliferation2D.o: ./custom_modules/proliferation2D.cpp
+	$(COMPILE_COMMAND) -c ./custom_modules/proliferation2D.cpp
+
 # cleanup
 
 # reset:
@@ -148,10 +166,11 @@ hypoxia2D.o: ./custom_modules/hypoxia2D.cpp
 	# touch ./custom_modules/empty.txt 
 	# touch ALL_CITATIONS.txt 
 	# rm ALL_CITATIONS.txt 
-	# cp ./config/PhysiCell_settings-backup.xml ./config/PhysiCell_settings.xml 
+	# cp ./config/PhysiCell_settings-backup.xml ./config/PhysiCell_settings.xml 	
 	
 clean:
 	rm -f *.o
+	rm -f *.exe
 	rm -f $(PROGRAM_NAME)*
 	
 data-cleanup:

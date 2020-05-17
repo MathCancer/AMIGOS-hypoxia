@@ -85,21 +85,25 @@ using namespace PhysiCell;
 
 int main( int argc, char* argv[] )
 {
-	if( argc < 3 ){
-		std::cout << "Set at least 3 parameters." << std::endl;
+	if( argc < 5 ){
+		std::cout << "Set at least 5 parameters." << std::endl;
 		return -1;
 	}
 	
 	// load and parse settings file(s)
-	bool XML_status = load_PhysiCell_config_file( "./config/OxyPhysiCell_settings.xml" );
+	bool XML_status = load_PhysiCell_config_file( "./config/ProPhysiCell_settings.xml" );
 	
 	//Reading input	
-	parameters.doubles["prol_saturation"].value = strtod( argv[2] , NULL );
-	parameters.doubles["prol_threshold"].value = strtod( argv[3] , NULL );
+	parameters.doubles["SigmaSV"].value = strtod( argv[2] , NULL );
+	parameters.doubles["SigmaTV"].value = strtod( argv[3] , NULL );
+	parameters.doubles["SigmaSnV"].value = strtod( argv[4] , NULL );
+	parameters.doubles["SigmaTnV"].value = strtod( argv[5] , NULL );
 	
 
-	std::cout << parameters.doubles["prol_saturation"].value << std::endl;
-	std::cout << parameters.doubles["prol_threshold"].value << std::endl;
+	std::cout << parameters.doubles["SigmaSV"].value << std::endl;
+	std::cout << parameters.doubles["SigmaTV"].value << std::endl;
+	std::cout << parameters.doubles["SigmaSnV"].value << std::endl;
+	std::cout << parameters.doubles["SigmaTnV"].value << std::endl;
 
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);

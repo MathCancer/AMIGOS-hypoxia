@@ -231,7 +231,7 @@ void oxygen_taxis_motility( Cell* pCell, Phenotype& phenotype, double dt )
 	return; 
 }
 
-void QOI(double& O2_1, double& O2_2, double& O2_3, double& O2_4, double& O2_5)
+void QOI(const char* FILE)
 {
 	std::vector< double > position1 = {0.0,0.0,0.0};
 	std::vector< double > position2 = {0.0,500.0,0.0};
@@ -243,6 +243,12 @@ void QOI(double& O2_1, double& O2_2, double& O2_3, double& O2_4, double& O2_5)
 	std::vector< double > Value3 = microenvironment.nearest_density_vector( position3 );
 	std::vector< double > Value4 = microenvironment.nearest_density_vector( position4 );
 	std::vector< double > Value5 = microenvironment.nearest_density_vector( position5 );
-	O2_1 = Value1[0]; O2_2 = Value2[0]; O2_3 = Value3[0]; O2_4 = Value4[0]; O2_5 = Value5[0];
+	std::ofstream OutFile (FILE);
+	OutFile << 0.0 <<"\t"<< Value1[0] << std::endl;
+	OutFile << 0.5 <<"\t"<< Value2[0] << std::endl;
+	OutFile << 1.0 <<"\t"<< Value3[0] << std::endl;
+	OutFile << 1.5 <<"\t"<< Value4[0] << std::endl;
+	OutFile << 2.0 <<"\t"<< Value5[0] << std::endl;
+	OutFile.close();
 	return; 
 }

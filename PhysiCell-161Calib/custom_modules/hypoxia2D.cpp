@@ -82,7 +82,7 @@ void create_cell_types( void )
 	// turn the default cycle model to live, 
 	// so it's easier to turn off proliferation
 	
-	cell_defaults.phenotype.cycle.sync_to_cycle_model( live ); 
+	cell_defaults.phenotype.cycle.sync_to_cycle_model( Ki67_basic ); 
 	
 	// Make sure we're ready for 2D
 	
@@ -92,14 +92,17 @@ void create_cell_types( void )
 	
 	// use default proliferation and death 
 	
-	int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	/* int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	int cycle_end_index = live.find_phase_index( PhysiCell_constants::live );  */
 	
 	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
 	
-	cell_defaults.parameters.o2_proliferation_saturation = 156.9895;   
+	cell_defaults.parameters.o2_proliferation_saturation = 74.4683;   
 	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation;
-	cell_defaults.parameters.o2_proliferation_threshold = 0.4808;	
+	cell_defaults.parameters.o2_proliferation_threshold = 0.4375;
+
+	cell_defaults.phenotype.cycle.data.transition_rate(0,1) = 0.0170;
+	cell_defaults.phenotype.cycle.data.transition_rate(1,0) = 0.0010;
 	
 	// set default motiltiy
 	cell_defaults.phenotype.motility.is_motile = false; 
@@ -424,6 +427,8 @@ void QOI(double& RedVolume, double& GreenVolume, double& DoubleVolume)
 	static int proteins_i =1;
 	static double delta = 0.2;
 	
+	//std::cout << " Rates: "<< (*all_cells)[0]->phenotype.cycle.data.transition_rate(0,1) << " " << (*all_cells)[0]->phenotype.cycle.data.transition_rate(1,0) << std::endl;
+	//std::cout << " Rates: "<< (*all_cells)[all_cells->size()-1]->phenotype.cycle.data.transition_rate(0,1) << " " << (*all_cells)[all_cells->size()-1]->phenotype.cycle.data.transition_rate(1,0) << std::endl;
 	for(int i=0;i<all_cells->size();i++)
 	{
 		double diff = (*all_cells)[i]->custom_data.vector_variables[proteins_i].value[0] - (*all_cells)[i]->custom_data.vector_variables[proteins_i].value[1];

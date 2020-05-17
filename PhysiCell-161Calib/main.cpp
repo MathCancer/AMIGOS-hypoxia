@@ -153,7 +153,7 @@ int main( int argc, char* argv[] )
 	
 	char OutputFile[1024];
 	int FileIndex = strtol( argv[1] , NULL,0);
-	sprintf(OutputFile , "output%d" , FileIndex );
+	sprintf(OutputFile , "output%04d" , FileIndex );
 	std::ofstream OutFile (OutputFile);
 	double RedVolume, GreenVolume, DoubleVolume;
 	// set the performance timers 

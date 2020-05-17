@@ -86,7 +86,7 @@ using namespace PhysiCell;
 int main( int argc, char* argv[] )
 {
 	if( argc < 4 ){
-		std::cout << "Set at least 3 parameters." << std::endl;
+		std::cout << "Set at least 4 parameters." << std::endl;
 		return -1;
 	}
 	
@@ -99,9 +99,9 @@ int main( int argc, char* argv[] )
 	parameters.doubles["speed_normoxic"].value = strtod( argv[4] , NULL );
 	
 
-	/* std::cout << parameters.doubles["pers_timeMotNor"].value << std::endl;
+	std::cout << parameters.doubles["pers_timeMotNor"].value << std::endl;
 	std::cout << parameters.doubles["motility_bias"].value << std::endl;
-	std::cout << parameters.doubles["speed_normoxic"].value << std::endl; */
+	std::cout << parameters.doubles["speed_normoxic"].value << std::endl;
 	
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);
