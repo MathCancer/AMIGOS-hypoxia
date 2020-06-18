@@ -90,15 +90,19 @@ void create_cell_types( void )
 	cell_defaults.phenotype.geometry.polarity = 1.0; 
 	cell_defaults.phenotype.motility.restrict_to_2D = true; 
 	
-	/// turn off proliferation and apoptosis; 
-	//int cycle_start_index = Ki67_basic.find_phase_index( PhysiCell_constants::Ki67_basic ); 
-	//int cycle_end_index = Ki67_basic.find_phase_index( PhysiCell_constants::Ki67_basic ); 
+	// use default proliferation and death 
+	
+	/* int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	int cycle_end_index = live.find_phase_index( PhysiCell_constants::live );  */
 
 	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model );
 	
-	/* cell_defaults.parameters.o2_proliferation_saturation =  156.9895;  
-	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
-	cell_defaults.parameters.o2_proliferation_threshold = 0.4808; */
+	cell_defaults.parameters.o2_proliferation_saturation = parameters.doubles["sigmaS"].value;   
+	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation;
+	cell_defaults.parameters.o2_proliferation_threshold = parameters.doubles["sigmaT"].value;
+
+	cell_defaults.phenotype.cycle.data.transition_rate(0,1) = parameters.doubles["rate_KnToKp"].value;
+	cell_defaults.phenotype.cycle.data.transition_rate(1,0) = parameters.doubles["rate_KpToKn"].value;
 	
 	// set default motiltiy
 	cell_defaults.phenotype.motility.is_motile = false; 
@@ -107,20 +111,14 @@ void create_cell_types( void )
 	// set default uptake and secretion 
 	// oxygen 
 	cell_defaults.phenotype.secretion.secretion_rates[oxygen_i] = 0; 
-	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = 0.4663;
+	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = parameters.doubles["uptake_rate"].value;
 	
-	/* cell_defaults.parameters.o2_proliferation_saturation = parameters.doubles["prol_saturation"].value; 
-	cell_defaults.parameters.o2_proliferation_threshold = parameters.doubles["prol_threshold"].value; 
-	
-	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; */
 	// set the default cell type to no phenotype updates 
 	
 	cell_defaults.functions.update_phenotype = tumor_cell_phenotype;
 	
 	cell_defaults.name = "cancer cell"; 
 	cell_defaults.type = 0;
-	
-	cell_defaults.custom_data.add_variable( "PercentagemProl" , "dimensionless" , 0.0 );
 	
 	return; 
 }
@@ -135,28 +133,44 @@ void setup_microenvironment( void )
 	}	
 	initialize_microenvironment();
 	
-	for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ )
-		microenvironment.add_dirichlet_node(n,default_microenvironment_options.Dirichlet_condition_vector);
+	std::vector< double > position = {0.0,0.0,0.0};
+	for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ ){
+		if (dist(microenvironment.mesh.voxels[n].center,position) >= parameters.doubles["tumor_radius"].value)
+			microenvironment.add_dirichlet_node(n,default_microenvironment_options.Dirichlet_condition_vector);
+	}
 
-	return; 
+	return;
 }	
 
 void setup_tissue( void )
 {		
 	// place a cluster of tumor cells at the center 
 	
-	double cell_radius = cell_defaults.phenotype.geometry.radius; 
-	double cell_spacing = 0.95 * 2.0 * cell_radius; 
+	/* double cell_radius = cell_defaults.phenotype.geometry.radius; 
+	double cell_spacing = 0.95 * 2.0 * cell_radius;  */
 	
-	double tumor_radius = 1000.0; 
+	double tumor_radius = parameters.doubles["tumor_radius"].value; 
 		
 	Cell* pCell = NULL; 
 	
 	double x = 0.0; 
 	double x_outer = tumor_radius; 
 	double y = 0.0; 
+	double z = 0.0;
 	
-	int n = 0; 
+	int n = 0;
+	
+	std::ifstream readFile("Posfile.txt"); 
+	while (!readFile.eof()){
+		readFile >> x >> y >> z;
+		if (sqrt(x*x+y*y+z*z) < tumor_radius){
+			pCell = create_cell();
+			pCell->assign_position( x , y , z);
+		}
+	}
+	readFile.close();
+	
+	/* int n = 0; 
 	while( y < tumor_radius )
 	{
 		x = 0.0; 
@@ -194,7 +208,7 @@ void setup_tissue( void )
 		
 		y += cell_spacing * sqrt(3.0)/2.0; 
 		n++; 
-	}
+	} */
 		
 	return; 
 }
@@ -202,19 +216,29 @@ void setup_tissue( void )
 // custom cell phenotype function to scale immunostimulatory factor with hypoxia 
 void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
-	double pO2 = (pCell->nearest_density_vector())[0]; 
-	if (pO2 <= parameters.doubles["ThresholdViability"].value){
-		pCell->parameters.o2_proliferation_saturation =  parameters.doubles["SigmaSnV"].value;  
-		pCell->parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
-		pCell->parameters.o2_proliferation_threshold = parameters.doubles["SigmaTnV"].value;
-	}
+	static int necrosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::necrosis_death_model );
+	static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" );
+	//update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	double pO2 = (pCell->nearest_density_vector())[oxygen_i];
+    double multiplier = 1.0;
+	if( pO2 < pCell->parameters.o2_proliferation_threshold || pCell->state.simple_pressure > 5.0)
+    { 
+        multiplier = 0.0;
+    }
 	else{
-		pCell->parameters.o2_proliferation_saturation =  parameters.doubles["SigmaSV"].value; 
-		pCell->parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
-		pCell->parameters.o2_proliferation_threshold = parameters.doubles["SigmaTV"].value;
-	}
+		if( pO2 < pCell->parameters.o2_proliferation_saturation )
+		{
+			multiplier = ( pO2 - pCell->parameters.o2_proliferation_threshold ) / ( pCell->parameters.o2_proliferation_saturation - pCell->parameters.o2_proliferation_threshold );
+			multiplier = pow(multiplier,parameters.doubles["expoent_o2_update"].value);//0.32;
+		}
+	}	
+	phenotype.cycle.data.transition_rate(0,1) = multiplier * cell_defaults.phenotype.cycle.data.transition_rate(0,1);
 	
-	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	// Deterministic necrosis 
+	if( pO2 < pCell->parameters.o2_necrosis_threshold )
+	{
+		phenotype.death.rates[necrosis_index] = 9e99;
+	}
 	
 	// if cell is dead, don't bother with future phenotype changes. 
 	if( phenotype.death.dead == true )
@@ -274,8 +298,8 @@ void oxygen_taxis_motility( Cell* pCell, Phenotype& phenotype, double dt )
 void QOI(const char* FILE)
 {
 	std::ofstream OutFile (FILE);
-	std::vector<double> KI67pos(30);
-	std::vector<double> KI67neg(30);
+	std::vector<double> KI67pos(60);
+	std::vector<double> KI67neg(60);
 	
 	std::vector< double > position = {0.0,0.0,0.0};
 	
@@ -296,7 +320,8 @@ void QOI(const char* FILE)
 		temp = KI67pos[j];
 		KI67pos[j] = temp/(temp+KI67neg[j]);
 		KI67neg[j] = KI67neg[j]/(temp+KI67neg[j]);
-		OutFile <<  j*0.05 + 0.025 << "\t" << KI67pos[j] << "\t" << KI67neg[j] <<std::endl;
+		if ((temp+KI67neg[j]) == 0){KI67pos[j] = 0; KI67neg[j] = 0;}  
+		OutFile << std::scientific <<   j*0.05 + 0.025 << "\t" << KI67pos[j] << "\t" << KI67neg[j] <<std::endl;
 	}
 	OutFile.close(); 
 

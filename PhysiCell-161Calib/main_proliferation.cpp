@@ -84,26 +84,9 @@ using namespace BioFVM;
 using namespace PhysiCell;
 
 int main( int argc, char* argv[] )
-{
-	if( argc < 5 ){
-		std::cout << "Set at least 5 parameters." << std::endl;
-		return -1;
-	}
-	
+{	
 	// load and parse settings file(s)
 	bool XML_status = load_PhysiCell_config_file( "./config/ProPhysiCell_settings.xml" );
-	
-	//Reading input	
-	parameters.doubles["SigmaSV"].value = strtod( argv[2] , NULL );
-	parameters.doubles["SigmaTV"].value = strtod( argv[3] , NULL );
-	parameters.doubles["SigmaSnV"].value = strtod( argv[4] , NULL );
-	parameters.doubles["SigmaTnV"].value = strtod( argv[5] , NULL );
-	
-
-	std::cout << parameters.doubles["SigmaSV"].value << std::endl;
-	std::cout << parameters.doubles["SigmaTV"].value << std::endl;
-	std::cout << parameters.doubles["SigmaSnV"].value << std::endl;
-	std::cout << parameters.doubles["SigmaTnV"].value << std::endl;
 
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);
@@ -234,7 +217,7 @@ int main( int argc, char* argv[] )
 	}
 	
 	char OutputFile[1024];
-	int FileIndex = strtol( argv[1] , NULL,0);
+	int FileIndex = 3;
 	sprintf(OutputFile , "output%04d" , FileIndex );
 	
 	QOI(OutputFile);

@@ -85,8 +85,8 @@ using namespace PhysiCell;
 
 int main( int argc, char* argv[] )
 {
-	if( argc < 4 ){
-		std::cout << "Set at least 4 parameters." << std::endl;
+	if( argc < 2 ){
+		std::cout << "Set at least 2 parameters." << std::endl;
 		return -1;
 	}
 	
@@ -94,14 +94,9 @@ int main( int argc, char* argv[] )
 	bool XML_status = load_PhysiCell_config_file( "./config/OxyPhysiCell_settings.xml" );
 	
 	//Reading input	
-	microenvironment.decay_rates[0] = strtod( argv[2] , NULL );
-	microenvironment.diffusion_coefficients[0] = strtod( argv[3] , NULL );
-	parameters.doubles["uptake_rate"].value = strtod( argv[4] , NULL );
+	parameters.doubles["uptake_rate"].value = strtod( argv[2] , NULL );
 	
-
-	std::cout << parameters.doubles["pers_timeMotNor"].value << std::endl;
-	std::cout << parameters.doubles["motility_bias"].value << std::endl;
-	std::cout << parameters.doubles["speed_normoxic"].value << std::endl;
+	std::cout << parameters.doubles["uptake_rate"].value << std::endl;
 	
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);

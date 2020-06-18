@@ -70,10 +70,10 @@
 
 <PhysiCell_settings version="devel-version">
 	<domain>
-		<x_min>-1500</x_min>
-		<x_max>1500</x_max>
-		<y_min>-1500</y_min>
-		<y_max>1500</y_max>
+		<x_min>-1000</x_min>
+		<x_max>1000</x_max>
+		<y_min>-1000</y_min>
+		<y_max>1000</y_max>
 		<z_min>-10</z_min>
 		<z_max>10</z_max>
 		<dx>20</dx>
@@ -83,9 +83,13 @@
 	</domain>
 	
 	<overall>
-		<max_time units="min">3000</max_time> <!-- 5 days * 24 h * 60 min 20160-->
+		<max_time units="min">12000</max_time> <!-- 5 days * 24 h * 60 min 20160-->
 		<time_units>min</time_units>
 		<space_units>micron</space_units>	
+		
+		<dt_diffusion units="min">0.01</dt_diffusion>
+		<dt_mechanics units="min">0.01</dt_mechanics>
+		<dt_phenotype units="min">18</dt_phenotype>	
 	</overall>
 	
 	<parallel>
@@ -97,12 +101,12 @@
 
 		<full_data>
 			<interval units="min">60</interval>
-			<enable>false</enable>
+			<enable>true</enable>
 		</full_data>
 		
 		<SVG>
 			<interval units="min">60</interval>
-			<enable>false</enable>
+			<enable>true</enable>
 		</SVG>
 		
 		<legacy_data>
@@ -135,10 +139,12 @@
 	</microenvironment_setup>
 	
 	<user_parameters>
-		<ThresholdViability type="double" units="mmHg">18.0</ThresholdViability>
-		<SigmaSV type="double" units="mmHg">0.0</SigmaSV>
-		<SigmaTV type="double" units="mmHg">0.0</SigmaTV>
-		<SigmaSnV type="double" units="mmHg">0.0</SigmaSnV>
-		<SigmaTnV type="double" units="mmHg">0.0</SigmaTnV>
+		<tumor_radius type="double" units="micron">250.0</tumor_radius>
+		<uptake_rate type="double" units="1/min">10.0</uptake_rate>
+		<rate_KnToKp type="double" units="1/min">0.0010</rate_KnToKp>
+		<rate_KpToKn type="double" units="1/min">0.0017</rate_KpToKn>
+		<expoent_o2_update type="double" units="dimensionless">0.2857</expoent_o2_update>
+		<sigmaS type="double" units="mmHg">38.0</sigmaS>
+		<sigmaT type="double" units="mmHg">6.0</sigmaT>
 	</user_parameters>
 </PhysiCell_settings>

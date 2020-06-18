@@ -78,24 +78,21 @@
 #include "./modules/PhysiCell_standard_modules.h" 
 
 // custom user modules 
-#include "./custom_modules/hypoxia2D.h" 
+#include "./custom_modules/hypoxia.h" 
 	
 using namespace BioFVM;
 using namespace PhysiCell;
 
 int main( int argc, char* argv[] )
 {
-	if( argc < 2 ){
-		std::cout << "Set at least 2 parameters." << std::endl;
-		return -1;
-	}
-	
 	// load and parse settings file(s)
-	bool XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" );
-	
-	parameters.doubles["persitence_timeHip"].value = strtod( argv[2] , NULL );
-	
- 	std::cout << parameters.doubles["persitence_timeHip"].value << std::endl;
+    bool XML_status = false; 
+	if( argc > 1 )
+	{ XML_status = load_PhysiCell_config_file( argv[1] ); }
+	else
+	{ XML_status = load_PhysiCell_config_file( "./config/PhysiCell_settings.xml" ); }
+	if( !XML_status )
+	{ exit(-1); }
 	
 	
 	// OpenMP setup
@@ -152,7 +149,8 @@ int main( int argc, char* argv[] )
 	display_citations(); 
 	
 	char OutputFile[1024];
-	int FileIndex = strtol( argv[1] , NULL,0);
+	//int FileIndex = strtol( argv[1] , NULL,0);
+	int FileIndex = 0;
 	sprintf(OutputFile , "output%04d" , FileIndex );
 	std::ofstream OutFile (OutputFile);
 	double RedVolume, GreenVolume, DoubleVolume;
@@ -199,7 +197,10 @@ int main( int argc, char* argv[] )
 				PhysiCell_globals.next_full_save_time += PhysiCell_settings.full_save_interval;
 				
 				QOI(RedVolume, GreenVolume, DoubleVolume);
-				OutFile << PhysiCell_globals.current_time <<"\t"<< RedVolume <<"\t" << GreenVolume <<"\t" << DoubleVolume << std::endl;
+				OutFile << std::scientific << PhysiCell_globals.current_time <<"\t"<< RedVolume <<"\t" << GreenVolume <<"\t" << DoubleVolume << std::endl;
+				char OutputFile2[1024];
+				sprintf(OutputFile2 , "output/output%04d" , (int) PhysiCell_globals.full_output_index );
+				QOI2(OutputFile2);
 			}
 			
 			// save SVG plot if it's time

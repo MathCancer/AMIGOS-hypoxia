@@ -94,14 +94,14 @@ int main( int argc, char* argv[] )
 	bool XML_status = load_PhysiCell_config_file( "./config/MotPhysiCell_settings.xml" );
 	
 	//Reading input	
-	parameters.doubles["pers_timeMotNor"].value = strtod( argv[2] , NULL );
+	parameters.doubles["pers_timeMot"].value = strtod( argv[2] , NULL );
 	parameters.doubles["motility_bias"].value = strtod( argv[3] , NULL );
-	parameters.doubles["speed_normoxic"].value = strtod( argv[4] , NULL );
+	parameters.doubles["speed"].value = strtod( argv[4] , NULL );
 	
 
-	std::cout << parameters.doubles["pers_timeMotNor"].value << std::endl;
+	std::cout << parameters.doubles["pers_timeMot"].value << std::endl;
 	std::cout << parameters.doubles["motility_bias"].value << std::endl;
-	std::cout << parameters.doubles["speed_normoxic"].value << std::endl;
+	std::cout << parameters.doubles["speed"].value << std::endl;
 	
 	// OpenMP setup
 	omp_set_num_threads(PhysiCell_settings.omp_num_threads);
@@ -202,7 +202,7 @@ int main( int argc, char* argv[] )
 				PhysiCell_globals.full_output_index++; 
 				PhysiCell_globals.next_full_save_time += PhysiCell_settings.full_save_interval;
 				QOI(Displacement,Displacement_STD);
-				OutFile << PhysiCell_globals.current_time <<"\t"<< Displacement <<"\t"<< Displacement_STD << std::endl;
+				OutFile << std::scientific << PhysiCell_globals.current_time <<"\t"<< Displacement <<"\t"<< Displacement_STD << std::endl;
 			}
 			
 			// save SVG plot if it's time

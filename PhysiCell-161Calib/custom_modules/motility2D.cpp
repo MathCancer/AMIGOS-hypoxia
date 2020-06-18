@@ -96,20 +96,17 @@ void create_cell_types( void )
 	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model );
 	cell_defaults.phenotype.death.rates[apoptosis_index] = 0;
 	
-	cell_defaults.parameters.o2_proliferation_saturation =  38.0;  
-	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
-	
 	// set default motiltiy
 	cell_defaults.phenotype.motility.is_motile = true; 
 	cell_defaults.functions.update_migration_bias = oxygen_taxis_motility; 
-	cell_defaults.phenotype.motility.persistence_time = parameters.doubles["pers_timeMotNor"].value; 
+	cell_defaults.phenotype.motility.persistence_time = parameters.doubles["pers_timeMot"].value; 
 	cell_defaults.phenotype.motility.migration_bias = parameters.doubles["motility_bias"].value; 
-	cell_defaults.phenotype.motility.migration_speed = parameters.doubles["speed_normoxic"].value; 
+	cell_defaults.phenotype.motility.migration_speed = parameters.doubles["speed"].value; 
 	
 	// set default uptake and secretion 
 	// oxygen 
 	cell_defaults.phenotype.secretion.secretion_rates[oxygen_i] = 0; 
-	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = 10.0; 
+	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = parameters.doubles["uptake_rate"].value;
 	cell_defaults.phenotype.secretion.saturation_densities[oxygen_i] = 38; 
 
 	// set the default cell type to no phenotype updates 
@@ -141,8 +138,8 @@ void setup_microenvironment( void )
 	}	
 	initialize_microenvironment();
 	
-	for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ )
-		microenvironment.add_dirichlet_node(n,default_microenvironment_options.Dirichlet_condition_vector);
+	/* for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ )
+		microenvironment.add_dirichlet_node(n,default_microenvironment_options.Dirichlet_condition_vector); */
 
 	return; 
 }	
@@ -167,7 +164,7 @@ void setup_tissue( void )
 void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	//Update dirichlet nodes
-	microenvironment.remove_dirichlet_node(microenvironment.nearest_voxel_index( pCell->position));
+	//microenvironment.remove_dirichlet_node(microenvironment.nearest_voxel_index( pCell->position));
 	return; 
 }
 

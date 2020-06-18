@@ -42,7 +42,7 @@ for n in range( initial_index,last_index+1 ):
   endo_count[n] = len(endo)
   
   SizeSubdiv = 50.0
-  RadiusSize = 1500.0
+  RadiusSize = 3000.0
   binPhaseKi67Pos = np.zeros((int(RadiusSize/SizeSubdiv),), dtype=int)
   binPhaseKi67Neg = np.zeros((int(RadiusSize/SizeSubdiv),), dtype=int)
 

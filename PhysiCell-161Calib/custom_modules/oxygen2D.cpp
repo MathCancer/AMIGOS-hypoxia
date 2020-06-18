@@ -96,9 +96,6 @@ void create_cell_types( void )
 	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model );
 	cell_defaults.phenotype.death.rates[apoptosis_index] = 0;
 	
-	cell_defaults.parameters.o2_proliferation_saturation =  38.0;  
-	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation; 
-	
 	// set default motiltiy
 	cell_defaults.phenotype.motility.is_motile = false;  
 	
@@ -132,9 +129,11 @@ void setup_microenvironment( void )
 		default_microenvironment_options.simulate_2D = true; 
 	}	
 	initialize_microenvironment();
-	
-	for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ )
-		microenvironment.add_dirichlet_node(n,default_microenvironment_options.Dirichlet_condition_vector);
+	std::vector< double > position = {0.0,0.0,0.0};
+	for( unsigned int n=0; n < microenvironment.number_of_voxels() ; n++ ){
+		if (dist(microenvironment.mesh.voxels[n].center,position) >= parameters.doubles( "tumor_radius" ))
+			microenvironment.add_dirichlet_node(n,default_microenvironment_options.Dirichlet_condition_vector);
+	}
 
 	return; 
 }	
@@ -146,16 +145,28 @@ void setup_tissue( void )
 	double cell_radius = cell_defaults.phenotype.geometry.radius; 
 	double cell_spacing = 0.95 * 2.0 * cell_radius; 
 	
-	double tumor_radius = 2000.0; 
+	double tumor_radius = tumor_radius = parameters.doubles( "tumor_radius" ); 
 		
 	Cell* pCell = NULL; 
 	
 	double x = 0.0; 
 	double x_outer = tumor_radius; 
 	double y = 0.0; 
+	double z = 0.0;
 	
 	int n = 0; 
-	while( y < tumor_radius )
+	
+	std::ifstream readFile("Posfile.txt"); 
+	while (!readFile.eof()){
+		readFile >> x >> y >> z;
+		pCell = create_cell();
+		pCell->assign_position( x , y , z);
+		if (sqrt(x*x+y*y+z*z) < 570.0)
+			pCell->phenotype.secretion.uptake_rates[0] = 0.1*parameters.doubles["uptake_rate"].value;
+	}
+	readFile.close();
+	
+	/* while( y < tumor_radius )
 	{
 		x = 0.0; 
 		if( n % 2 == 1 )
@@ -166,23 +177,31 @@ void setup_tissue( void )
 		{
 			pCell = create_cell(); // tumor cell 
 			pCell->assign_position( x , y , 0.0 );
+			if (sqrt(x*x+y*y) < 570.0)
+				pCell->phenotype.secretion.uptake_rates[0] = 0.1*parameters.doubles["uptake_rate"].value;
 					
 			
 			if( fabs( y ) > 0.01 )
 			{
 				pCell = create_cell(); // tumor cell 
 				pCell->assign_position( x , -y , 0.0 );
+				if (sqrt(x*x+y*y) < 570.0)
+					pCell->phenotype.secretion.uptake_rates[0] = 0.1*parameters.doubles["uptake_rate"].value;
 			}
 			
 			if( fabs( x ) > 0.01 )
 			{ 
 				pCell = create_cell(); // tumor cell 
 				pCell->assign_position( -x , y , 0.0 );
+				if (sqrt(x*x+y*y) < 570.0)
+					pCell->phenotype.secretion.uptake_rates[0] = 0.1*parameters.doubles["uptake_rate"].value;
 								
 				if( fabs( y ) > 0.01 )
 				{
 					pCell = create_cell(); // tumor cell 
 					pCell->assign_position( -x , -y , 0.0 );
+					if (sqrt(x*x+y*y) < 570.0)
+						pCell->phenotype.secretion.uptake_rates[0] = 0.1*parameters.doubles["uptake_rate"].value;
 					
 				}
 			}
@@ -192,7 +211,7 @@ void setup_tissue( void )
 		
 		y += cell_spacing * sqrt(3.0)/2.0; 
 		n++; 
-	}
+	} */
 		
 	return; 
 }
@@ -200,6 +219,9 @@ void setup_tissue( void )
 // custom cell phenotype function to scale immunostimulatory factor with hypoxia 
 void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 {
+	//std::vector< double > position = {0.0,0.0,0.0};
+	//double distance = dist(position,(pCell->position));
+	//if (pCell->ID == 50 || pCell->ID == 20000) std::cout << "ID: " << pCell->ID << " Phase: " << pCell->phenotype.cycle.current_phase().code << " Uptake: " <<  pCell->phenotype.secretion.uptake_rates[0] << std::endl;
 	//Update dirichlet nodes
 	microenvironment.remove_dirichlet_node(microenvironment.nearest_voxel_index( pCell->position));
 	return; 
@@ -217,6 +239,15 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 
 	sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/2.0) , (int)round(output[0][1]/2.0) , (int)round(output[0][2]/2.0) );
 	output[2].assign( szTempString );
+	
+	// Necrotic - Brown
+	double x = pCell->position[0];
+	double y = pCell->position[1];
+	if(sqrt(x*x+y*y) < 570.0)
+	{
+		output[0] = "rgb(250,138,38)";
+		output[2] = "rgb(139,69,19)";
+	}	
 		
 	return output;
 }
@@ -244,11 +275,11 @@ void QOI(const char* FILE)
 	std::vector< double > Value4 = microenvironment.nearest_density_vector( position4 );
 	std::vector< double > Value5 = microenvironment.nearest_density_vector( position5 );
 	std::ofstream OutFile (FILE);
-	OutFile << 0.0 <<"\t"<< Value1[0] << std::endl;
-	OutFile << 0.5 <<"\t"<< Value2[0] << std::endl;
-	OutFile << 1.0 <<"\t"<< Value3[0] << std::endl;
-	OutFile << 1.5 <<"\t"<< Value4[0] << std::endl;
-	OutFile << 2.0 <<"\t"<< Value5[0] << std::endl;
+	OutFile << std::scientific << 0.0 <<"\t"<< Value1[0] << std::endl;
+	OutFile << std::scientific << 0.5 <<"\t"<< Value2[0] << std::endl;
+	OutFile << std::scientific << 1.0 <<"\t"<< Value3[0] << std::endl;
+	OutFile << std::scientific << 1.5 <<"\t"<< Value4[0] << std::endl;
+	OutFile << std::scientific << 2.0 <<"\t"<< Value5[0] << std::endl;
 	OutFile.close();
 	return; 
 }

@@ -149,14 +149,14 @@ void create_blood_cell_types( void )
 	// oxygen 
 	blood_cell.phenotype.secretion.secretion_rates[oxygen_ID] = 90.0; 
 	blood_cell.phenotype.secretion.uptake_rates[oxygen_ID] = 0.0; 	
-        blood_cell.phenotype.secretion.saturation_densities[oxygen_ID] = 90.0;
-        // VEGF 
+    blood_cell.phenotype.secretion.saturation_densities[oxygen_ID] = 90.0;
+    // VEGF 
 	blood_cell.phenotype.secretion.secretion_rates[VEGF_ID] = 0.0; 
 	blood_cell.phenotype.secretion.uptake_rates[VEGF_ID] = 0.0;	
-        blood_cell.phenotype.secretion.saturation_densities[VEGF_ID] = 0.0;
+    blood_cell.phenotype.secretion.saturation_densities[VEGF_ID] = 0.0;
 	
-        // turn off apoptosis
-        int apoptosis_index = blood_cell.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
+    // turn off apoptosis
+    int apoptosis_index = blood_cell.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
 	blood_cell.phenotype.death.rates[apoptosis_index] = 0;
                 
 	

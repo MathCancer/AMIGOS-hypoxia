@@ -89,7 +89,7 @@
 	</overall>
 	
 	<parallel>
-		<omp_num_threads>8</omp_num_threads>
+		<omp_num_threads>10</omp_num_threads>
 	</parallel> 
 	
 	<save>
@@ -97,12 +97,12 @@
 
 		<full_data>
 			<interval units="min">15</interval>
-			<enable>true</enable>
+			<enable>false</enable>
 		</full_data>
 		
 		<SVG>
 			<interval units="min">15</interval>
-			<enable>true</enable>
+			<enable>false</enable>
 		</SVG>
 		
 		<legacy_data>
@@ -135,13 +135,9 @@
 	</microenvironment_setup>
 	
 	<user_parameters>
-		<uptake_rate type="double" units="1/min">10.0</uptake_rate>
-		<hypoxic_threshold type="double" units="mmHg">10.0</hypoxic_threshold>
-		<persitence_timeHip type="double" units="min">720.0</persitence_timeHip>
-		<pers_timeMotNor type="double" units="min">15.0</pers_timeMotNor>
-		<pers_timeMotHyp type="double" units="min">15.0</pers_timeMotHyp>
-		<motility_bias type="double" units="dimensionless">0.5</motility_bias>
-		<speed_normoxic type="double" units="micron/min">0.05</speed_normoxic>
-		<speed_hypoxic type="double" units="micron/min">0.25</speed_hypoxic>
+		<uptake_rate type="double" units="1/min">0.0</uptake_rate>
+		<pers_timeMot type="double" units="min">0.0</pers_timeMot>
+		<motility_bias type="double" units="dimensionless">0.0</motility_bias>
+		<speed type="double" units="micron/min">0.0</speed>
 	</user_parameters>
 </PhysiCell_settings>
