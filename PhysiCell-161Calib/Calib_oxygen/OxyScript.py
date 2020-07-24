@@ -26,8 +26,8 @@ Dist = np.array(Dist)
 Oxygen = np.array(Oxygen)
 OxygenStd = np.array(OxygenStd)
 
-UpperLimit = np.array([1.3])#2.0
-LowLimit = np.array([1.2])#0.0
+UpperLimit = np.array([1.0])#2.0
+LowLimit = np.array([0.5])#0.0
 qoi = Oxygen
 
-ABC_MCMC(Model, qoi, LowLimit, UpperLimit,'./Calib_oxygen/CalibOxy.dat',4.5,200)#5.0
+ABC_MCMC(Model, qoi, LowLimit, UpperLimit,'./Calib_oxygen/CalibOxy.dat',4.6,200)#5.0

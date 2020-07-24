@@ -56,6 +56,9 @@ ALL_OBJECTS := $(PhysiCell_OBJECTS) $(PhysiCell_custom_module_OBJECTS)
 all: main.cpp $(ALL_OBJECTS)
 	$(COMPILE_COMMAND) -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp  
 
+Ki67Advanced: mainKA.cpp $(PhysiCell_OBJECTS) hypoxia_Ki67adv.o
+	$(COMPILE_COMMAND) -o Ki67Advanced $(PhysiCell_OBJECTS) hypoxia_Ki67adv.o mainKA.cpp
+
 oxygen2d: main_oxygen.cpp $(PhysiCell_OBJECTS) oxygen2D.o
 	$(COMPILE_COMMAND) -o oxygen2D $(PhysiCell_OBJECTS) oxygen2D.o main_oxygen.cpp
 
@@ -147,6 +150,9 @@ PhysiCell_settings.o: ./modules/PhysiCell_settings.cpp
 
 hypoxia.o: ./custom_modules/hypoxia.cpp 
 	$(COMPILE_COMMAND) -c ./custom_modules/hypoxia.cpp
+
+hypoxia_Ki67adv.o: ./custom_modules/hypoxia_Ki67adv.cpp 
+	$(COMPILE_COMMAND) -c ./custom_modules/hypoxia_Ki67adv.cpp
 
 oxygen2D.o: ./custom_modules/oxygen2D.cpp 
 	$(COMPILE_COMMAND) -c ./custom_modules/oxygen2D.cpp

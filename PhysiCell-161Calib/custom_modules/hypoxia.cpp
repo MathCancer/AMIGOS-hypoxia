@@ -176,6 +176,36 @@ void setup_microenvironment( void )
 	return; 
 }	
 
+std::vector<std::vector<double>> create_cell_sphere_positions(double cell_radius, double sphere_radius)
+{
+	std::vector<std::vector<double>> cells;
+	int xc=0,yc=0,zc=0;
+	double x_spacing= cell_radius*sqrt(3);
+	double y_spacing= cell_radius*2;
+	double z_spacing= cell_radius*sqrt(3);
+	
+	std::vector<double> tempPoint(3,0.0);
+	
+	for(double z=-sphere_radius;z<sphere_radius;z+=z_spacing, zc++)
+	{
+		for(double x=-sphere_radius;x<sphere_radius;x+=x_spacing, xc++)
+		{
+			for(double y=-sphere_radius;y<sphere_radius;y+=y_spacing, yc++)
+			{
+				tempPoint[0]=x + (zc%2) * 0.5 * cell_radius;
+				tempPoint[1]=y + (xc%2) * cell_radius;
+				tempPoint[2]=z;
+				
+				if(sqrt(norm_squared(tempPoint))< sphere_radius)
+				{ cells.push_back(tempPoint); }
+			}
+			
+		}
+	}
+	return cells;
+	
+}
+
 void setup_tissue( void )
 {
 	static int genes_i = 0; 
@@ -198,11 +228,12 @@ void setup_tissue( void )
 	double x = 0.0; 
 	double x_outer = tumor_radius; 
 	double y = 0.0; 
-	double z = 0.0;
+
 	
-	int n = 0;
+	
 	
 	//std::ifstream readFile("Posfile.txt"); 
+    /*double z = 0.0;
     std::ifstream readFile(parameters.strings["FileInitialCond"].value);
     if (readFile.is_open()){
         while (!readFile.eof()){
@@ -214,47 +245,55 @@ void setup_tissue( void )
         }
     }
     else exit(-1);
-	readFile.close();
+	readFile.close();*/
 	
-/* 	while( y < tumor_radius )
-	{
-		x = 0.0; 
-		if( n % 2 == 1 )
-		{ x = 0.5*cell_spacing; }
-		x_outer = sqrt( tumor_radius*tumor_radius - y*y ); 
-		
-		while( x < x_outer )
-		{
-			pCell = create_cell(); // tumor cell 
-			pCell->assign_position( x , y , 0.0 );
-					
-			
-			if( fabs( y ) > 0.01 )
-			{
-				pCell = create_cell(); // tumor cell 
-				pCell->assign_position( x , -y , 0.0 );
-			}
-			
-			if( fabs( x ) > 0.01 )
-			{ 
-				pCell = create_cell(); // tumor cell 
-				pCell->assign_position( -x , y , 0.0 );
-								
-				if( fabs( y ) > 0.01 )
-				{
-					pCell = create_cell(); // tumor cell 
-					pCell->assign_position( -x , -y , 0.0 );
-					
-				}
-			}
-			x += cell_spacing; 
-			
-		}
-		
-		y += cell_spacing * sqrt(3.0)/2.0; 
-		n++; 
-	} */
-		
+    if( default_microenvironment_options.simulate_2D == true ){
+        int n = 0;
+        while( y < tumor_radius )
+        {
+            x = 0.0; 
+            if( n % 2 == 1 )
+            { x = 0.5*cell_spacing; }
+            x_outer = sqrt( tumor_radius*tumor_radius - y*y ); 
+            
+            while( x < x_outer )
+            {
+                pCell = create_cell(); // tumor cell 
+                pCell->assign_position( x , y , 0.0 );
+                        
+                
+                if( fabs( y ) > 0.01 )
+                {
+                    pCell = create_cell(); // tumor cell 
+                    pCell->assign_position( x , -y , 0.0 );
+                }
+                
+                if( fabs( x ) > 0.01 )
+                { 
+                    pCell = create_cell(); // tumor cell 
+                    pCell->assign_position( -x , y , 0.0 );
+                                    
+                    if( fabs( y ) > 0.01 )
+                    {
+                        pCell = create_cell(); // tumor cell 
+                        pCell->assign_position( -x , -y , 0.0 );
+                        
+                    }
+                }
+                x += cell_spacing; 
+                
+            }
+            
+            y += cell_spacing * sqrt(3.0)/2.0; 
+            n++; 
+        }
+	} else {
+        std::vector<std::vector<double>> positions = create_cell_sphere_positions(cell_radius,tumor_radius);
+        for( int i=0; i < positions.size(); i++ ){
+            pCell = create_cell(); // tumor cell 
+            pCell->assign_position( positions[i] );
+        }
+    }
 	return; 
 }
 
@@ -277,8 +316,8 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	//update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i];
     double multiplier = 1.0;
-	if( pO2 < pCell->parameters.o2_proliferation_threshold || pCell->state.simple_pressure > 1.0)
-	//if( pO2 < pCell->parameters.o2_proliferation_threshold)
+	//if( pO2 < pCell->parameters.o2_proliferation_threshold || pCell->state.simple_pressure > 1.0)
+	if( pO2 < pCell->parameters.o2_proliferation_threshold)
     { 
         multiplier = 0.0;
     }
@@ -345,21 +384,42 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 	
 	if( pO2 < phenotype_hypoxic_switch)
 	{
-		if (phenotype.motility.is_motile == false) pCell->custom_data[persistence_time_i] = 0.0;
-		phenotype.motility.is_motile = true; 
-		phenotype.motility.migration_speed = parameters.doubles["speed_green"].value;//0.3760;
-		phenotype.motility.persistence_time = parameters.doubles["perst_time_green"].value;//40.86;
-		phenotype.motility.migration_bias = parameters.doubles["bias_green"].value;//0.1956;
+        // Fraction of green cells
+        int countGreenCells = 0; int countGreenCellsM = 0;
+        for(int i=0;i<all_cells->size();i++){ 
+            if((*all_cells)[i]->custom_data.vector_variables[genes_i].value[green_i] == 1.0 && (*all_cells)[i]->phenotype.cycle.current_phase().code < 100){ 
+                countGreenCells++;
+                if(parameters.doubles["bias_greenResp"].value - (*all_cells)[i]->phenotype.motility.migration_bias < 0.001 ) countGreenCellsM++;
+            }
+        }
+        double fractionGreenCells = countGreenCellsM/(1.0*countGreenCells);
+        phenotype.motility.is_motile = true; 
+        phenotype.motility.migration_speed = parameters.doubles["speed_green"].value;
+        phenotype.motility.persistence_time = parameters.doubles["perst_time_green"].value;
+        if(fractionGreenCells <= parameters.doubles["fracResponse_green"].value && parameters.doubles["fracResponse_green"].value != 0)
+            phenotype.motility.migration_bias = parameters.doubles["bias_greenResp"].value;
+        else{
+            phenotype.motility.migration_bias = parameters.doubles["bias_green"].value;
+        }
 	}
 	else
 	{
-		if (phenotype.motility.is_motile == true)
+        // Just Green cells have a persistence time
+		if (phenotype.motility.is_motile == true && pCell->custom_data.vector_variables[genes_i].value[green_i] == 1.0)
 		{
-			pCell->custom_data[persistence_time_i]+= dt;
-			if (pCell->custom_data[persistence_time_i] > parameters.doubles["persitence_timeHip"].value)
-			{
-				phenotype.motility.is_motile = false;
-			}
+            if (parameters.bools["model_transient"].value){ // Transient model
+              static double probability = dt/parameters.doubles["persitence_timeHip"].value;
+              if( UniformRandom() < probability )
+			  {
+				  phenotype.motility.is_motile = false; 
+			  }
+            }else{ // Deterministic model
+			  pCell->custom_data[persistence_time_i]+= dt;
+			  if (pCell->custom_data[persistence_time_i] > parameters.doubles["persitence_timeHip"].value)
+			  {
+				  phenotype.motility.is_motile = false;
+			  }
+            }
 		}
 	}
 	

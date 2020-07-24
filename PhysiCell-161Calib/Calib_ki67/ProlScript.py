@@ -64,15 +64,15 @@ def Model_OLD(Par):
   
   
 def Model(Par):
-  pho = 674/(347*347*50) # cell density
+  pho = 674/(347*347*15) # cell density
   cell_radius = 8.413 # 8.413
-  tumor_radius = 2000.0 # 2000.0
-  R_NC = 570.0 # necrotic core radius -- 570.0
+  tumor_radius = 3000.0 # 2000.0
+  R_NC = 550.0 # necrotic core radius -- 570.0
   T = tumor_radius - R_NC # viable rim thickness
   f = pho*(4.0/3.0)*np.pi*(cell_radius**3) # confluence (pho*(4/3)*pi*R^3)
   print("confluence: "+str(f))
-  Lambda = 1.2530 # uptake rate in the confluent fraction of the viable rim
-  Lambda_b = 0.01 # uptake rate in non-confluent portion of the rim
+  Lambda = 0.2 # uptake rate in the confluent fraction of the viable rim
+  Lambda_b = 0.001 # uptake rate in non-confluent portion of the rim
   D = 100000.0 # diffusion coefficient
   sigma_T = 6.0 # PO2 threshold viable rim
   lambdaViable = f*Lambda + (1-f)*Lambda_b # uptake rate in the viable rim
@@ -125,7 +125,7 @@ def Model2(Par):
   InitialCond = np.array ( [ 28138.0, 0.0] )
   NumInterv = 300
   Par = 1.0/(60.0*Par)
-  ParLocal = np.array([Par[0],1.0/(60.0*19.0)])
+  ParLocal = np.array([Par[0],1.0/(60.0*27.1)])
   sigma_S = 38.0
   ParLocal[0] = Par[0]*((Po2 - sigma_T)/(sigma_S - sigma_T))
   t, ODE_out = rk4 ( KI67_Basic, tspan, InitialCond, NumInterv, ParLocal )
@@ -156,7 +156,7 @@ Std_f_Ki67p = 0.09
 x0 = np.array([20.0])
 res = minimize(Model2, x0, method='nelder-mead', options={'maxiter': 2000, 'disp': True})
 print(res)
-#exit()
+exit()
 print("Data: "+ str(f_Ki67p)+" Model: ",str(Ki67pos[-1]))
 
 initial_index = 0;
