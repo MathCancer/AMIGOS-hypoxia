@@ -152,8 +152,8 @@
 		<speed_green type="double" units="micron/min">0.4755</speed_green><!-- 0.4755 -->
 		<perst_time_green type="double" units="min">15.0</perst_time_green>
 		<bias_green type="double" units="dimensionless">0.1791</bias_green><!-- 0.1791 --> 
-        <model_transient type="bool">false</model_transient>
         <fracResponse_green type="double" units="dimensionless">0.5</fracResponse_green> <!-- Not exact (more than one thread) -->
         <bias_greenResp type="double" units="dimensionless">0.5</bias_greenResp>
+        <model_stochastic type="bool">false</model_stochastic>
 	</user_parameters>
 </PhysiCell_settings>

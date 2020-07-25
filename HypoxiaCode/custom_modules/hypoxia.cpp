@@ -379,7 +379,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
         // Just Green cells have a persistence time
 		if (phenotype.motility.is_motile == true && pCell->custom_data.vector_variables[genes_i].value[green_i] == 1.0)
 		{
-            if (parameters.bools["model_transient"].value){ // Transient model
+            if (parameters.bools["model_stochastic"].value){ //Stochastic model
               static double probability = dt/parameters.doubles["persitence_timeHip"].value;
               if( UniformRandom() < probability )
 			  {
