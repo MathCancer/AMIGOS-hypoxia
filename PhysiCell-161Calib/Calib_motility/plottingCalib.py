@@ -48,6 +48,7 @@ GPar2 = np.array(GP2)
 
 #figure, axes = plt.subplots(nrows=1, ncols=3,figsize=(12,6))
 sns.set()
+sns.set_style("white")
 plt.subplot(121)
 value1 = sns.distplot(RPar1,color='red').get_lines()[0].get_data()
 maxPar1 = value1[0][np.argmax(value1[1])]
@@ -76,6 +77,7 @@ plt.savefig('RedMotility.png')
 plt.clf()
 #figure, axes = plt.subplots(nrows=1, ncols=3,figsize=(12,6))
 sns.set()
+sns.set_style("white")
 plt.subplot(121)
 value1 = sns.distplot(GPar1,color='green').get_lines()[0].get_data()
 maxPar1 = value1[0][np.argmax(value1[1])]

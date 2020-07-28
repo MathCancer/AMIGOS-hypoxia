@@ -60,26 +60,43 @@ def PlotResultR(posx, posy,posxDat,posyDat):
   r3 = 150
   r4 = 200
   r5 = 250
-  sns.boxplot(data=0);
+  #sns.boxplot(data=0);
+  figure, axes = plt.subplots(nrows=1, ncols=2,figsize=(12,6))
+  plt.subplot(121)
   plt.grid(linestyle='dashdot',linewidth=0.7,alpha = 0.3)
-  ax.plot(r1*np.cos(theta), r1*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
-  ax.plot(r2*np.cos(theta), r2*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
-  ax.plot(r3*np.cos(theta), r3*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
-  ax.plot(r4*np.cos(theta), r4*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
-  ax.plot(r5*np.cos(theta), r5*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
+  plt.plot(r1*np.cos(theta), r1*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
+  plt.plot(r2*np.cos(theta), r2*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
+  plt.plot(r3*np.cos(theta), r3*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
+  plt.plot(r4*np.cos(theta), r4*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
+  plt.plot(r5*np.cos(theta), r5*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
+  print("Number of trajectories (data): "+str(posxDat.shape))
+  posx = np.delete(posx,np.s_[posxDat.shape[1]::],1)
+  posy = np.delete(posy,np.s_[posyDat.shape[1]::],1)
+  print("Number of trajectories (model): "+str(posx.shape))
   for i in range( 0,posxDat.shape[1]-1 ):
-    ax.plot(posxDat[:,i],posyDat[:,i],color='black',ls='solid',linewidth=1.0, alpha=0.3)
-  ax.plot(posxDat[:,-1],posyDat[:,-1],color='black',ls='solid',linewidth=1.0, alpha=0.3,label='Data')
-  for i in range( 0,posx.shape[1] ):
-    ax.plot(posx[:,i],posy[:,i],color='red',ls='solid',linewidth=1.0, alpha=0.5)
-  ax.plot(posx[:,-1],posy[:,-1],color='red',ls='solid',linewidth=1.0, alpha=0.5,label='Model')
+    plt.plot(posxDat[:,i],posyDat[:,i],color='gray',ls='solid',linewidth=2.0, alpha=1.0)
+  plt.plot(posxDat[:,-1],posyDat[:,-1],color='gray',ls='solid',linewidth=2.0, alpha=1.0,label='Data')
+  for i in range( 0,posx.shape[1]-1 ):
+    plt.plot(posx[:,i],posy[:,i],color='red',ls='solid',linewidth=2.0, alpha=0.5)
+  plt.plot(posx[:,-1],posy[:,-1],color='red',ls='solid',linewidth=2.0, alpha=0.5,label='Model')
   plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center', ncol=2,)
-  plt.text(270, -305, '$\mu m$', fontsize=10) 
+  plt.text(270, -300, '$\mu m$', fontsize=10) 
   plt.text(-320, 270, '$\mu m$', fontsize=10)   
-  ax.set_aspect(1)
+  #plt.axes().set_aspect(1)
   plt.xlim(-280.0,280.0)
   plt.xticks(np.arange(-250, 255, step=100.0))
   plt.yticks(np.arange(-250, 255, step=100.0))
+  
+  sns.set()
+  sns.set_style("white")
+  DistData = np.sqrt(posxDat[-1,:]**2 +  posyDat[-1,:]**2)
+  DistModel =  np.sqrt(posx[-1,:]**2 +  posy[-1,:]**2) 
+  plt.subplot(122)
+  sns.distplot(DistData,color='Gray',bins=range(0, int(max(DistData))+25, 25),kde=False)
+  sns.distplot(DistModel,color='red',bins=range(0, int(max(DistData))+25, 25),kde=False)
+  plt.xlabel('Displacement')
+  plt.ylabel('Frequency')
+  
   plt.show()
 
 def PlotResultG(posx, posy,posxDat,posyDat):
@@ -89,27 +106,45 @@ def PlotResultG(posx, posy,posxDat,posyDat):
   r3 = 150
   r4 = 200
   r5 = 250
-  sns.boxplot(data=0);
+  #sns.boxplot(data=0);
+  figure, axes = plt.subplots(nrows=1, ncols=2,figsize=(12,6))
+  plt.subplot(121)
   plt.grid(linestyle='dashdot',linewidth=0.7,alpha = 0.3)
   plt.plot(r1*np.cos(theta), r1*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
   plt.plot(r2*np.cos(theta), r2*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
   plt.plot(r3*np.cos(theta), r3*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
   plt.plot(r4*np.cos(theta), r4*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
   plt.plot(r5*np.cos(theta), r5*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
+  print("Number of trajectories (data): "+str(posxDat.shape))
+  posx = np.delete(posx,np.s_[posxDat.shape[1]::],1)
+  posy = np.delete(posy,np.s_[posyDat.shape[1]::],1)
+  print("Number of trajectories (model): "+str(posx.shape))
   for i in range( 0,posxDat.shape[1]-1 ):
-    plt.plot(posxDat[:,i],posyDat[:,i],color='black',ls='solid',linewidth=1.0, alpha=0.3)
-  plt.plot(posxDat[:,-1],posyDat[:,-1],color='black',ls='solid',linewidth=1.0, alpha=0.3,label='Data')
-  for i in range( 0,posx.shape[1] ):
-    plt.plot(posx[:,i],posy[:,i],color='green',ls='solid',linewidth=1.0, alpha=0.5)
-  plt.plot(posx[:,-1],posy[:,-1],color='green',ls='solid',linewidth=1.0, alpha=0.5,label='Model')
+    plt.plot(posxDat[:,i],posyDat[:,i],color='gray',ls='solid',linewidth=2.0, alpha=1.0)
+  plt.plot(posxDat[:,-1],posyDat[:,-1],color='gray',ls='solid',linewidth=2.0, alpha=1.0,label='Data')
+  for i in range( 0,posx.shape[1]-1 ):
+    plt.plot(posx[:,i],posy[:,i],color='green',ls='solid',linewidth=2.0, alpha=0.5)
+  plt.plot(posx[:,-1],posy[:,-1],color='green',ls='solid',linewidth=2.0, alpha=0.5,label='Model')
   plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc='center', ncol=2,)
-  plt.text(270, -305, '$\mu m$', fontsize=10) 
+  plt.text(270, -300, '$\mu m$', fontsize=10) 
   plt.text(-320, 270, '$\mu m$', fontsize=10)   
-  plt.set_aspect(1)
+  #plt.axes().set_aspect(1)
   plt.xlim(-280.0,280.0)
   plt.xticks(np.arange(-250, 255, step=100.0))
   plt.yticks(np.arange(-250, 255, step=100.0))
+  
+  sns.set()
+  sns.set_style("white")
+  DistData = np.sqrt(posxDat[-1,:]**2 +  posyDat[-1,:]**2)
+  DistModel =  np.sqrt(posx[-1,:]**2 +  posy[-1,:]**2) 
+  plt.subplot(122)
+  sns.distplot(DistData,color='Gray',bins=range(0, int(max(DistData))+25, 25),kde=False)
+  sns.distplot(DistModel,color='green',bins=range(0, int(max(DistData))+25, 25),kde=False)
+  plt.xlabel('Displacement')
+  plt.ylabel('Frequency')
+  
   plt.show()
+  
 
 # Red cells
 posx, posy = ReadSimulationR()
@@ -117,6 +152,6 @@ posxDat,posyDat = ReadDataR()
 PlotResultR(posx, posy ,posxDat,posyDat)
 
 # Green cells
-# posx, posy = ReadSimulationG()
-# posxDat,posyDat = ReadDataG()
-# PlotResultG(posx, posy ,posxDat,posyDat)
+posx, posy = ReadSimulationG()
+posxDat,posyDat = ReadDataG()
+PlotResultG(posx, posy ,posxDat,posyDat)

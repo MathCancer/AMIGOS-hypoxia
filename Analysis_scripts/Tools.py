@@ -70,7 +70,7 @@ def Twopointfunc(Position,NumBins=10):
  
   plt.show()
 
-def ImageOpenCV(file="output1/snapshot00000000.jpg",plot=True):
+def ImageOpenCV(file="output/Output_B05_F100_T999.jpg",plot=True):
   img = cv2.imread(file)
   blur = cv2.blur(img,(5,5))
   img = img[100:-70, 0:-1]
@@ -85,19 +85,14 @@ def ImageOpenCV(file="output1/snapshot00000000.jpg",plot=True):
   thresh_val2 = cv2.bitwise_not(thresh_val2)
   # Blue filter
   channelblue = img[:,:,2]
-  _,thresh_val3 = cv2.threshold(channelblue,35 ,255,cv2.THRESH_BINARY)
+  _,thresh_val3 = cv2.threshold(channelblue,40 ,255,cv2.THRESH_BINARY)
   thresh_val3 = cv2.bitwise_not(thresh_val3)  
   # Combine
   mask = cv2.bitwise_and(thresh_val1,thresh_val2)
   mask2 = cv2.bitwise_and(thresh_val1,~mask)
- 
- # cv2.imshow("RedMask",thresh_val1)
-  # cv2.imshow("GreenMask",mask2)
-  # cv2.imshow("BlueMask",thresh_val3)
-  # cv2.waitKey()
-  # return
-
-  element = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(5, 5))
+  
+  element = cv2.getStructuringElement(shape=cv2.MORPH_OPEN, ksize=(5, 5))
+  element2 = cv2.getStructuringElement(shape=cv2.MORPH_OPEN, ksize=(8, 8))
 
   morph_img = thresh_val1.copy()
   cv2.morphologyEx(src=thresh_val1, op=cv2.MORPH_CLOSE, kernel=element, dst=morph_img)
@@ -106,7 +101,7 @@ def ImageOpenCV(file="output1/snapshot00000000.jpg",plot=True):
   cv2.morphologyEx(src=mask2, op=cv2.MORPH_CLOSE, kernel=element, dst=morph_img2)
   
   morph_img3 = thresh_val3.copy()
-  cv2.morphologyEx(src=thresh_val3, op=cv2.MORPH_CLOSE, kernel=element, dst=morph_img3)
+  cv2.morphologyEx(src=thresh_val3, op=cv2.MORPH_CLOSE, kernel=element2, dst=morph_img3)
 
   contours,_ = cv2.findContours(morph_img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
   contours2,_ = cv2.findContours(morph_img2,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -117,6 +112,21 @@ def ImageOpenCV(file="output1/snapshot00000000.jpg",plot=True):
   areas2 = [cv2.contourArea(c) for c in contours2]
   sorted_areas2 = np.sort(areas2)
   areas3 = [cv2.contourArea(c) for c in contours3]
+  
+  # cv2.imshow("RedMask", morph_img)
+  # cv2.imshow("GreenMask", morph_img2)
+  # cv2.imshow("BlueMask", morph_img3)
+  # cv2.imwrite("onePic1.jpg", morph_img)
+  # cv2.imwrite("onePic2.jpg", morph_img2)
+  # cv2.imwrite("onePic3.jpg", morph_img3)
+  # cv2.waitKey()
+  # return
+  
+  GreenImage = img.copy()
+  ind = np.argwhere(morph_img2==0)
+  GreenImage[ind[:,0],ind[:,1],0] = 255
+  GreenImage[ind[:,0],ind[:,1],1] = 255
+  GreenImage[ind[:,0],ind[:,1],2] = 255
 
   #Ellipses
   if (len(sorted_areas) > 0): 
@@ -125,11 +135,13 @@ def ImageOpenCV(file="output1/snapshot00000000.jpg",plot=True):
     cv2.ellipse(img,ellipseA,(0,0,0),2)    
   if (len(sorted_areas2) > 0): 
     cntA2=contours2[areas2.index(sorted_areas2[-1])] #the biggest contour
-    epsilon = 0.001 * cv2.arcLength(cntA2, True)
+    epsilon = 0.00001 * cv2.arcLength(cntA2, True)
     approx = cv2.approxPolyDP(cntA2, epsilon, True)
-    cv2.drawContours(img, [approx], -1, (0, 255, 0), 4)
+    #cv2.drawContours(img, [approx], -1, (0, 255, 0), 4)
+    cv2.drawContours(GreenImage, [approx], -1, (0, 255, 0), 4)
     ellipseA2 = cv2.fitEllipse(cntA2)
-    cv2.ellipse(img,ellipseA2,(0,0,255),2) 
+    #cv2.ellipse(img,ellipseA2,(0,0,255),2) 
+    cv2.ellipse(GreenImage,ellipseA2,(0,0,255),2) 
   
   #Necrotic cells
   necrotic = False
@@ -151,9 +163,8 @@ def ImageOpenCV(file="output1/snapshot00000000.jpg",plot=True):
     for ind in range(0,len(contours4)): 
       x = np.mean(contours4[ind][:,0,0])
       y = np.mean(contours4[ind][:,0,1])
-      cv2.circle(img,(int(x),int(y)),4,(0,0,0),-1)
+      cv2.circle(img,(int(x),int(y)),4,(0,200,0),-1)
 
-  
   #Plumes test
   plumes = False
   if (len(sorted_areas2) > 0): 
@@ -167,7 +178,8 @@ def ImageOpenCV(file="output1/snapshot00000000.jpg",plot=True):
         tol =15.0
         if (dist >  tol):
           #print("Point: "+str(x)+" "+str(y)+" P: "+str(p)+" Dist: "+str(dist))
-          cv2.circle(img,(int(x),int(y)),4,(0,200,0),-1)
+          #cv2.circle(img,(int(x),int(y)),4,(0,200,0),-1)
+          cv2.circle(GreenImage,(int(x),int(y)),4,(0,0,0),-1)
           plumes = True
     # t = np.linspace(0, 2*np.pi, 100)
     # plt.plot( h+0.5*ma*np.cos(t) , k+0.5*MA*np.sin(t) )
@@ -195,11 +207,15 @@ def ImageOpenCV(file="output1/snapshot00000000.jpg",plot=True):
     #cv2.imshow("morph_img3",morph_img3)
     cv2.imshow("img0", img0)
     cv2.imshow("img", img)
+    cv2.imshow("Green", GreenImage)
+    cv2.imwrite("Image.jpg", img0)
+    cv2.imwrite("Scaping.jpg", img)
+    cv2.imwrite("Plumes.jpg", GreenImage)
     cv2.waitKey()
   
   return plumes, scape, necrotic
 
-def Response_rank(fileName="snapshot00000130.jpg",folder="output1"):
+def Response_rank(fileName="Output_B05_F100_T999.jpg",folder="output"):
   file = folder+'/'+fileName
   print(file)
   Fraction = 85.2388916015625/250.0
@@ -298,7 +314,7 @@ def PlotStochastic(mean,Fraction,color):
 
   plt.show()
 
-def Stochastic(folder="outputStochastic1"):
+def Stochastic(folder="outputStochastic"):
   index = 100
   subdiv = 10
   numfiles = 10
