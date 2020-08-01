@@ -208,9 +208,9 @@ def ImageOpenCV(file="output/Output_B05_F100_T999.jpg",plot=True):
     cv2.imshow("img0", img0)
     cv2.imshow("img", img)
     cv2.imshow("Green", GreenImage)
-    cv2.imwrite("Image.jpg", img0)
-    cv2.imwrite("Scaping.jpg", img)
-    cv2.imwrite("Plumes.jpg", GreenImage)
+    # cv2.imwrite("Image.jpg", img0)
+    # cv2.imwrite("Scaping.jpg", img)
+    # cv2.imwrite("Plumes.jpg", GreenImage)
     cv2.waitKey()
   
   return plumes, scape, necrotic
@@ -251,7 +251,36 @@ def Response_rank(fileName="Output_B05_F100_T999.jpg",folder="output"):
   cv2.imshow("img2", img2)
   cv2.waitKey()
   return plumes,scape,necroticCore
- 
+
+def Response():
+  ImageOpenCV("output/Output_B00_F010_T000.jpg",False):
+  ImageOpenCV("output/Output_B00_F010_T050.jpg",False):
+  ImageOpenCV("output/Output_B00_F010_T999.jpg",False):
+  ImageOpenCV("output/Output_B00_F050_T000.jpg",False):
+  ImageOpenCV("output/Output_B00_F050_T050.jpg",False):
+  ImageOpenCV("output/Output_B00_F050_T999.jpg",False):
+  ImageOpenCV("output/Output_B00_F100_T000.jpg",False):
+  ImageOpenCV("output/Output_B00_F100_T050.jpg",False):
+  ImageOpenCV("output/Output_B00_F100_T999.jpg",False):
+  ImageOpenCV("output/Output_B05_F010_T000.jpg",False):
+  ImageOpenCV("output/Output_B05_F010_T050.jpg",False):
+  ImageOpenCV("output/Output_B05_F010_T999.jpg",False):
+  ImageOpenCV("output/Output_B05_F050_T000.jpg",False):
+  ImageOpenCV("output/Output_B05_F050_T050.jpg",False):
+  ImageOpenCV("output/Output_B05_F050_T999.jpg",False):
+  ImageOpenCV("output/Output_B05_F100_T000.jpg",False):
+  ImageOpenCV("output/Output_B05_F100_T050.jpg",False):
+  ImageOpenCV("output/Output_B05_F100_T999.jpg",False):
+  ImageOpenCV("output/Output_B10_F010_T000.jpg",False):
+  ImageOpenCV("output/Output_B10_F010_T050.jpg",False):
+  ImageOpenCV("output/Output_B10_F010_T999.jpg",False):
+  ImageOpenCV("output/Output_B10_F050_T000.jpg",False):
+  ImageOpenCV("output/Output_B10_F050_T050.jpg",False):
+  ImageOpenCV("output/Output_B10_F050_T999.jpg",False):
+  ImageOpenCV("output/Output_B10_F100_T000.jpg",False):
+  ImageOpenCV("output/Output_B10_F100_T050.jpg",False):
+  ImageOpenCV("output/Output_B10_F100_T999.jpg",False):
+  
 def Plot(X,Data,Percent):
   Perc = Percent*np.ones(Data.shape[0])
   plt.plot(X,Data)
