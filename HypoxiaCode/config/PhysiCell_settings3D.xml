@@ -142,18 +142,19 @@
 	    <tumor_radius type="double" units="micron">250.0</tumor_radius>
 		<persitence_timeHip type="double" units="min">3000.0</persitence_timeHip>
 		<uptake_rate type="double" units="1/min">10.0</uptake_rate>
-		<rate_KnToKp type="double" units="1/min">0.00363</rate_KnToKp>
-		<rate_KpToKn type="double" units="1/min">0.00107</rate_KpToKn>
+		<rate_KnToKp type="double" units="1/min">0.00363</rate_KnToKp><!-- 0.00129 --> 
+		<rate_KpToKn type="double" units="1/min">0.00107</rate_KpToKn><!-- 0.00061 --> 
 		<sigmaS type="double" units="mmHg">38.0</sigmaS>
 		<sigmaT type="double" units="mmHg">6.0</sigmaT>
-		<speed_red type="double" units="micron/min">0.2938</speed_red>
+		<speed_red type="double" units="micron/min">0.2938</speed_red> <!-- 0.2938 -->
 		<perst_time_red type="double" units="min">15.0</perst_time_red>
-		<bias_red type="double" units="dimensionless">0.1719</bias_red>
-		<speed_green type="double" units="micron/min">0.4755</speed_green>
+		<bias_red type="double" units="dimensionless">0.1719</bias_red><!-- 0.1719 -->
+		<speed_green type="double" units="micron/min">0.4755</speed_green><!-- 0.4755 -->
 		<perst_time_green type="double" units="min">15.0</perst_time_green>
-		<bias_green type="double" units="dimensionless">0.1791</bias_green>
+		<bias_green type="double" units="dimensionless">0.1791</bias_green><!-- 0.1791 --> 
         <fracResponse_green type="double" units="dimensionless">0.5</fracResponse_green> <!-- Not exact (more than one thread) -->
         <bias_greenResp type="double" units="dimensionless">0.5</bias_greenResp>
-        <model_stochastic type="bool">false</model_stochastic>
+        <hypoxyprobe type="bool">false</hypoxyprobe>
+		<sigma_Hp type="double" units="mmHg">7.0</sigma_Hp>
 	</user_parameters>
 </PhysiCell_settings>

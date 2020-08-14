@@ -436,14 +436,13 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 	static int degradation_rates_i = 3; 
 	
 	static int red_i = 0; 
-	static int green_i = 1; 
-
-	// immune are black
-	std::vector< std::string > output( 4, "black" ); 
-/*	
-	if( pCell->type == 1 )
-	{ return output; } 
-*/
+	static int green_i = 1;
+	
+        std::vector< std::string > output( 4, "black" ); 
+    
+	//Oxygen;
+        static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	double pO2 = (pCell->nearest_density_vector())[oxygen_i];
 
 	static int cyto_color_i = 4;
 	static int nuclear_color_i = 5;
@@ -456,20 +455,32 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 		int green = (int) round( pCell->custom_data.vector_variables[proteins_i].value[green_i] * 255.0); 
 
 		char szTempString [128];
-		sprintf( szTempString , "rgb(%u,%u,0)", red, green );
-		output[0].assign( szTempString );
-		output[1].assign( szTempString );
+        if (pO2 > parameters.doubles["sigma_Hp"].value || parameters.bools["hypoxyprobe"].value == false){
+            sprintf( szTempString , "rgb(%u,%u,0)", red, green );
+            output[0].assign( szTempString );
+            output[1].assign( szTempString );
 
-		sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/2.0) , (int)round(output[0][1]/2.0) , (int)round(output[0][2]/2.0) );
-		output[2].assign( szTempString );
-		
-		pCell->custom_data.vector_variables[cyto_color_i].value[0] = red; 
-		pCell->custom_data.vector_variables[cyto_color_i].value[1] = green; 
-		pCell->custom_data.vector_variables[cyto_color_i].value[2] = 0.0; 
-		
-		pCell->custom_data.vector_variables[nuclear_color_i].value[0] = red / 2.0; 
-		pCell->custom_data.vector_variables[nuclear_color_i].value[1] = green / 2.0; 
-		pCell->custom_data.vector_variables[nuclear_color_i].value[2] = 0.0 / 2.0; 
+            sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/2.0) , (int)round(output[0][1]/2.0) , (int)round(output[0][2]/2.0) );
+            output[2].assign( szTempString );
+            
+            pCell->custom_data.vector_variables[cyto_color_i].value[0] = red; 
+            pCell->custom_data.vector_variables[cyto_color_i].value[1] = green; 
+            pCell->custom_data.vector_variables[cyto_color_i].value[2] = 0.0; 
+            
+            pCell->custom_data.vector_variables[nuclear_color_i].value[0] = red / 2.0; 
+            pCell->custom_data.vector_variables[nuclear_color_i].value[1] = green / 2.0; 
+            pCell->custom_data.vector_variables[nuclear_color_i].value[2] = 0.0 / 2.0; 
+        }
+        else{
+            output[0] = "rgb(128,0,128)";
+		    output[2] = "rgb(64,0,64)";
+            pCell->custom_data.vector_variables[cyto_color_i].value[0] = 128.0; 
+		    pCell->custom_data.vector_variables[cyto_color_i].value[1] = 0.0;
+            pCell->custom_data.vector_variables[cyto_color_i].value[2] = 128.0; 
+            pCell->custom_data.vector_variables[nuclear_color_i].value[0] = 64.0; 
+		    pCell->custom_data.vector_variables[nuclear_color_i].value[1] = 0.0;
+            pCell->custom_data.vector_variables[nuclear_color_i].value[2] = 64.0; 
+        }
 		
 		return output; 
 	}

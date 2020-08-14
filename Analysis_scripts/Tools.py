@@ -145,7 +145,7 @@ def ImageOpenCV(file="output/Output_B05_F100_T999.jpg",plot=True):
   
   #Necrotic cells
   necrotic = False
-  if( (np.sum(areas3)/np.sum(areas)) > 0.05):
+  if( (np.sum(areas3)/np.sum(areas)) > 0.06):
     necrotic = True
   
   #Scapping cells
@@ -157,8 +157,10 @@ def ImageOpenCV(file="output/Output_B05_F100_T999.jpg",plot=True):
   ellipseB = (h,k),(ma,MA),angle 
   cv2.ellipse(morph_img4,ellipseB,(0,0,0),-1)
   contours4,_ = cv2.findContours(morph_img4,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+  # cv2.imshow("Fig1", morph_img4)
+  # cv2.waitKey()  
   areas4 = [cv2.contourArea(c) for c in contours4]
-  if (np.sum(areas4) > 7.0):
+  if (np.sum(areas4) > 70.0):
     scape = True
     for ind in range(0,len(contours4)): 
       x = np.mean(contours4[ind][:,0,0])
@@ -167,6 +169,7 @@ def ImageOpenCV(file="output/Output_B05_F100_T999.jpg",plot=True):
 
   #Plumes test
   plumes = False
+  count = 0
   if (len(sorted_areas2) > 0): 
     (h,k),(ma,MA),angle = ellipseA2
     angle = angle*np.pi/180.0
@@ -175,7 +178,7 @@ def ImageOpenCV(file="output/Output_B05_F100_T999.jpg",plot=True):
       p = (((x - h)*np.cos(angle) + (y-k)*np.sin(angle))**2 / ((0.5*ma)**2)) +  (((x - h)*np.sin(angle) - (y-k)*np.cos(angle))**2 / ((0.5*MA)**2))
       if (p > 1.0): 
         dist = estimate_distance(x, y, 0.5*MA, 0.5*ma, x0=h, y0=k, angle=0, error=1e-5)
-        tol =15.0
+        tol =35.0
         if (dist >  tol):
           #print("Point: "+str(x)+" "+str(y)+" P: "+str(p)+" Dist: "+str(dist))
           #cv2.circle(img,(int(x),int(y)),4,(0,200,0),-1)
@@ -206,8 +209,8 @@ def ImageOpenCV(file="output/Output_B05_F100_T999.jpg",plot=True):
     #cv2.imshow("morph_img2",morph_img2)
     #cv2.imshow("morph_img3",morph_img3)
     cv2.imshow("img0", img0)
-    cv2.imshow("img", img)
-    cv2.imshow("Green", GreenImage)
+    #cv2.imshow("img", img)
+    #cv2.imshow("Green", GreenImage)
     # cv2.imwrite("Image.jpg", img0)
     # cv2.imwrite("Scaping.jpg", img)
     # cv2.imwrite("Plumes.jpg", GreenImage)
@@ -253,33 +256,177 @@ def Response_rank(fileName="Output_B05_F100_T999.jpg",folder="output"):
   return plumes,scape,necroticCore
 
 def Response():
-  ImageOpenCV("output/Output_B00_F010_T000.jpg",False):
-  ImageOpenCV("output/Output_B00_F010_T050.jpg",False):
-  ImageOpenCV("output/Output_B00_F010_T999.jpg",False):
-  ImageOpenCV("output/Output_B00_F050_T000.jpg",False):
-  ImageOpenCV("output/Output_B00_F050_T050.jpg",False):
-  ImageOpenCV("output/Output_B00_F050_T999.jpg",False):
-  ImageOpenCV("output/Output_B00_F100_T000.jpg",False):
-  ImageOpenCV("output/Output_B00_F100_T050.jpg",False):
-  ImageOpenCV("output/Output_B00_F100_T999.jpg",False):
-  ImageOpenCV("output/Output_B05_F010_T000.jpg",False):
-  ImageOpenCV("output/Output_B05_F010_T050.jpg",False):
-  ImageOpenCV("output/Output_B05_F010_T999.jpg",False):
-  ImageOpenCV("output/Output_B05_F050_T000.jpg",False):
-  ImageOpenCV("output/Output_B05_F050_T050.jpg",False):
-  ImageOpenCV("output/Output_B05_F050_T999.jpg",False):
-  ImageOpenCV("output/Output_B05_F100_T000.jpg",False):
-  ImageOpenCV("output/Output_B05_F100_T050.jpg",False):
-  ImageOpenCV("output/Output_B05_F100_T999.jpg",False):
-  ImageOpenCV("output/Output_B10_F010_T000.jpg",False):
-  ImageOpenCV("output/Output_B10_F010_T050.jpg",False):
-  ImageOpenCV("output/Output_B10_F010_T999.jpg",False):
-  ImageOpenCV("output/Output_B10_F050_T000.jpg",False):
-  ImageOpenCV("output/Output_B10_F050_T050.jpg",False):
-  ImageOpenCV("output/Output_B10_F050_T999.jpg",False):
-  ImageOpenCV("output/Output_B10_F100_T000.jpg",False):
-  ImageOpenCV("output/Output_B10_F100_T050.jpg",False):
-  ImageOpenCV("output/Output_B10_F100_T999.jpg",False):
+  Plumes = np.zeros(27)
+  EscCell = np.zeros(27)
+  NecCore = np.zeros(27)
+  
+  Bias = ["00","05","10"]
+  Fraction = ["010","050","100"]
+  TimePers = ["000","050","999"]
+
+  index1 = []
+  index2 = []
+  index3 = []
+  index4 = []
+  index5 = []
+  index6 = []
+  index7 = []
+  index8 = []
+  index9 = []
+  
+  for n in range(len(Plumes)):
+    if (n < 9):
+      File = "output/Output_B"+Bias[0]
+      index1.append(int(n))
+    if ( (n>=9) & (n<18) ):
+      File = "output/Output_B"+Bias[1]
+      index2.append(int(n))
+    if (n>=18):
+      File = "output/Output_B"+Bias[2]
+      index3.append(int(n))
+    if (n%9 < 3):
+      File += "_F"+Fraction[0]
+      index4.append(int(n))
+    if ( (n%9 >= 3) & (n%9 < 6) ):
+      File += "_F"+Fraction[1]
+      index5.append(int(n))
+    if (n%9 >= 6):
+      File += "_F"+Fraction[2]
+      index6.append(int(n))
+    if (n%3 == 0):
+      File += "_T"+TimePers[0]
+      index7.append(int(n))
+    if (n%3 == 1):
+      File += "_T"+TimePers[1]
+      index8.append(int(n))
+    if (n%3 == 2):
+      File += "_T"+TimePers[2]
+      index9.append(int(n))
+    File += ".jpg"
+    Plumes[n], EscCell[n], NecCore[n] = ImageOpenCV(File,False)
+    print(str(n)+" - "+File +" "+str(Plumes[n])+" "+str(EscCell[n])+" "+str(NecCore[n]))
+  # print(index1)
+  # print(index2)
+  # print(index3)
+  # print(index4)
+  # print(index5)
+  # print(index6)
+  # print(index7)
+  # print(index8)
+  # print(index9)
+
+  # print("Bias: "+ Bias[0] + " Result"+ "-- Plumes:" +str(np.sum(Plumes[index1])/9.0) + " Escape: "+ str(np.sum(EscCell[index1])/9.0)+ " NecCore: "+ str(np.sum(NecCore[index1])/9.0))
+  # print("Bias: "+ Bias[1] + " Result"+ "-- Plumes:" +str(np.sum(Plumes[index2])/9.0) + " Escape: "+ str(np.sum(EscCell[index2])/9.0)+ " NecCore: "+ str(np.sum(NecCore[index2])/9.0))
+  # print("Bias: "+ Bias[2] + " Result"+ "-- Plumes:" +str(np.sum(Plumes[index3])/9.0) + " Escape: "+ str(np.sum(EscCell[index3])/9.0)+ " NecCore: "+ str(np.sum(NecCore[index3])/9.0))
+  # print("Frac: "+ Fraction[0] + " Result"+ "-- Plumes:" +str(np.sum(Plumes[index4])/9.0) + " Escape: "+ str(np.sum(EscCell[index4])/9.0)+ " NecCore: "+ str(np.sum(NecCore[index4])/9.0))
+  # print("Frac: "+ Fraction[1] + " Result"+ "-- Plumes:" +str(np.sum(Plumes[index5])/9.0) + " Escape: "+ str(np.sum(EscCell[index5])/9.0)+ " NecCore: "+ str(np.sum(NecCore[index5])/9.0))
+  # print("Frac: "+ Fraction[2] + " Result"+ "-- Plumes:" +str(np.sum(Plumes[index6])/9.0) + " Escape: "+ str(np.sum(EscCell[index6])/9.0)+ " NecCore: "+ str(np.sum(NecCore[index6])/9.0))
+  # print("Time: "+ TimePers[0] + " Result"+ "-- Plumes:" +str(np.sum(Plumes[index7])/9.0) + " Escape: "+ str(np.sum(EscCell[index7])/9.0)+ " NecCore: "+ str(np.sum(NecCore[index7])/9.0))
+  # print("Time: "+ TimePers[1] + " Result"+ "-- Plumes:" +str(np.sum(Plumes[index8])/9.0) + " Escape: "+ str(np.sum(EscCell[index8])/9.0)+ " NecCore: "+ str(np.sum(NecCore[index8])/9.0))
+  # print("Time: "+ TimePers[2] + " Result"+ "-- Plumes:" +str(np.sum(Plumes[index9])/9.0) + " Escape: "+ str(np.sum(EscCell[index9])/9.0)+ " NecCore: "+ str(np.sum(NecCore[index9])/9.0))
+  
+  def discrete_matshow(data):
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    from matplotlib.colors import LinearSegmentedColormap
+    fig, ax = plt.subplots(figsize=(6.5 ,7))
+    #get discrete colormap
+    #cmap = plt.get_cmap('RdGy', np.max(data)-np.min(data)+1)
+    cm = LinearSegmentedColormap.from_list('MyBarColor', [(0.5,0.5,0.5),(0,0,0)], N=2)
+    cmap = plt.get_cmap('RdGy', np.max(data)-np.min(data)+1)
+    # set limits .5 outside true range
+    mat = ax.matshow(data,cmap=cm,vmin = np.min(data)-.5, vmax = np.max(data)+.5,aspect='auto')
+    #tell the colorbar to tick at integers
+    divider = make_axes_locatable(ax)
+    bar = divider.append_axes("right", size="5%", pad=0.1)
+    cax = plt.colorbar(mat, ticks=[0,1], cax=bar)
+    cax.ax.set_yticklabels(['False', 'True'],fontsize=14)
+    ax.set_xticks([2.5,5.5])
+    ax.set_xticklabels([])
+    ax.set_yticks([0.5,1.5])
+    ax.set_yticklabels([])
+    ax.set_xticks([0.5,1.5,3.5,4.5,6.5,7.5], minor=True)
+    plt.text(-39.8, 1.55, 'Plumes', fontsize=12,rotation=90)
+    plt.text(-35.4, 1.55, 'Escape', fontsize=12,rotation=90)
+    plt.text(-31, 1.55, 'Necrotic', fontsize=12,rotation=90)
+    plt.text(-26.6, 1.55, 'Plumes', fontsize=12,rotation=90)
+    plt.text(-22.2, 1.55, 'Escape', fontsize=12,rotation=90)
+    plt.text(-17.8, 1.55, 'Necrotic', fontsize=12,rotation=90)
+    plt.text(-13.4, 1.55, 'Plumes', fontsize=12,rotation=90)
+    plt.text(-9.0, 1.55, 'Escape', fontsize=12,rotation=90)
+    plt.text(-4.6, 1.55, 'Necrotic', fontsize=12,rotation=90)
+    #T_p
+    plt.text(-37.6, -0.58, '$T_p = 0h$', fontsize=14)
+    plt.text(-24.95, -0.58, '$T_p = 50h$', fontsize=14)
+    plt.text(-12.5, -0.58, '$T_p = >130h$', fontsize=14)
+    #Bias \u03C6
+    plt.text(-43.4, 1.05, '$\u03C6 = 1.0$', fontsize=14,rotation=90)
+    plt.text(-43.4, 0.4, '$\u03C6 = 0.5$', fontsize=14,rotation=90)
+    plt.text(-43.4, -0.25, '$\u03C6 = 0.1$', fontsize=14,rotation=90)
+    ax.grid(which='minor', linewidth=1)
+    ax.grid(color='w', linewidth=2)
+    plt.show()
+    
+
+  #generate data
+  a = np.zeros((3, 9))
+  a[0,0::3] = Plumes[index4[-3:]]
+  a[0,1::3] = EscCell[index4[-3:]]
+  a[0,2::3] = NecCore[index4[-3:]]
+  
+  a[1,0::3] = Plumes[index4[3:6]]
+  a[1,1::3] = EscCell[index4[3:6]]
+  a[1,2::3] = NecCore[index4[3:6]]
+  
+  a[2,0::3] = Plumes[index4[0:3]]
+  a[2,1::3] = EscCell[index4[0:3]]
+  a[2,2::3] = NecCore[index4[0:3]]
+  # print(index4)
+  # print(index4[-3:])
+  # print(index4[3:6])
+  # print(index4[0:3])
+  # print(a)
+  discrete_matshow(a)
+  
+  b = np.zeros((3, 9))
+  b[0,0::3] = Plumes[index5[-3:]]
+  b[0,1::3] = EscCell[index5[-3:]]
+  b[0,2::3] = NecCore[index5[-3:]]
+  
+  
+  b[1,0::3] = Plumes[index5[3:6]]
+  b[1,1::3] = EscCell[index5[3:6]]
+  b[1,2::3] = NecCore[index5[3:6]]
+ 
+  
+  b[2,0::3] = Plumes[index5[0:3]]
+  b[2,1::3] = EscCell[index5[0:3]]
+  b[2,2::3] = NecCore[index5[0:3]]
+  # print(index5)
+  # print(index5[-3:])
+  # print(index5[3:6])
+  # print(index5[0:3])
+  # print(b)
+  discrete_matshow(b)
+  
+  c = np.zeros((3, 9))
+  c[0,0::3] = Plumes[index6[-3:]]
+  c[0,1::3] = EscCell[index6[-3:]]
+  c[0,2::3] = NecCore[index6[-3:]]
+  
+  c[1,0::3] = Plumes[index6[3:6]]
+  c[1,1::3] = EscCell[index6[3:6]]
+  c[1,2::3] = NecCore[index6[3:6]]
+  
+  c[2,0::3] = Plumes[index6[0:3]]
+  c[2,1::3] = EscCell[index6[0:3]]
+  c[2,2::3] = NecCore[index6[0:3]]
+  # print(index6)
+  # print(index6[-3:])
+  # print(index6[3:6])
+  # print(index6[0:3])
+  # print(c)
+  discrete_matshow(c)
+  
   
 def Plot(X,Data,Percent):
   Perc = Percent*np.ones(Data.shape[0])
@@ -418,15 +565,24 @@ def RankSim(Cut,par):
   Parameter = np.zeros((len(Folders),3))
   for n in range(len(Folders)):
     folder = 'outputRank/'+Folders[n]
-    if (n < 9): Parameter[n,0] = 0.0
-    if ( (n>=9) & (n<18) ): Parameter[n,0] = 1.0
-    if (n>=18): Parameter[n,0] = 0.5
-    if (n%9 < 3): Parameter[n,1] = 0.1
-    if ( (n%9 >= 3) & (n%9 < 6) ): Parameter[n,1] = 1.0
-    if (n%9 >= 6): Parameter[n,1] = 0.5
-    if (n%3 == 0): Parameter[n,2] = 0.0
-    if (n%3 == 1): Parameter[n,2] = 50.0
-    if (n%3 == 2): Parameter[n,2] = 130.0
+    if (n < 9): 
+      Parameter[n,0] = 0.0
+    if ( (n>=9) & (n<18) ): 
+      Parameter[n,0] = 1.0
+    if (n>=18): 
+      Parameter[n,0] = 0.5
+    if (n%9 < 3): 
+      Parameter[n,1] = 0.1
+    if ( (n%9 >= 3) & (n%9 < 6) ):
+      Parameter[n,1] = 1.0
+    if (n%9 >= 6): 
+      Parameter[n,1] = 0.5
+    if (n%3 == 0):
+      Parameter[n,2] = 0.0
+    if (n%3 == 1):
+      Parameter[n,2] = 50.0
+    if (n%3 == 2):
+      Parameter[n,2] = 130.0
     Output[n,:] = Response_rank("snapshot00000100.jpg",folder)
 
   ind = np.argwhere( Parameter[:,par] == Cut)

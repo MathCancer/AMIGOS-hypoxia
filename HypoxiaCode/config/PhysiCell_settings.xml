@@ -83,7 +83,7 @@
 	</domain>
 	
 	<overall>
-		<max_time units="min">60</max_time> 
+		<max_time units="min">7200</max_time> 
 		<time_units>min</time_units>
 		<space_units>micron</space_units>	
 		
@@ -100,12 +100,12 @@
 		<folder>output</folder> <!-- use . for root --> 
 
 		<full_data>
-			<interval units="min">60</interval>
+			<interval units="min">600</interval>
 			<enable>true</enable>
 		</full_data>
 		
 		<SVG>
-			<interval units="min">60</interval>
+			<interval units="min">600</interval>
 			<enable>true</enable>
 		</SVG>
 		
@@ -138,22 +138,26 @@
 		</options>
 	</microenvironment_setup>
 	
-	<user_parameters>
-	    <tumor_radius type="double" units="micron">250.0</tumor_radius>
-		<persitence_timeHip type="double" units="min">3000.0</persitence_timeHip>
-		<uptake_rate type="double" units="1/min">10.0</uptake_rate>
-		<rate_KnToKp type="double" units="1/min">0.00363</rate_KnToKp><!-- 0.00129 --> 
-		<rate_KpToKn type="double" units="1/min">0.00107</rate_KpToKn><!-- 0.00061 --> 
-		<sigmaS type="double" units="mmHg">38.0</sigmaS>
-		<sigmaT type="double" units="mmHg">6.0</sigmaT>
-		<speed_red type="double" units="micron/min">0.2938</speed_red> <!-- 0.2938 -->
-		<perst_time_red type="double" units="min">15.0</perst_time_red>
-		<bias_red type="double" units="dimensionless">0.1719</bias_red><!-- 0.1719 -->
-		<speed_green type="double" units="micron/min">0.4755</speed_green><!-- 0.4755 -->
-		<perst_time_green type="double" units="min">15.0</perst_time_green>
-		<bias_green type="double" units="dimensionless">0.1791</bias_green><!-- 0.1791 --> 
-        <fracResponse_green type="double" units="dimensionless">0.5</fracResponse_green> <!-- Not exact (more than one thread) -->
-        <bias_greenResp type="double" units="dimensionless">0.5</bias_greenResp>
-        <model_stochastic type="bool">false</model_stochastic>
-	</user_parameters>
+	<user_parameters>	    
+		<persitence_timeHip type="double" units="min" description="phenotype persistence time of GFP+ cells">3000.0</persitence_timeHip>
+		<fracResponse_green type="double" units="dimensionless" description="fraction of GFP+ cells with different motility bias (bias_greenResp)">0.5</fracResponse_green>
+        <bias_greenResp type="double" units="dimensionless" description="motility bias for GFP + cells (for fracResponse_green)">0.5</bias_greenResp>
+        <hypoxyprobe type="bool" description="mark with hypoxyprobe">true</hypoxyprobe>
+		<sigma_Hp type="double" units="mmHg" description="oxygen pressure threshold to mark hypoxyprobe (&#62; sigma_T and &#60; sigma_H)">7.0</sigma_Hp>
+		<speed_red type="double" units="micron/min" description="motility speed for DsRed+ cells">0.2938</speed_red>
+		<perst_time_red type="double" units="min" description="motility persistence time for DsRed+ cells">15.0</perst_time_red>
+		<bias_red type="double" units="dimensionless" description="motility bias for DsRed+ cells">0.1719</bias_red>
+		<speed_green type="double" units="micron/min" description="motility speed for GFP+ cells">0.4755</speed_green>
+		<perst_time_green type="double" units="min" description="motility persistence time for GFP+ cells">15.0</perst_time_green>
+		<bias_green type="double" units="dimensionless" description="motility bias for GFP+ cells">0.1791</bias_green>  
+        <tumor_radius type="double" units="micron" description="initial tumor radius">250.0</tumor_radius>
+       <uptake_rate type="double" units="1/min" description="uptake rates for the oxygen">10.0</uptake_rate>
+        <rate_KnToKp type="double" units="1/min" description="transition rate from Ki67- to Ki67+ (for saturated signal)">0.00363</rate_KnToKp>
+		<rate_KpToKn type="double" units="1/min" description="transition rate from Ki67+ to Ki67-">0.00107</rate_KpToKn>
+        <sigma_S type="double" units="mmHg" description="oxygen pressure threshold to signal proliferation saturation">38.0</sigma_S>
+		<sigma_T type="double" units="mmHg" description="min oxygen pressure to signal proliferation">6.0</sigma_T>
+        <sigma_H type="double" units="mmHg" description="oxygen pressure threshold to signal hypoxia">10.0</sigma_H>
+        <production_rate type="double" units="1/min" description="protein production rate">4.8e-4</production_rate>
+        <degradation_rate type="double" units="1/min" description="protein degradation rate">6.8e-5</degradation_rate>
+    </user_parameters>
 </PhysiCell_settings>

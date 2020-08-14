@@ -83,7 +83,7 @@
 	</domain>
 	
 	<overall>
-		<max_time units="min">7800</max_time> <!-- 5 days * 24 h * 60 min-->
+		<max_time units="min">6000</max_time> 
 		<time_units>min</time_units>
 		<space_units>micron</space_units>	
 		
@@ -155,7 +155,9 @@
 		<perst_time_green type="double" units="min">15.0</perst_time_green>
 		<bias_green type="double" units="dimensionless">0.1791</bias_green><!-- 0.1791 --> 
         <model_transient type="bool">false</model_transient>
-        <fracResponse_green type="double" units="dimensionless">0.01</fracResponse_green> <!-- Not exact (more than one thread) -->
+        <fracResponse_green type="double" units="dimensionless">0.5</fracResponse_green> <!-- Not exact (more than one thread) -->
         <bias_greenResp type="double" units="dimensionless">0.5</bias_greenResp>
-	</user_parameters>
+		<hypoxyprobe type="bool">false</hypoxyprobe>
+		<sigma_Hp type="double" units="mmHg">7.0</sigma_Hp>
+</user_parameters>
 </PhysiCell_settings>

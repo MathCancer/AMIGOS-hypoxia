@@ -66,21 +66,13 @@
 
 void create_cell_types( void )
 {
-	// use the same random seed so that future experiments have the 
-	// same initial histogram of oncoprotein, even if threading means 
-	// that future division and other events are still not identical 
-	// for all runs 
 	SeedRandom(0); 
 	
 	int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" );
 	
 	// housekeeping 
-	
 	initialize_default_cell_definition();
 	cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment ); 
-	
-	// turn the default cycle model to live, 
-	// so it's easier to turn off proliferation
 	
 	cell_defaults.phenotype.cycle.sync_to_cycle_model( Ki67_basic ); 
 	
@@ -91,16 +83,11 @@ void create_cell_types( void )
         cell_defaults.phenotype.motility.restrict_to_2D = true;
     }
 	
-	// use default proliferation and death 
-	
-	/* int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
-	int cycle_end_index = live.find_phase_index( PhysiCell_constants::live );  */
-	
 	int apoptosis_index = cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model );
 	
-	cell_defaults.parameters.o2_proliferation_saturation = parameters.doubles["sigmaS"].value; 
+	cell_defaults.parameters.o2_proliferation_saturation = parameters.doubles["sigma_S"].value; 
 	cell_defaults.parameters.o2_reference = cell_defaults.parameters.o2_proliferation_saturation;
-	cell_defaults.parameters.o2_proliferation_threshold = parameters.doubles["sigmaT"].value;
+	cell_defaults.parameters.o2_proliferation_threshold = parameters.doubles["sigma_T"].value;
 	cell_defaults.parameters.o2_necrosis_threshold = cell_defaults.parameters.o2_proliferation_threshold;
 	cell_defaults.parameters.o2_necrosis_max = cell_defaults.parameters.o2_proliferation_threshold;
 	
@@ -117,7 +104,7 @@ void create_cell_types( void )
 	
 	// set default uptake and secretion 
 	// oxygen 
-	cell_defaults.phenotype.secretion.secretion_rates[oxygen_i] = 0; 
+	cell_defaults.phenotype.secretion.secretion_rates[oxygen_i] = 0.0; 
 	cell_defaults.phenotype.secretion.uptake_rates[oxygen_i] = parameters.doubles["uptake_rate"].value;
 
 	// set the default cell type to no phenotype updates 
@@ -132,17 +119,11 @@ void create_cell_types( void )
 	std::vector<double> genes = { 1.0, 0.0 }; // RFP, GFP 
 	std::vector<double> proteins = {1.0, 0.0 }; // RFP, GFP; 
 	
-	double default_degradation_rate = 6.8e-5; // 7-day half-life 
-	// 4.8e-4; // 24 hour half-life 
-	// 0.0077; // 90 minute half-life 
-	// 0.019; // 90% degrades in 120 minutes 
+	double default_degradation_rate = parameters.doubles["degradation_rate"].value;
 	
 	std::vector<double> degradation_rates = { default_degradation_rate , default_degradation_rate }; 
 	
-	double default_production_rate = 4.8e-4; // 24 hour half ramp-up 
-	// 0.0019; // 6 hours to reach 50% 
-	// 0.0068; // 1.7 hours to reach 50% 
-	// 0.23; // 10 minutes to reach 90% 
+	double default_production_rate = parameters.doubles["production_rate"].value;
 	
 	std::vector<double> creation_rates = { default_production_rate , default_production_rate }; 
 	
@@ -157,8 +138,6 @@ void create_cell_types( void )
     std::vector<double> color = {255, 255, 255};
 	cell_defaults.custom_data.add_vector_variable( "nuclear_color" , "dimensionless", color ); 
 	cell_defaults.custom_data.add_vector_variable( "cytoplasmic_color" , "dimensionless", color ); 
-	
-	//cell_defaults.phenotype.mechanics.cell_cell_repulsion_strength *= 5.0;
 	
 	return; 
 }
@@ -298,7 +277,6 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
     //Update proliferation rate
 	double pO2 = (pCell->nearest_density_vector())[oxygen_i];
     double multiplier = 1.0;
-	//if( pO2 < pCell->parameters.o2_proliferation_threshold || pCell->state.simple_pressure > 1.0)
 	if( pO2 < pCell->parameters.o2_proliferation_threshold)
     { 
         multiplier = 0.0;
@@ -326,10 +304,8 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		return; 
 	}
 
-	// set genes 
-	
-	static double FP_hypoxic_switch = 10.0;
-	static double phenotype_hypoxic_switch = 10.0;  // 
+	// set genes 	
+	static double FP_hypoxic_switch = parameters.doubles["sigma_H"].value;
 	
 	// permanent gene switch 
 	if( pO2 < FP_hypoxic_switch )
@@ -354,8 +330,11 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
 		pCell->custom_data.vector_variables[proteins_i].value[i] /= temp; // P_i = ( P_i + dt*G_i^n ( alpha_i + beta_i ) ) / ( 1.0 + dt*( G_i^n * alpha_i + beta_i ) ); 
 	}
 	
-	if( pO2 < phenotype_hypoxic_switch)
+	if( pO2 < FP_hypoxic_switch)
 	{
+        phenotype.motility.is_motile = true; 
+        phenotype.motility.migration_speed = parameters.doubles["speed_green"].value;
+        phenotype.motility.persistence_time = parameters.doubles["perst_time_green"].value;
         // Fraction of green cells
         int countGreenCells = 0; int countGreenCellsM = 0;
         for(int i=0;i<all_cells->size();i++){ 
@@ -365,9 +344,7 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
             }
         }
         double fractionGreenCells = countGreenCellsM/(1.0*countGreenCells);
-        phenotype.motility.is_motile = true; 
-        phenotype.motility.migration_speed = parameters.doubles["speed_green"].value;
-        phenotype.motility.persistence_time = parameters.doubles["perst_time_green"].value;
+        // Choose of the bias
         if(fractionGreenCells <= parameters.doubles["fracResponse_green"].value && parameters.doubles["fracResponse_green"].value != 0)
             phenotype.motility.migration_bias = parameters.doubles["bias_greenResp"].value;
         else{
@@ -379,19 +356,13 @@ void tumor_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt )
         // Just Green cells have a persistence time
 		if (phenotype.motility.is_motile == true && pCell->custom_data.vector_variables[genes_i].value[green_i] == 1.0)
 		{
-            if (parameters.bools["model_stochastic"].value){ //Stochastic model
-              static double probability = dt/parameters.doubles["persitence_timeHip"].value;
-              if( UniformRandom() < probability )
-			  {
-				  phenotype.motility.is_motile = false; 
-			  }
-            }else{ // Deterministic model
+
 			  pCell->custom_data[persistence_time_i]+= dt;
 			  if (pCell->custom_data[persistence_time_i] > parameters.doubles["persitence_timeHip"].value)
 			  {
 				  phenotype.motility.is_motile = false;
 			  }
-            }
+
 		}
 	}
 	
@@ -408,14 +379,13 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 	static int degradation_rates_i = 3; 
 	
 	static int red_i = 0; 
-	static int green_i = 1; 
+	static int green_i = 1;
 
-	// immune are black
-	std::vector< std::string > output( 4, "black" ); 
-/*	
-	if( pCell->type == 1 )
-	{ return output; } 
-*/
+    std::vector< std::string > output( 4, "black" ); 
+    
+	//Oxygen;
+    static int oxygen_i = get_default_microenvironment()->find_density_index( "oxygen" ); 
+	double pO2 = (pCell->nearest_density_vector())[oxygen_i];
 
 	static int cyto_color_i = 4;
 	static int nuclear_color_i = 5;
@@ -428,26 +398,38 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 		int green = (int) round( pCell->custom_data.vector_variables[proteins_i].value[green_i] * 255.0); 
 
 		char szTempString [128];
-		sprintf( szTempString , "rgb(%u,%u,0)", red, green );
-		output[0].assign( szTempString );
-		output[1].assign( szTempString );
+        // Mark hypoxyprobe
+        if (pO2 > parameters.doubles["sigma_Hp"].value || parameters.bools["hypoxyprobe"].value == false){
+            sprintf( szTempString , "rgb(%u,%u,0)", red, green );
+            output[0].assign( szTempString );
+            output[1].assign( szTempString );
 
-		sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/2.0) , (int)round(output[0][1]/2.0) , (int)round(output[0][2]/2.0) );
-		output[2].assign( szTempString );
-		
-		pCell->custom_data.vector_variables[cyto_color_i].value[0] = red; 
-		pCell->custom_data.vector_variables[cyto_color_i].value[1] = green; 
-		pCell->custom_data.vector_variables[cyto_color_i].value[2] = 0.0; 
-		
-		pCell->custom_data.vector_variables[nuclear_color_i].value[0] = red / 2.0; 
-		pCell->custom_data.vector_variables[nuclear_color_i].value[1] = green / 2.0; 
-		pCell->custom_data.vector_variables[nuclear_color_i].value[2] = 0.0 / 2.0; 
+            sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/2.0) , (int)round(output[0][1]/2.0) , (int)round(output[0][2]/2.0) );
+            output[2].assign( szTempString );
+            
+            pCell->custom_data.vector_variables[cyto_color_i].value[0] = red; 
+            pCell->custom_data.vector_variables[cyto_color_i].value[1] = green; 
+            pCell->custom_data.vector_variables[cyto_color_i].value[2] = 0.0; 
+            
+            pCell->custom_data.vector_variables[nuclear_color_i].value[0] = red / 2.0; 
+            pCell->custom_data.vector_variables[nuclear_color_i].value[1] = green / 2.0; 
+            pCell->custom_data.vector_variables[nuclear_color_i].value[2] = 0.0 / 2.0; 
+        }
+        else{
+            output[0] = "rgb(128,0,128)";
+		    output[2] = "rgb(64,0,64)";
+            pCell->custom_data.vector_variables[cyto_color_i].value[0] = 128.0; 
+		    pCell->custom_data.vector_variables[cyto_color_i].value[1] = 0.0;
+            pCell->custom_data.vector_variables[cyto_color_i].value[2] = 128.0; 
+            pCell->custom_data.vector_variables[nuclear_color_i].value[0] = 64.0; 
+		    pCell->custom_data.vector_variables[nuclear_color_i].value[1] = 0.0;
+            pCell->custom_data.vector_variables[nuclear_color_i].value[2] = 64.0; 
+        }
 		
 		return output; 
 	}
 
-	// if not, dead colors 
-	
+	// if not, dead colors 	
 	if (pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::apoptotic )  // Apoptotic - Red
 	{
 		output[0] = "rgb(255,0,0)";

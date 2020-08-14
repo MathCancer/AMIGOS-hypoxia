@@ -189,8 +189,8 @@ def PlotResult(Rposx, Rposy,RposxDat,RposyDat,Gposx, Gposy,GposxDat,GposyDat):
   DistModel =  np.sqrt(Rposx[-1,:]**2 +  Rposy[-1,:]**2) 
   sns.distplot(DistData,color='Gray',bins=range(0, int(max(DistData))+25, 25),kde=False,ax=ax2,label='Data')
   sns.distplot(DistModel,color='red',bins=range(0, int(max(DistData))+25, 25),kde=False,ax=ax2,label='Model')
-  ax2.set_xlabel('Displacement',fontsize='large')
-  ax2.set_ylabel('Frequency',fontsize='large')
+  ax2.set_xlabel('Displacement ($\mu m$)',fontsize=12)
+  ax2.set_ylabel('Frequency',fontsize=12)
   ax2.tick_params(labelsize='large')
   # Figure 3
   ax3.plot(r1*np.cos(theta), r1*np.sin(theta),'--',color='gray',alpha=1.0,linewidth=0.7)
@@ -221,7 +221,7 @@ def PlotResult(Rposx, Rposy,RposxDat,RposyDat,Gposx, Gposy,GposxDat,GposyDat):
   DistModel =  np.sqrt(Gposx[-1,:]**2 +  Gposy[-1,:]**2) 
   sns.distplot(DistData,color='Gray',bins=range(0, int(max(DistData))+25, 25),kde=False,ax=ax4)
   sns.distplot(DistModel,color='green',bins=range(0, int(max(DistData))+25, 25),kde=False,ax=ax4)
-  ax4.set_xlabel('Displacement',fontsize='large')
+  ax4.set_xlabel('Displacement ($\mu m$)',fontsize='large')
   ax4.set_ylabel('Frequency',fontsize='large')
   ax4.tick_params(labelsize='large')
   
