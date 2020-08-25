@@ -399,7 +399,7 @@ std::vector<std::string> AMIGOS_coloring_function( Cell* pCell )
 
 		char szTempString [128];
         // Mark hypoxyprobe
-        if (pO2 > parameters.doubles["sigma_Hp"].value || parameters.bools["hypoxyprobe"].value == false){
+        if (pO2 > parameters.doubles["sigma_H"].value || parameters.bools["hypoxyprobe"].value == false){
             sprintf( szTempString , "rgb(%u,%u,0)", red, green );
             output[0].assign( szTempString );
             output[1].assign( szTempString );

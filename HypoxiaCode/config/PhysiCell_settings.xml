@@ -100,12 +100,12 @@
 		<folder>output</folder> <!-- use . for root --> 
 
 		<full_data>
-			<interval units="min">7800</interval>
+			<interval units="min">60</interval>
 			<enable>true</enable>
 		</full_data>
 		
 		<SVG>
-			<interval units="min">7800</interval>
+			<interval units="min">60</interval>
 			<enable>true</enable>
 		</SVG>
 		
@@ -142,8 +142,7 @@
 		<persitence_timeHip type="double" units="min" description="phenotype persistence time of GFP+ cells">3000</persitence_timeHip>
 		<fracResponse_green type="double" units="dimensionless" description="fraction of GFP+ cells with different motility bias (bias_greenResp)">0.5</fracResponse_green>
         <bias_greenResp type="double" units="dimensionless" description="motility bias for GFP + cells (for fracResponse_green)">0.5</bias_greenResp>
-        <hypoxyprobe type="bool" description="mark with hypoxyprobe">true</hypoxyprobe>
-		<sigma_Hp type="double" units="mmHg" description="oxygen pressure threshold to mark hypoxyprobe (&#62; sigma_T and &#60; sigma_H)">10.0</sigma_Hp>
+        <hypoxyprobe type="bool" description="mark with hypoxyprobe">false</hypoxyprobe>
 		<speed_red type="double" units="micron/min" description="motility speed for DsRed+ cells">0.2938</speed_red>
 		<perst_time_red type="double" units="min" description="motility persistence time for DsRed+ cells">15.0</perst_time_red>
 		<bias_red type="double" units="dimensionless" description="motility bias for DsRed+ cells">0.1719</bias_red>
