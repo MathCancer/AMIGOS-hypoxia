@@ -1,0 +1,151 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[letterpaper,margin=0.5in,bottom=0.75in]{geometry}
+
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\newcommand{\oxy}{  {\textrm{pO}_2} }
+\newcommand{\oxyS}[1]{ \textrm{pO}_{2\textrm{,#1}} }
+\newcommand{\mmHg}{\: \textrm{mmHg} }
+\newcommand{\micron}{\:\mu\textrm{m} }
+
+\usepackage{graphicx}
+
+\newcommand{\beqa}{\begin{eqnarray}}
+\newcommand{\eeqa}{\end{eqnarray}}
+
+\newcommand{\beq}{\begin{equation}}
+\newcommand{\eeq}{\end{equation}}
+
+\pagestyle{plain}
+
+\begin{document}
+
+\section{Assumptions and Questions}
+\begin{enumerate}
+
+\item 
+A: All cells initially express RFP
+
+\item 
+A: Oxygen below 10 mmHg turns off expression of RFP, turns on expression of GFP
+
+\item 
+Q: What's a time scale for protein synthesis? (Early on, it's time to transcribe RNA, then synthesize protein. Later, it's time to just synthesize protein from already existent RNA.) 
+
+\item 
+Q: What's the time scale for protein degradation? 
+
+\item 
+Q: In 10 mmHg, does RFP gene get snipped out immediately and GFP gene enabled, or is there a mean time delay? 
+
+
+\end{enumerate}
+
+\section{Model}
+
+\subsection{Gene - Protein network}
+We will model a set of genes $\vec{G}$ that encode proteins $\vec{P}$ with the following model: 
+\begin{eqnarray}
+\frac{ d P_i }{dt} & = & \alpha_i G_i - \beta_i P_i, \hspace{.25in} i = 1, 2, \ldots 
+\end{eqnarray}
+where $\alpha_i$ is a protein creation rate, and $\beta_i$ is a protein degradation rate. (Notice that this 
+skips modeling RNA transcription.) We will assume throughout that $0 \le G_i \le 1$. 
+Here, we will model the following genes: \\
+
+\begin{center}
+\begin{tabular}{c|c|l}
+index & protein & notes \\
+ \hline 
+ 0 & RFP & default fluorescence \\
+ 1 & GFP & activated at $\oxy = 10 \mmHg $ 
+\end{tabular}
+\end{center}
+
+Gene expression can be modeled in any way. Here, we set $G_1 =1$ if $\oxy < 10 \mmHg$. 
+
+\subsubsection{Nondimensionalization}
+Let $\overline{P}$ be the maximum protein level with $G = 1$. Then by equilibrium analysis, 
+$\overline{P} = \frac{\alpha}{\beta}$. If we nondimensionalize the main ODE form, we get 
+\beqa
+\frac{dP_i}{dt} & = & \beta_i \left( G_i - P_i \right). 
+\eeqa
+This functional form sucks, because it doesn't let us set the rate of reaching near $P_i \sim 1$ independently 
+of the decay rate. Blech!
+
+\subsubsection{Better model and nondimensionalization}
+Now, suppose that $P^*$ is a protein value where negative feedback reduces either transcription or synthesis. Then 
+\beqa
+\frac{ dP_i }{dt } & = & \alpha_i G_i \left( P_i^* - P_i \right) - \beta_i P_i. 
+\eeqa
+By equilibrium analysis (and noting the maximum gene expression of $G_i = 1$, the maximum 
+equilibrium protein value is 
+\beqa
+\overline{P}_i & =& 
+\frac{\alpha_i }{\alpha_i + \beta_i } P_i^* = 
+\gamma_i P_i^*, 
+\eeqa
+where
+\beq
+\gamma_i = \frac{ \alpha_i }{ \alpha_i + \beta_i }. 
+\eeq
+
+
+If we nondimensionalize by this, we get: 
+\beqa
+\frac{ dP_i }{dt} & = & 
+% G_i \left( \alpha_i + \beta_i \right) - \left( \alpha_i G_i + \beta_i \right) P_i \nonumber \\
+\alpha_i G_i \left( \frac{1}{\gamma_i} - P_i \right) - \beta_i P_i, 
+\eeqa
+which has the expected (dimensionless) equilibria $P_i = 1$ if $G_i = 1$, 
+and $P_i = 0$ if $G_i = 0$. 
+
+Note that we can write this without $\gamma_i$ in the form 
+\beqa
+& = & 
+G_i \alpha_i \left( 1 - P_i \right) + \beta_i \left( G_i - P_i \right) .
+\eeqa
+In this form, $\alpha_i$ sets the rate of approaching the maximum protein expression (1) 
+when the gene is expressed, and $\beta_i$ sets the rate of decay when the gene is not expressed. 
+
+\subsubsection{Parameter estimates}
+Based upon experimental data, it takes GFP on the order of 1-1.5 days to double its brightness. 
+Let's suppose for now that it takes about 1 day to reach 50\% of its maximum value. 
+Then in the absence of degradation, we have 
+\beqa
+\frac{dP_i}{dt} & \approx & \alpha_i \left( 1 - P_i \right). 
+\eeqa
+So, if we want to reach $P_i = 0.5$ after 1440 min time, then 
+\beqa
+\alpha_i &  \sim & \frac{ \ln{2} }{ 1440 \mathrm{ min}} \approx 4.8e-4  \textrm{ min}^{-1}. 
+\eeqa
+Similarly, if $G_i = 0$, we can easily fit $\beta_i$. More experimental data suggests a 
+half life on the order of 7 days. Thus, 
+\beqa
+\beta_i & \sim & 6.9e-5 \textrm{ min}^{-1}.
+\eeqa
+
+\subsubsection{Simple implicit numerical scheme}
+Suppose that $P_i^n = P_i( t_n ) = P_i ( t_0 + n \Delta t)$. Then 
+\beqa
+P^{n+1}_i 
+& = & 
+\frac{ P_i^n + \Delta t G_i^n \left( \alpha_i + \beta_i \right) }{ 1 + \Delta t \left( \alpha_i G_i^n + \beta_i \right)}
+\eeqa
+
+\subsubsection{Optional: Gene switching}
+Suppose it takes on the order of 1 day in hypoxic conditions to switch from RFP to GFP genes. Then in any 
+time $[t , t+\Delta t]$ we have a probability of setting $G_0 = 0$ and $G_1 = 1$ given by 
+\beqa
+{\Delta t }{1440}. 
+\eeqa
+
+
+\subsection{Motility}
+
+
+
+\end{document}
+
+
